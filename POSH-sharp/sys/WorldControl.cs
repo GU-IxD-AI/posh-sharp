@@ -26,7 +26,7 @@ namespace POSH_sharp.sys
         /// <summary>
         /// Returns the agents initialisation structure.
         /// </summary>
-        public string [] agentsInit{get; private set;}
+        public Dictionary<string,object> agentsInit{get; private set;}
         public bool createsAgents{get; private set;}
 
         /// <summary>
@@ -43,11 +43,11 @@ namespace POSH_sharp.sys
         /// <param name="world_args">arguments to be given to the world initialisation script.</param>
         /// <param name="agentsInit">structure containing information to initialise the agents. as returned by
         /// L{POSH.agentinitparser.parse_agent_init_file}</param>
-        public World(string library, string[] worldArgs=null, string[] agentsInit = null)
+        public World(string library, string[] worldArgs=null, Dictionary<string,object> agentsInit = null)
         {
             this.library=library;
             this.args= (worldArgs == null) ? new string[] {} : worldArgs;
-            this.agentsInit = (agentsInit == null) ? new string[] {} : agentsInit;
+            this.agentsInit = (agentsInit == null) ? new Dictionary<string,object>() {} : agentsInit;
             this.createsAgents=false;
             
         }
@@ -76,6 +76,19 @@ namespace POSH_sharp.sys
     {
         int agentId = 0;
         
+        static WorldControl instance;
+
+        public static WorldControl GetControl()
+        {
+            if (instance is WorldControl)
+                return instance;
+            else
+            {
+                instance = new WorldControl();
+                return instance;
+            }
+
+        }
         
 
 
@@ -88,16 +101,16 @@ namespace POSH_sharp.sys
         /// </summary>
         public World world{private get; set;}
 
-        // HACK worldScript and AgentInit are from config which I have not found yet. Included both into world, maybe need moving
+        // HACK: worldScript and AgentInit are from config which I have not found yet. Included both into world, maybe need moving
         
         /// <summary>
-        /// worldScript is contained in the dll of a certain AI it is a executable object which sets certain elements
+        /// worldScript is contained in the dll of a certain AI it is an executable object which sets certain elements
         /// The first element is the contained dll the second the name of the type
         /// </summary>
         public Tuple<string,string> worldScript{get; private set;}
         public string agentInit{get; private set;}
         
-        // UNDONE possible idea is to create class inside the bot.dll containing the config object which holds all variables 
+        // UNDONE: possible idea is to create class inside the bot.dll containing the config object which holds all variables 
         /// <summary>
         /// config is a file containing a list of different environment variables
         /// </summary>
@@ -111,7 +124,7 @@ namespace POSH_sharp.sys
         /// module resides in the root path.
         /// </summary>
         /// <returns>Root path</returns>
-        string getRootPath()
+        public string getRootPath()
         {
             return Assembly.GetExecutingAssembly().Location;
         }
@@ -148,7 +161,7 @@ namespace POSH_sharp.sys
         /// <returns>If the given class is a subclass of L{POSH.Behaviour}</returns>
         bool isBehaviour(object o)
         {
-            return (o.GetType().BaseType is Behaviour);
+            return (o.GetType().IsSubclassOf(typeof(Behaviour)));
         }
 
         /// <summary>
@@ -174,9 +187,9 @@ namespace POSH_sharp.sys
                     result.Add(plan.Remove(end));
                 }
             } 
-            catch (IOException e)
+            catch (IOException)
             {
-                // TODO @swen: some clever log or comment here!!!
+                // TODO: @swen: some clever log or comment here!!!
             }
             return result.ToArray();
         }
@@ -187,7 +200,7 @@ namespace POSH_sharp.sys
         /// <param name="lib">The library that the plan is from</param>
         /// <param name="plan">The name of the plan (without the .lap ending)</param>
         /// <returns>The filename with full path of the plan</returns>
-        string getPlanFile(string lib, string plan)
+        public string getPlanFile(string lib, string plan)
         {
             string planPath=getPlanPath(lib);
             string [] plans={};
@@ -196,7 +209,7 @@ namespace POSH_sharp.sys
             try{
                 if (File.Exists(planPath))
                     plans=Directory.GetFiles(planPath,"*",SearchOption.AllDirectories);
-                int end; 
+                
                 foreach (string p in plans)
                 {
                     if (p.StartsWith(plan)){
@@ -205,9 +218,9 @@ namespace POSH_sharp.sys
                     }
                 }
             } 
-            catch (IOException e)
+            catch (IOException)
             {
-                // TODO @swen: some clever log or comment here!!!
+                // TODO: @swen: some clever log or comment here!!!
             }
             return result;
         }
@@ -301,7 +314,7 @@ namespace POSH_sharp.sys
         /// <param name="lib">Name of the library to find the classes for</param>
         /// <param name="log">A log object</param>
         /// <returns>The dictionary containing the Assembly dll name and the included Behaviour classes</returns>
-        Dictionary<string,List<string>> getBehaviours(string lib, ILog log=null)
+        public Dictionary<string,List<Type>> getBehaviours(string lib, ILog log=null)
         {
             // get list of python files is behaviour library
             if (log is ILog)
@@ -309,17 +322,17 @@ namespace POSH_sharp.sys
             string libraryPath = getLibraryPath(lib);
             string []files=Directory.GetFiles(libraryPath,"*.dll",SearchOption.TopDirectoryOnly);
             
-            Dictionary<string,List<string>> modules=new Dictionary<string,List<string>>();
+            Dictionary<string,List<Type>> modules=new Dictionary<string,List<Type>>();
  
             foreach (string f in files)
             {
                 Assembly a = Assembly.LoadFile(libraryPath+Path.PathSeparator+f);
                 foreach(Type t in a.GetTypes())
-                    if (t.BaseType is POSH_sharp.sys.Behaviour && t.Name != this.worldScript)
+                    if (t.IsClass && t.IsSubclassOf(typeof(POSH_sharp.sys.Behaviour)) && t.Name != this.worldScript.Second)
                         if (!modules.ContainsKey(a.FullName))
-                            modules.Add(a.FullName,new List<string> {t.Name});
+                            modules.Add(a.FullName,new List<Type> {t});
                         else
-                            modules[a.FullName].Add(t.Name);
+                            modules[a.FullName].Add(t);
             }
 
             return ( modules.Count > 0 ) ? modules : null;
@@ -347,7 +360,7 @@ namespace POSH_sharp.sys
         /// length of the number.
         /// </summary>
         /// <returns>Unique agent id</returns>
-        string uniqueAgendId()
+        public string uniqueAgendId()
         {
             return (agentId++).ToString();
         }
@@ -367,9 +380,9 @@ namespace POSH_sharp.sys
         /// <param name="worldArgs">arguments given to the world initialisation script</param>
         /// <param name="agentsInit">agent initialisation information structure</param>
         /// <returns>tuple (world object, if script created and ran agents)</returns>
-        Tuple<World,bool> runWorldScript(Tuple<string,string> scriptFile, string lib, string[] worldArgs = null , string [] agentsInit = null)
+        Tuple<World,bool> runWorldScript(Tuple<string,string> scriptFile, string lib, string[] worldArgs = null , Dictionary<string, object> agentsInit = null)
         {
-            // TODO @swen: agentsInit is a file containing environment variables possible switch to jason or some other xml notation
+            // TODO: @swen: agentsInit is a file containing environment variables possible switch to json or some other xml notation
             // @raise IOError: If it cannot file the script
             // @raise Exception: If the script causes an exception
 
@@ -380,13 +393,13 @@ namespace POSH_sharp.sys
             // the script starts importing other modules (don't know why). So both
             // arguments have to refer to the same object!
             
-            // TODO this script is not mentioned until now so I need to check what it does and replace its functionality
+            // TODO: this script is not mentioned until now so I need to check what it does and replace its functionality
             // variables = {'world' : w}
             // execfile(script_file, variables, variables)
             
             if (File.Exists(getLibraryPath(lib)+Path.PathSeparator+scriptFile.First))
             {
-                // UNCKECKED this is really complicated to call external Methods from Objects it will need to be checked
+                // UNCKECKED: this is really complicated to call external Methods from Objects it will need to be checked
                 // the idea was to have an external dll including the world setting and load this
                 Tuple<Type,object> worldInit = externalDllObjectCall(getLibraryPath(lib)+Path.PathSeparator+scriptFile.First,
                     scriptFile.Second,new object[] {world});
@@ -421,26 +434,25 @@ namespace POSH_sharp.sys
 
             return new Tuple<Type,object>(typeofObject,resultObject);
         }
-
-
+        // TODO: @swen currently the profiler does nothing because I removed mason, I shoudl think about including another framework maybe
+        // possible options would be netlogo,repast 
+        // There must be a better way (& place) to do this...
+        // Note, because jython (or maybe mason.jar) is currently 1.4, we need to be sure to compile our classes in 1.4 too
+          //  def compile_mason_java():
+          //import os
+          //ext1='.java'
+          //ext2='.class'
+          //dir = os.path.join(get_root_path(), config.MASONPATH)
+          //dir=get_root_path()+'/platform_files/MASON/'
+          //java_src=filter((lambda str:str!="__init__"),map((lambda str:str[:len(str)-len(ext1)]),filter((lambda str: str.endswith(ext1)),os.listdir(dir))))
+          //classes=filter((lambda str:str!="__init__$py"),map((lambda str:str[:len(str)-len(ext2)]),filter((lambda str:str.endswith(ext2)),os.listdir(dir))))
+   
+          //if java_src!=classes:
+          //      cmd = 'javac -target 1.4 -source 1.4 -cp %smason.jar %s*.java' % (dir,dir)
+          //      os.system(cmd)
     }
 
-    variables = {'world' : w}
-    execfile(script_file, variables, variables)
-    return (w._world, w._creates_agents)
 
-#There must be a better way (& place) to do this...
-#Note, because jython (or maybe mason.jar) is currently 1.4, we need to be sure to compile our classes in 1.4 too
-def compile_mason_java():
-      import os
-      ext1='.java'
-      ext2='.class'
-      dir = os.path.join(get_root_path(), config.MASONPATH)
-      dir=get_root_path()+'/platform_files/MASON/'
-      java_src=filter((lambda str:str!="__init__"),map((lambda str:str[:len(str)-len(ext1)]),filter((lambda str: str.endswith(ext1)),os.listdir(dir))))
-      classes=filter((lambda str:str!="__init__$py"),map((lambda str:str[:len(str)-len(ext2)]),filter((lambda str:str.endswith(ext2)),os.listdir(dir))))
-   
-      if java_src!=classes:
-            cmd = 'javac -target 1.4 -source 1.4 -cp %smason.jar %s*.java' % (dir,dir)
-            os.system(cmd)
+
+
 }

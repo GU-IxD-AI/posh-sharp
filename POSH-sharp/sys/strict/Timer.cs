@@ -38,7 +38,8 @@ namespace POSH_sharp.sys.strict
         ///<summary>
         ///This method resets the timer.
         ///</summary>
-        public void init(){
+        public TimerBase()
+        {
            reset();
         }
         ///<summary>
@@ -106,9 +107,9 @@ namespace POSH_sharp.sys.strict
     {
         private long _time;
 
-        public void init()
+        public SteppedTimer()
+            :base()
         {
-            base.init();
         }
 
         public void reset()
@@ -176,13 +177,14 @@ namespace POSH_sharp.sys.strict
         ///</param>
         /// The loop frequency is the one used by L{loopWait}.
         ///</summary>
-        public void init(long loopFreq){
+        public RealTimeTimer(long loopFreq)
+            :base()
+        {
 
         _base = 0;
         _lastReturn = 0;
         _procTime = new Queue<long>();
         _freq = loopFreq;
-        base.init();
         }
 
         ///<summary>

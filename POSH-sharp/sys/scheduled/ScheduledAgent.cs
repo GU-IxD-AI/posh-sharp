@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp
+namespace POSH_sharp.sys.scheduled
 {
-    public class Class1
+    class ScheduledAgent : AgentBase
     {
     }
 }

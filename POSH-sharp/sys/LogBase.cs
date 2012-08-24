@@ -19,11 +19,15 @@ namespace POSH_sharp.sys
     /// that inherits this class. This log variable is a logging object that is
     /// to be used for creating log messages.
     /// </summary>
-    
     class LogBase
     {
         public string logDomain {get; private set;}
         public ILog log {get; private set;}
+
+        /// <summary>
+        /// Returns a list of available attributes.
+        /// </summary>
+        public Dictionary<string, object> attributes {protected get; protected set; }
 
         /// <summary>
         /// Initialises the logger.
@@ -37,19 +41,18 @@ namespace POSH_sharp.sys
         /// logName has to be set to an empty string.
         /// </summary>
         /// <param name="agent">A POSH agent.
-        /// If agent is not given; null is expected, meaning the agent created the log
         /// </param>
         /// <param name="logName">Name of the logging domain, "" if called
         /// for the agent.</param>
         /// <param name="defaultLevel">The default logging level.</param>
-        public LogBase(string logName, AgentBase agent = null, Level defaultLevel = null)
-        {
+        public LogBase(string logName, AgentBase agent=null, Level defaultLevel = null)
+        { 
             // workaround for scheduled POSH, where not all plan elements are
             // initialised with an agent -> the given 'agent' attribute does
             // not have an id
 
             if (agent == null)
-                agent=((AgentBase)this);
+                agent = ((AgentBase)this);
             string agentId = agent.id != "" ? agent.id : "NOID";
 
             if (logName == ""){

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace POSH_sharp.sys.strict
 {
-    _intMatcher = re.compile(r'^(0|\-?[1-9]\d*|0[0-7]+|0[xX][0-9a-fA-F]+)[lL]?$')
-_floatMatcher = re.compile(r'^\-?(\d*\.\d+|\d+\.)([eE][\+\-]?\d+)?$')
-_boolMatcher = re.compile(r'^[Tt]rue|[Ff]alse$')
+//      _intMatcher = re.compile(r'^(0|\-?[1-9]\d*|0[0-7]+|0[xX][0-9a-fA-F]+)[lL]?$')
+//      _floatMatcher = re.compile(r'^\-?(\d*\.\d+|\d+\.)([eE][\+\-]?\d+)?$')
+//      _boolMatcher = re.compile(r'^[Tt]rue|[Ff]alse$')
 
 
 
@@ -15,8 +15,14 @@ _boolMatcher = re.compile(r'^[Tt]rue|[Ff]alse$')
     /// A sense / sense-act as a thin wrapper around a behaviour's
     /// sense / sense-act method.
     /// </summary>
-    class Sense
+    class Sense : CopiableElement
     {
+        BehaviourDict behaviourDict;
+        private Tuple<string,Behaviour> sense;
+        protected internal Behaviour behaviour;
+        private object value;
+        string predicate;
+
         /// <summary>
         /// Picks the given sense or sense-act from the given agent.
         ///
@@ -28,114 +34,67 @@ _boolMatcher = re.compile(r'^[Tt]rue|[Ff]alse$')
         /// The sense name is set to "[BehaviourName].[sense_name]".
         /// </summary>
         /// <param name="agent">The agent that can use the sense.</param>
-        /// <param name="sense_name">The name of the sense</param>
+        /// <param name="senseName">The name of the sense</param>
         /// <param name="value">The value to compare it to. This is given as a string,
         /// but will be converted to an integer or float or boolean, or
         /// left as a string, whatever is possible. If None is given
         /// then the sense has to evaluate to True.</param>
         /// <param name="predicate">"==", "!=", "<", ">", "<=", ">=". If null is
         ///    given, then "==" is assumed.</param>
-        public void init(Agent agent, string sense_name, string value = null, string predicate = null){
+        public Sense(Agent agent, string senseName, string value = null, string predicate = null)
+            :base(string.Format("Sense.{0}",senseName),agent)
+        {
+            behaviourDict = agent.getBehaviourDict();
+            sense = behaviourDict.getSense(senseName);
+            behaviour = behaviourDict.getSenseBehaviour(senseName);
+            name = string.Format("{0}.{1}", behaviour.getName(), senseName);
+            this.value = (value is string) ? AgentInitParser.strToValue(value) : null;
+            this.predicate = (predicate is string) ? predicate : "==";
 
+            log.Debug("Created");
+        }
+
+        /// <summary>
+        /// Activates the sense and returns its result.
+        /// </summary>
+        /// <returns>The result of the sense.</returns>
+        public bool fire()
+        {
+            object result;
+            log.Debug("Firing");
+
+            result = sense.Second.executeSense(sense.First);
+
+
+            if (value == null)
+                return (bool) result;
+            else if (predicate.Trim() == "==")
+                return result == value;
+            else if (predicate.Trim() == "!=")
+                return result != value;
+            else if (predicate.Trim() == "<=")
+                return (float)result <= (float)value;
+            else if (predicate.Trim() == ">=")
+                return (float)result >= (float)value;
+            else if (predicate.Trim() == "<")
+                return (float)result < (float)value;
+            else if (predicate.Trim() == ">")
+                return (float)result > (float)value;
+            else
+                return (bool) result;
+        }
+
+        /// <summary>
+        /// Returns itsself.
+        /// 
+        /// This method does NOT return a copy of the action as the action
+        /// does not have an internal state and therefore doesn't need to
+        /// be copied.
+        /// </summary>
+        /// <returns></returns>
+        public override CopiableElement copy()
+        {
+            return this;
         }
     }
-
-        ElementBase.__init__(self, agent, "Sense.%s" % sense_name)
-        beh_dict = agent.getBehaviourDict()
-        self._sense = beh_dict.getSense(sense_name)
-        self.behaviour = beh_dict.getSenseBehaviour(sense_name)
-        self._name = "%s.%s" % (self.behaviour.getName(), sense_name)
-        self._value = self._convertValue(value)
-        if not predicate:
-            self._pred = "=="
-        else:
-            self._pred = predicate
-        self.log.debug("Created")
-    
-    def fire(self):
-        """Activates the sense and returns its result.
-        
-        @return: The result of the sense.
-        @rtype: boolean
-        """
-        self.log.debug("Firing")
-        pred, value, result = self._pred, self._value, self._sense()
-        if value == None:
-            return bool(result)
-        elif pred == "==":
-            return result == value
-        elif pred == "!=":
-            return result != value
-        elif pred == "<=":
-            return result <= value
-        elif pred == ">=":
-            return result >= value
-        elif pred == ">":
-            return result > value
-        elif pred == "<":
-            return result < value
-        else:
-            return bool(result)
-    
-    def _convertValue(self, value):
-        """Converts the given string to whatever is possible.
-
-        @param value: The value to convert.
-        @type value: string
-        @return: The same value, only converted.
-        @rtype: int, float, bool, string or None
-        """
-        if not value:
-            return None
-        elif _intMatcher.match(value):
-            return int(value)
-        elif _floatMatcher.match(value):
-            return float(value)
-        elif _boolMatcher.match(value):
-            return bool(value)
-        else:
-            return value
-
-
-
-
-
-
-
-    
-class Trigger(ElementBase):
-    """A conjunction of senses and sense-acts, acting as a trigger.
-    """
-    def __init__(self, agent, senses):
-        """Initialises the trigger.
-
-        The log domain is set to [Agent].T.[senseName1+senseName2+...]
-
-        @param agent: The agent that uses the trigger.
-        @type agent: L{POSH.strict.Agent}
-        @param senses: The list of senses and sense-acts for the trigger.
-        @type senses: Sequence of L{POSH.strict.Sense}
-        """
-        ElementBase.__init__(self, agent, "T.%s" % \
-                             '+'.join(map(Sense.getName, senses)))
-        self._senses = senses
-        self.log.debug("Created")
-
-    def fire(self):
-        """Fires the trigger.
-
-        The trigger returns True of all senses/sense-acts of the
-        trigger evaluate to True.
-
-        @return: If all the senses/sense-acts evaluate to True.
-        @rtype: boolean
-        """
-        self.log.debug("Firing")
-        for sense in self._senses:
-            if not sense.fire():
-                self.log.debug("Sense '%s' failed" % sense.getName())
-                return False
-        return True
-
-
 }

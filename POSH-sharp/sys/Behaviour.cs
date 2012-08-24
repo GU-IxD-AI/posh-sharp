@@ -20,18 +20,24 @@ namespace POSH_sharp.sys
         public static readonly string ATTRIBUTES="attributes", ACTIONS="actions",
             SENSES="senses", INSPECTORS ="inspectors";
 
-        Agent agent;
+        AgentBase agent;
         Random random;
-        /// <summary>
-        /// Returns a list of available actions.
-        /// </summary>
-        public Dictionary<string,object> attributes{get; private set;}
+
         //public List<string> actions{get; private set;}
         /// <summary>
         /// Returns a list of available senses.
         /// </summary>
         //public List<string> senses {get; private set;}
-        //private List<string> inspectors;
+        //private List<string> inspectors;getN
+
+        Behaviour(AgentBase agent)
+            : base("Behaviour", agent)
+        {
+            this.agent = agent;
+            // aquire the random number generator from the agent
+            this.random = agent.random;
+            this.attributes = new Dictionary<string, object>();
+        }
 
         /// <summary>
         /// Initialises behaviour with given actions and senses.
@@ -48,21 +54,18 @@ namespace POSH_sharp.sys
         /// <param name="senses">The sense names to register.</param>
         /// <param name="attributes">List of attributes to initialise behaviour state.</param>
         /// <param name="caller"></param>
-        Behaviour(Agent agent,string [] actions,string []senses,Dictionary<string,object> attributes=null,Agent caller=null) : base("Behaviour",agent)
+        public Behaviour(AgentBase agent,string [] actions,string []senses,Dictionary<string,object> attributes=null,Behaviour caller=null) 
+            : this(agent)
         {
-            this.agent=agent;
-            // aquire the random number generator from the agent
-            this.random=agent.random;
-            this.attributes=new Dictionary<string,object>();
-
+            
             if (caller != null)
                 getActionsSenses(caller);
             else 
             {
-                Dictionary<string,object> a= new Dictionary<string,object>();
+                Dictionary<string, POSH_sharp.sys.strict.Action> a = new Dictionary<string, POSH_sharp.sys.strict.Action>();
                 foreach (string elem in actions)
                     a.Add(elem,null);
-                Dictionary<string,object> s= new Dictionary<string,object>();
+                Dictionary<string, POSH_sharp.sys.strict.Sense> s = new Dictionary<string, POSH_sharp.sys.strict.Sense>();
                 foreach (string elem in senses)
                     s.Add(elem,null);
 
@@ -77,41 +80,52 @@ namespace POSH_sharp.sys
 
         }
 
-        void getActionsSenses(object source)
+        void getActionsSenses(Behaviour sourceObj)
         {
             
             try
             {
-                Dictionary<string,Dictionary<string,object>> attribs;
-                if(source.GetType().GetField(ATTRIBUTES).FieldType is Dictionary<string,Dictionary<string,object>>)
+                if (sourceObj.attributes is Dictionary<string, object>)
                 {
-                    attribs=(Dictionary<string,Dictionary<string,object>>) source.GetType().GetField(ATTRIBUTES).GetValue(source);
                     // check if the source object contains more actions and adds those
-                    if (attribs.ContainsKey(ACTIONS) && attributes.ContainsKey(ACTIONS) && attributes[ACTIONS] is Dictionary<string,object>)
+                    if (sourceObj.attributes.ContainsKey(ACTIONS) && attributes.ContainsKey(ACTIONS) && attributes[ACTIONS] is Dictionary<string, Behaviour>)
                     {
-                        
-                        foreach(KeyValuePair<string,object> e in attribs[ACTIONS])
-                            if(((Dictionary<string,object>)this.attributes[ACTIONS]).ContainsKey(e.Key)){
-                                ((Dictionary<string,object>)this.attributes[ACTIONS])[e.Key]=attribs[ACTIONS][e.Key];
-                            } else {
-                                ((Dictionary<string,object>)this.attributes[ACTIONS]).Add(e.Key,e.Value);
-                            }
+                        Dictionary<string, Behaviour> a = (Dictionary<string,Behaviour>)sourceObj.attributes[ACTIONS];
+                        foreach (KeyValuePair<string, Behaviour> e in a)
+                            ((Dictionary<string, Behaviour>)this.attributes[ACTIONS])[e.Key] = e.Value;
+                           
                     }
                     // check if the source object contains more senses and adds those
-                    if (attribs.ContainsKey(SENSES)&& attributes.ContainsKey(SENSES) && attributes[SENSES] is Dictionary<string,object>)
-                        foreach(KeyValuePair<string,object> e in attribs[SENSES])
-                            if(((Dictionary<string,object>)this.attributes[SENSES]).ContainsKey(e.Key)){
-                                ((Dictionary<string,object>)this.attributes[SENSES])[e.Key]=attribs[SENSES][e.Key];
-                            } else {
-                                ((Dictionary<string,object>)this.attributes[SENSES]).Add(e.Key,e.Value);
-                            }
+                    if (sourceObj.attributes.ContainsKey(SENSES) && attributes.ContainsKey(SENSES) && attributes[SENSES] is Dictionary<string, Behaviour>)
+                    {
+                        Dictionary<string, Behaviour> s = (Dictionary<string, Behaviour>)sourceObj.attributes[SENSES];
+                        foreach (KeyValuePair<string, Behaviour> e in s)
+                            ((Dictionary<string, Behaviour>)this.attributes[SENSES])[e.Key] = e.Value;
+                            
+                    }
                 }
             }
-            catch(ArgumentNullException e){}
+            catch(ArgumentNullException ){}
             
 
         }
 
+        public bool executeAction(string actionMethod)
+        {
+            object result = executeSense(actionMethod);
+
+            return (result is bool) ? (bool)result : false;
+        }
+        
+        public object executeSense(string senseMethod)
+        {
+            object result = null;
+
+            System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(senseMethod);
+            if (methodInfo is System.Reflection.MethodInfo && methodInfo.IsPublic)
+                result = methodInfo.Invoke(this, new object[] { });
+            return result;
+        }
         
         /// <summary>
         /// Returns the name of the behaviour.
@@ -119,7 +133,7 @@ namespace POSH_sharp.sys
         /// The name of a behaviour is the same as the name of
         /// the class that implements it.
         /// </summary>
-        string getName()
+        public string getName()
         {
             return this.GetType().FullName.ToString();
         }
@@ -132,7 +146,7 @@ namespace POSH_sharp.sys
         /// accessible through the behaviour attribute 'random'.__abs__
         /// </summary>
         /// <param name="generator">A random number generator.</param>
-        void setRNG(Random generator)
+        public void setRNG(Random generator)
         {
             random=generator;
         }
@@ -147,18 +161,21 @@ namespace POSH_sharp.sys
         /// for a list).
         /// </summary>
         /// <param name="attributes">dictionary of attributes to assign to behaviour.</param>
-        void assignAttributes(Dictionary<string,object> attribs)
+        public void assignAttributes(Dictionary<string,object> attribs)
         {
 
             foreach(KeyValuePair<string,object> e in attribs)
                 if(e.Key != ACTIONS && e.Key != SENSES && e.Key != INSPECTORS)
-                    if(!this.attributes.ContainsKey(e.Key))
-                        this.attributes.Add(e.Key,e.Value);
-                    else if (!(e.Value is Delegate))
-                        this.attributes[e.Key]=e.Value;
-                            
-
+                    if (e.Value.GetType().IsSubclassOf(typeof( POSH_sharp.sys.strict.Action)))
+                        ((Dictionary<string,object>) this.attributes[ACTIONS])[e.Key] = e.Value;
+                    else 
+                        if (e.Value.GetType().IsSubclassOf(typeof( POSH_sharp.sys.strict.Sense)))
+                            ((Dictionary<string,object>) this.attributes[SENSES])[e.Key] = e.Value;
+                        else
+                            this.attributes[e.Key] = e.Value;
         }
+                    
+                            
         /// <summary>
         /// Returns if the behaviour is ok.
         /// 
@@ -166,7 +183,7 @@ namespace POSH_sharp.sys
         /// cycle. In its default implementation it always returns False.
         /// </summary>
         /// <returns>False for OK, True for not OK.</returns>
-        abstract bool  checkError()
+        public virtual bool  checkError()
         {
             return false;
         }
@@ -177,7 +194,7 @@ namespace POSH_sharp.sys
         /// This method prepares the behaviour to stop. In its default
         /// implementation it does nothing.
         /// </summary>
-        abstract void exitPrepare()
+        public virtual void exitPrepare()
         {
         }
 
@@ -197,7 +214,7 @@ namespace POSH_sharp.sys
         /// In its default implementation, this method returns True.
         /// </summary>
         /// <returns>If the reset was successful.</returns>
-        abstract bool reset()
+        public virtual bool reset()
         {
             return true;
         }
@@ -245,8 +262,7 @@ namespace POSH_sharp.sys
 
 
                 } else {
-                    throw (new NullReferenceException("Could not find inspector method "+accessor) );
-                    break;
+                    throw new NullReferenceException("Could not find inspector method "+accessor);
                     //raise AttributeError, "Could not find inspector method %s " \
                     //"in behaviour %s" % (inspector, self._name)
                 }
