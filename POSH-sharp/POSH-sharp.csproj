@@ -2,19 +2,35 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>POSH_sharp</RootNamespace>
     <AssemblyName>POSH-sharp</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Mono</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +39,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -31,75 +48,42 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>POSH_sharp.executing.Launcher</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>libs\log4net.dll</HintPath>
+    <Compile Include="executing\Launcher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\POSH-sharp-core\POSH-sharp-core.csproj">
+      <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
+      <Name>POSH-sharp-core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\POSH-sharp-core\library\libs\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="sys\AgentFactory.cs" />
-    <Compile Include="sys\BehaviourDict.cs" />
-    <Compile Include="sys\AgentInitParser.cs" />
-    <Compile Include="sys\exceptions\AgentInitParseException.cs" />
-    <Compile Include="sys\exceptions\AttributeException.cs" />
-    <Compile Include="sys\exceptions\NameException.cs" />
-    <Compile Include="sys\exceptions\ParseException.cs" />
-    <Compile Include="sys\Latch.cs" />
-    <Compile Include="sys\LatchedBehaviour.cs" />
-    <Compile Include="sys\parse\LAPLexer.cs" />
-    <Compile Include="sys\parse\Token.cs" />
-    <Compile Include="sys\Profiler.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="sys\Behaviour.cs" />
-    <Compile Include="sys\scheduled\ScheduledAgent.cs" />
-    <Compile Include="sys\strict\ActionPattern.cs" />
-    <Compile Include="sys\strict\Agent.cs" />
-    <Compile Include="sys\strict\Action.cs" />
-    <Compile Include="sys\strict\Competence.cs" />
-    <Compile Include="sys\strict\CompetenceElement.cs" />
-    <Compile Include="sys\strict\CompetencePriorityElement.cs" />
-    <Compile Include="sys\strict\CopiableElement.cs" />
-    <Compile Include="sys\strict\DriveElement.cs" />
-    <Compile Include="sys\strict\DriveCollection.cs" />
-    <Compile Include="sys\strict\DrivePriorityElement.cs" />
-    <Compile Include="sys\strict\Element.cs" />
-    <Compile Include="sys\strict\ElementBase.cs" />
-    <Compile Include="sys\strict\ElementCollection.cs" />
-    <Compile Include="sys\strict\FireResult.cs" />
-    <Compile Include="sys\parse\LAPParser.cs" />
-    <Compile Include="sys\PlanBuilder.cs" />
-    <Compile Include="sys\strict\PlanElement.cs" />
-    <Compile Include="sys\strict\Sense.cs" />
-    <Compile Include="sys\strict\Timer.cs" />
-    <Compile Include="sys\AgentBase.cs" />
-    <Compile Include="sys\LogBase.cs" />
-    <Compile Include="sys\strict\Trigger.cs" />
-    <Compile Include="sys\Tuple.cs" />
-    <Compile Include="sys\WorldControl.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="library\libs\log4net.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="library\Plans\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

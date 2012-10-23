@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3C63DE90-5139-408D-8F1F-F08F0CF1B644}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Posh_sharp_examples</RootNamespace>
+    <AssemblyName>Posh-sharp-examples</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Mono</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="BODBot\plans\bodbotattack.lap" />
+    <None Include="BODBot\plans\clean-attackbot.lap" />
+    <None Include="BODBot\plans\defendbot.lap" />
+    <None Include="BODBot\plans\oldPOSH-attackbot.lap" />
+    <None Include="poshbot\plans\poshbotfollow.lap" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BODBot\BODBot.cs" />
+    <Compile Include="BODBot\CombatBehaviour.cs" />
+    <Compile Include="BODBot\CombatInfo.cs" />
+    <Compile Include="BODBot\Movement.cs" />
+    <Compile Include="BODBot\util\NavPoint.cs" />
+    <Compile Include="BODBot\util\PositionsInfo.cs" />
+    <Compile Include="BODBot\Utilities.cs" />
+    <Compile Include="BODBot\util\UTPlayer.cs" />
+    <Compile Include="BODBot\util\Vector3.cs" />
+    <Compile Include="poshbot\BotAgent.cs" />
+    <Compile Include="poshbot\BotBehaviour.cs" />
+    <Compile Include="poshbot\World.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\POSH-sharp-core\POSH-sharp-core.csproj">
+      <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
+      <Name>POSH-sharp-core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\POSH-sharp\POSH-sharp.csproj">
+      <Project>{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}</Project>
+      <Name>POSH-sharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
