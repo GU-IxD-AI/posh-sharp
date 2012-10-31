@@ -11,7 +11,6 @@
     <RootNamespace>POSH_sharp_tests</RootNamespace>
     <AssemblyName>POSH-sharp-tests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Mono</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
@@ -102,7 +101,7 @@
   <ItemGroup>
     <ProjectReference Include="..\core\POSH-sharp.core.csproj">
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
-      <Name>POSH-sharp-core</Name>
+      <Name>POSH-sharp.core</Name>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </ProjectReference>
   </ItemGroup>

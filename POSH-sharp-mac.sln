@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp-core", "core\POSH-sharp-core.csproj", "{A29EA261-C940-427B-AB72-B27EEFDC15A0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp", "execute\POSH-sharp.csproj", "{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posh-sharp-examples", "examples\Posh-sharp-examples.csproj", "{3C63DE90-5139-408D-8F1F-F08F0CF1B644}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.core", "core\POSH-sharp.core.csproj", "{A29EA261-C940-427B-AB72-B27EEFDC15A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp-tests", "testing\POSH-sharp-tests.csproj", "{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posh-sharp.examples", "examples\Posh-sharp.examples.csproj", "{3C63DE90-5139-408D-8F1F-F08F0CF1B644}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.tests", "testing\POSH-sharp.tests.csproj", "{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +42,6 @@ Global
 		{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = POSH-sharp-core\POSH-sharp-core.csproj
+		StartupItem = execute\POSH-sharp.csproj
 	EndGlobalSection
 EndGlobal
