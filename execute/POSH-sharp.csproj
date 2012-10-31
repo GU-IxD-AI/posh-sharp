@@ -75,18 +75,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD:execute/POSH-sharp.csproj
+    <Reference Include="log4net">
+      <HintPath>..\core\library\libs\log4net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\core\POSH-sharp.core.csproj">
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
       <Name>POSH-sharp.core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-=======
->>>>>>> origin/master:POSH-sharp/POSH-sharp.csproj
-    <Reference Include="log4net">
-      <HintPath>..\core\library\libs\log4net.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
