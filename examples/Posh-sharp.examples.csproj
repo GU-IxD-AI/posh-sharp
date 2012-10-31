@@ -60,10 +60,6 @@
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
       <Name>POSH-sharp.core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\execute\POSH-sharp.csproj">
-      <Project>{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}</Project>
-      <Name>POSH-sharp</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

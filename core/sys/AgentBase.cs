@@ -124,7 +124,7 @@ namespace POSH_sharp.sys
                     _bdict.RegisterBehaviour((Behaviour) behaviourConstruct.Invoke(para));
                 }
             
-            return null;
+            return dict;
         }
 
         /// <summary>

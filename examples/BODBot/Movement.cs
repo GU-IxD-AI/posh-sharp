@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
@@ -279,7 +278,7 @@ namespace Posh_sharp.examples.BODBot
                 return false;
 
             // look through items for a Medkit
-            foreach (string item in getBot().viewItems)
+            foreach (INVItem item in getBot().viewItems)
             {
 
             }

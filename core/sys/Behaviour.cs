@@ -21,7 +21,7 @@ namespace POSH_sharp.sys
             SENSES="senses", INSPECTORS ="inspectors";
 
         protected internal AgentBase agent;
-        Random random;
+        internal Random random;
 
         //public List<string> actions{get; private set;}
         /// <summary>
