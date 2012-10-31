@@ -9,9 +9,10 @@ using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
 using POSH_sharp.sys.strict;
-using Posh_sharp_examples.BODBot.util;
+using Posh_sharp.examples.BODBot.util;
+using Posh_sharp.BODBot.util;
 
-namespace Posh_sharp_examples.BODBot
+namespace Posh_sharp.examples.BODBot
 {
 //#  We need to start a comms thread in order to get updates
 //#  to the agent status from the server.
@@ -69,13 +70,13 @@ namespace Posh_sharp_examples.BODBot
         
         List<string> gameinfo;
         public Dictionary<string,UTPlayer> viewPlayers { protected internal get; private set;}
-        List<string> viewItems;
+        public List<InvItem> viewItems { protected internal get; private set;}
         protected internal List<NavPoint> navPoints;
         public Dictionary<string,string> botinfo { protected internal get; private set;}
 
         List<string> sGameinfo;
-        Dictionary<string,object> sViewPlayers;
-        List<string> sViewItems;
+        Dictionary<string,UTPlayer> sViewPlayers;
+        List<InvItem> sViewItems;
         List<NavPoint> sNavPoints;
         Dictionary<string,string> sBotinfo;
 
@@ -126,13 +127,13 @@ namespace Posh_sharp_examples.BODBot
             conninfo = null;
             gameinfo = new List<string>();
             viewPlayers = new Dictionary<string,UTPlayer>(); 
-            viewItems = new List<string>();
+            viewItems = new List<InvItem>();
             navPoints = new List<NavPoint>();
             botinfo = new Dictionary<string,string>();
             
             sGameinfo = new List<string>();
-            sViewPlayers = new Dictionary<string,object>();
-            sViewItems = new List<string>();
+            sViewPlayers = new Dictionary<string,UTPlayer>();
+            sViewItems = new List<InvItem>();
             sNavPoints = new List<NavPoint>();
             sBotinfo = new Dictionary<string,string>();
 
@@ -389,8 +390,8 @@ namespace Posh_sharp_examples.BODBot
                     // When a sync batch is arriving, make sure the shadow
                     // states are cleared
                     this.sGameinfo = new List<string>();
-                    this.sViewPlayers = new Dictionary<string,object>();
-                    this.sViewItems = new List<string>();
+                    this.sViewPlayers = new Dictionary<string,UTPlayer>();
+                    this.sViewItems = new List<InvItem>();
                     this.sNavPoints = new List<NavPoint>();
                     this.sBotinfo = new Dictionary<string,string>();
                 }

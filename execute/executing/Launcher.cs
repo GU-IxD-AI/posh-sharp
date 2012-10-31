@@ -300,9 +300,9 @@ namespace POSH_sharp.executing
 
             bool help = false, verbose = false;
             string worldFile = "", worldArgs = "", agentFile = "", planFile = "", library = "";
-            Dictionary<string, object> agentsInit;
+            Dictionary<string, object> agentsInit = null;
             Tuple<World, bool> setting = null;
-            AgentBase[] agents;
+            AgentBase[] agents = null;
 
             // process command line arguments
             Launcher application = new Launcher();
@@ -358,7 +358,8 @@ namespace POSH_sharp.executing
                     catch (Exception)
                     {
                         Console.Out.WriteLine("reading agent initialisation file failed");
-                        Console.Out.WriteLine(e);
+                        if (verbose)
+                            Console.Out.WriteLine(e);
                     }
                 }
             }
@@ -390,7 +391,8 @@ namespace POSH_sharp.executing
                 {
                     Console.Out.WriteLine("world initialisation failed");
                     Console.Out.WriteLine("-------");
-                    Console.Out.WriteLine(e);
+                    if (verbose)
+                        Console.Out.WriteLine(e);
                 }
             }
 
@@ -413,7 +415,8 @@ namespace POSH_sharp.executing
             {
                 Console.Out.WriteLine("creating agent(s) failed, see following error");
                 Console.Out.WriteLine("----");
-                // Console.Out.WriteLine(e);
+                if (verbose)
+                    Console.Out.WriteLine(e);
             }
 
             // start the agents

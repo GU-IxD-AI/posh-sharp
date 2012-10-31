@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
-using Posh_sharp_examples.BODBot.util;
+using Posh_sharp.examples.BODBot.util;
 
-namespace Posh_sharp_examples.BODBot
+namespace Posh_sharp.examples.BODBot
 {
     /// <summary>
     /// Some utility functions

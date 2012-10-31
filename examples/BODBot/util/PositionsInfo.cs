@@ -5,7 +5,7 @@ using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.strict;
 
-namespace Posh_sharp_examples.BODBot.util
+namespace Posh_sharp.examples.BODBot.util
 {
     /// <summary>
     /// stores details about where things are

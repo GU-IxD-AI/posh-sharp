@@ -6,7 +6,7 @@ using NUnit.Framework;
 using POSH_sharp.sys.parse;
 using System.Text.RegularExpressions;
 
-namespace POSH_sharp_Testing.validate.sys.parse
+namespace POSH_sharp.testing.validate.sys.parse
 {
     [TestFixture]
     class LAPLexerTest

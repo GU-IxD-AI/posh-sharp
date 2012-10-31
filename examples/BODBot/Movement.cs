@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
-using Posh_sharp_examples.BODBot.util;
+using Posh_sharp.examples.BODBot.util;
 
-namespace Posh_sharp_examples.BODBot
+namespace Posh_sharp.examples.BODBot
 {
     public class Movement : Behaviour
     {
@@ -275,7 +275,14 @@ namespace Posh_sharp_examples.BODBot
         [ExecutableSense("SeeReachableMedicalKit")]
         public bool SeeReachableMedicalKit()
         {
+            if (getBot().viewItems.Count < 1)
+                return false;
 
+            // look through items for a Medkit
+            foreach (string item in getBot().viewItems)
+            {
+
+            }
         }
     }
 

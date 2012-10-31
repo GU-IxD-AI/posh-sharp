@@ -6,7 +6,7 @@ using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
 //import utilityfns
 
-namespace Posh_sharp_examples.BODBot
+namespace Posh_sharp.examples.BODBot
 {
     public class CombatBehaviour : Behaviour
     {

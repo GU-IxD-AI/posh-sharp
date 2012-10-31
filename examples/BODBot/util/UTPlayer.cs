@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Posh_sharp_examples.BODBot.util
+namespace Posh_sharp.examples.BODBot.util
 {
     public class UTPlayer
     {

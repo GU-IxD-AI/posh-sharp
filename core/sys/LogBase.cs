@@ -22,7 +22,7 @@ namespace POSH_sharp.sys
     public class LogBase
     {
         public string logDomain {get; private set;}
-        public ILog log {public get; private set;}
+        public ILog log {get; private set;}
         internal bool _debug_;
 
         /// <summary>

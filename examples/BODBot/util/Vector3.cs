@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Posh_sharp_examples.BODBot.util
+namespace Posh_sharp.examples.BODBot.util
 {
     class Vector3
     {
