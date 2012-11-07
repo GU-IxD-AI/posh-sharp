@@ -23,7 +23,7 @@ namespace POSH_sharp.sys
     {
         public string logDomain {get; private set;}
         public ILog log {get; private set;}
-        internal bool _debug_;
+        protected internal bool _debug_ { get; internal set;}
 
         /// <summary>
         /// Returns a list of available attributes.
@@ -46,12 +46,13 @@ namespace POSH_sharp.sys
         /// <param name="logName">Name of the logging domain, "" if called
         /// for the agent.</param>
         /// <param name="defaultLevel">The default logging level.</param>
-        public LogBase(string logName, AgentBase agent=null, Level defaultLevel = null)
+        public LogBase(string logName, AgentBase agent=null, Level defaultLevel = null, bool debug = false)
         { 
             // workaround for scheduled POSH, where not all plan elements are
             // initialised with an agent -> the given 'agent' attribute does
             // not have an id
-            _debug_ = false;
+            
+            _debug_ = debug;
             if (agent == null)
                 agent = ((AgentBase)this);
             string agentId = agent.id != string.Empty ? agent.id : "NOID";

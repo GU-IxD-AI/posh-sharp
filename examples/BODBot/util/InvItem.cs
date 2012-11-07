@@ -55,5 +55,22 @@ namespace Posh_sharp.BODBot.util
                 }
             }
         }
+
+
+        /// <summary>
+        /// This method contains the infos on known weapons.
+        /// </summary>
+        /// <param name="sentClass"></param>
+        /// <returns></returns>
+        public bool IsKnownWeaponClass()
+        {
+            if (Class.Trim() == string.Empty)
+                return false;
+            
+            if ( Class.Trim() == "goowand" )
+                return true;
+            
+            return false;
+        }
     }
 }

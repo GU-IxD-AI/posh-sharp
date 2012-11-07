@@ -20,8 +20,29 @@ namespace Posh_sharp.examples.BODBot.util
         public string Type { public get; private set; }
         public int Owner { public get; private set; }
         public Dictionary<int,NavPoint> paths { internal get; private set; }
-        
 
+        public static Dictionary<int, Vector3> ConvertToPath(Dictionary<string, string> rawNP)
+        {
+            // remove the ID key to leave just numbers
+            rawNP.Remove("ID");
+            Dictionary<int,Vector3> path = new Dictionary<int,Vector3>();
+            // debug
+            if (rawNP.ContainsKey("Reachable"))
+            {
+                Console.Out.WriteLine(rawNP);
+                Console.Out.WriteLine("----------");
+            }   
+
+            // sorted string list regarding length and lexicographically problems might occur if a key pair would be 01 vs 2
+            IOrderedEnumerable<string> sortedList = rawNP.Keys.OrderBy(key => key.Length).ThenBy(key => key);
+
+            foreach (string key in sortedList)
+            {
+                path[int.Parse(key)] = Vector3.ConvertToVector3(rawNP[key].Split(new char[] {' '},1)[1]);
+            }
+
+            return path;
+        }
 
         /// <summary>
         /// lists of nav points arrive as dicts with an "ID" key and keys "0", "1", .... "n" these need converting to lists
@@ -116,7 +137,5 @@ namespace Posh_sharp.examples.BODBot.util
         {
             return Location.DistanceFrom(target);
         }
-
-        
     }
 }

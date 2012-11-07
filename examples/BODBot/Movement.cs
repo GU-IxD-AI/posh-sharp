@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
 using Posh_sharp.examples.BODBot.util;
+using Posh_sharp.BODBot.util;
+using POSH_sharp.sys.strict;
 
 namespace Posh_sharp.examples.BODBot
 {
@@ -17,9 +20,9 @@ namespace Posh_sharp.examples.BODBot
 
         public Movement(AgentBase agent) 
             : base(agent, 
-            new string[] {"walk_to_nav_point", "to_enemy_flag", 
-                            "to_own_base", "to_own_flag", "to_enemy_base", "inch",
-                            "runto_medical_kit", "runto_weapon"},
+            new string[] {"WalkToNavPoint", "ToEnemyFlag", 
+                            "ToOwnBase", "ToOwnFlag", "ToEnemyBase", "Inch",
+                            "RuntoMedicalKit", "RuntoWeapon"},
             new string[] {"AtEnemyBase", "AtOwnBase", "KnowEnemyBasePos",
                             "KnowOwnBasePos", "ReachableNavPoint",
                             "EnemyFlagReachable", "OurFlagReachable",
@@ -34,9 +37,183 @@ namespace Posh_sharp.examples.BODBot
 
         }
 
+
+        /*
+         * 
+         * internal methods
+         * 
+         */ 
+
+        /// <summary>
+        /// updates the flag positions in PositionsInfo
+        /// also updates details of bases, if relevant info sent
+        /// the position of a flag is how we determine where the bases are
+        /// </summary>
+        /// <param name="values">Dictionary containing the Flag details</param>
+        internal void ReceiveFlagDetails(Dictionary<string,string> values)
+        {
+            // TODO: fix the mix of information in this method it should just contain relevant info
+
+            Console.Out.WriteLine("in receiveFlagDetails");
+            Console.Out.WriteLine(values.ToArray().ToString());
+
+            if ( getBot().botinfo == null ||  getBot().botinfo.Count < 1 )
+                return;
+            // set flag stuff
+            if ( values["Team"] == getBot().botinfo["Team"] )
+                posInfo.ourFlagInfo = values;
+            else
+                posInfo.enemyFlagInfo = values;
+
+            if (values["State"] == "home")
+                if ( values["Team"] == getBot().botinfo["Team"] )
+                    posInfo.ownBasePos = NavPoint.ConvertToNavPoint(values);
+                else
+                    posInfo.enemyBasePos = NavPoint.ConvertToNavPoint(values);
+        }
+
+        /// <summary>
+        /// if the 'ID' key is PathHome then it tells the bot how to get home.
+        /// we need to turn the dictionary into a list, ordered by key ('0' ... 'n')
+        /// at present other IDs are ignored
+        /// </summary>
+        /// <param name="valuesDict"></param>
+        internal void ReceivePathDetails(Dictionary<string,string> valuesDict)
+        {
+            if (!valuesDict.ContainsKey("ID") )
+                return;
+            if (valuesDict["ID"] == pathHomeId )
+                posInfo.pathHome = NavPoint.ConvertToPath(valuesDict);
+            else if (valuesDict["ID"] == pathToEnemyBaseId )
+                posInfo.pathToEnemyBase = NavPoint.ConvertToPath(valuesDict);
+
+            // if there's no 0 key we're being given an empty path, so set TooCloseForPath to the current time
+            // so that we can check how old the information is later on
+            if ( !valuesDict.ContainsKey("0") )
+                posInfo.TooCloseForPath = TimerBase.TimeStamp();
+            else
+                posInfo.TooCloseForPath = 0L;
+        }
+
+        /// <summary>
+        /// used in validating the bot's path home or to the enemy flag
+        /// if the thing has the right ID, then clear the relevant path if it's not reachable
+        /// </summary>
+        /// <param name="valuesDict"></param>
+        internal void ReceiveCheckReachDetails(Dictionary<string,string> valuesDict)
+        {
+            Console.Out.WriteLine("in receive_rch_details");
+
+            if (! valuesDict.ContainsKey("ID"))
+                return;
+                    
+            if (valuesDict["ID"] == reachPathHomeId && valuesDict["Reachable"] == "False")
+            {
+                posInfo.pathHome.Clear();
+                Console.Out.WriteLine("Cleared PathHome");
+            }
+            else if (valuesDict["ID"] == reachPathToEnemyBaseID && valuesDict["Reachable"] == "False")
+            {
+                posInfo.pathToEnemyBase.Clear();
+                Console.Out.WriteLine("Cleared PathToEnemyBase");
+            }
+        }
+
+        /// <summary>
+        /// clean-up after dying
+        /// </summary>
+        internal void receiveDieDetails()
+        {
+            posInfo.pathHome.Clear();
+            posInfo.pathToEnemyBase.Clear();
+            posInfo.visitedNavPoints.Clear();
+            posInfo.ourFlagInfo.Clear();
+            posInfo.enemyFlagInfo.Clear();
+        }
+
+        /// <summary>
+        /// if the combatinfo class specifies that we need to remain focused on a player, send a relevant strafe command
+        /// to move to the provided location.  Otherwise, a runto
+        /// </summary>
+        /// <param name="?"></param>
+        /// <param name="performPrevCheck"></param>
+        internal void SendRuntoOrStrafeToLocation(Vector3 location, bool performPrevCheck = true)
+        {
+            // IMPORTANT-TODO: completely remodel this method as it uses stuff from a different behaviour it should not use.
+            Tuple<string,Dictionary<string,string>> message;
+            // expire focus id info if necessary FA
+            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,int> && 
+                ((Combat)agent.getBehaviour("Combat")).info.HasFocusIdExpired())
+                ((Combat)agent.getBehaviour("Combat")).info.ExpireFocusId();
+
+            //OLD-COMMENT: Seems out of place, need to find a better way of doing this FA
+            getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>() ); //no-one to focus on
+
+            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,int>)
+            {
+                message = new Tuple<string,Dictionary<string,string>>("STRAFE",
+                    new Dictionary<string,string>() 
+                {
+                    {"Location", location.ToString()},
+                    {"Target", ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID.ToString()}
+                });
+            }
+            else
+            {
+                message = new Tuple<string,Dictionary<string,string>>("RUNTO",
+                    new Dictionary<string,string>() 
+                {
+                    {"Location", location.ToString()},
+                });
+            }
+            if (performPrevCheck)
+                getBot().SendIfNotPreviousMessage(message.First,message.Second);
+            else
+                getBot().SendMessage(message.First,message.Second);
+
+        }
+
         private BODBot getBot(string name="Bot")
         {
             return ((BODBot)agent.getBehaviour("Bot"));
+        }
+
+        private void SendGetPath()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in SendGetPath");
+
+            getBot().SendIfNotPreviousMessage("GETPATH", new Dictionary<string,string>() 
+                {
+                    // the ID allows us to match requests with answers
+                    {"Location", posInfo.ownBasePos.Location.ToString()}, {"Id", pathHomeId}
+                });
+        }
+        /// <summary>
+        /// returns 1 and sends a runto message for the provided location 
+        /// if the DistanceTolerance check passes otherwise returns 0
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="distanceTolerance"></param>
+        /// <returns></returns>
+        private bool ToKnownLocation(Dictionary<int,Vector3> location, int distanceTolerance)
+        {
+            if ( location.Count == 0 )
+                // even though we failed, we return 1 so that it doesn't tail the list
+                return true;
+            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().botinfo["Location"]) ) > distanceTolerance)
+            {
+                Console.Out.WriteLine("DistanceTolerance check passed");
+                Console.Out.WriteLine("About to send RUNTO to");
+                Console.Out.WriteLine(location[0].ToString());
+                Console.Out.WriteLine("Current location");
+                Console.Out.WriteLine(getBot().botinfo["Location"]);
+
+                SendRuntoOrStrafeToLocation(location[0],false);
+                return true;
+            }
+            else
+                return false;
         }
 
         ///
@@ -206,8 +383,8 @@ namespace Posh_sharp.examples.BODBot
         [ExecutableSense("EnemyFlagReachable")]
         public bool EnemyFlagReachable()
         {
-            if (this.posInfo.hasEnemyFlagInfoExpired())
-                posInfo.expireEnemyFlagInfo();
+            if (this.posInfo.HasEnemyFlagInfoExpired())
+                posInfo.ExpireEnemyFlagInfo();
 
             // debug
             if (_debug_)
@@ -232,8 +409,8 @@ namespace Posh_sharp.examples.BODBot
         [ExecutableSense("OurFlagReachable")]
         public bool OurFlagReachable()
         {
-            if (this.posInfo.hasOurFlagInfoExpired())
-                posInfo.expireOurFlagInfo();
+            if (this.posInfo.HasOurFlagInfoExpired())
+                posInfo.ExpireOurFlagInfo();
 
             // debug
             if (_debug_)
@@ -278,343 +455,204 @@ namespace Posh_sharp.examples.BODBot
                 return false;
 
             // look through items for a Medkit
-            foreach (INVItem item in getBot().viewItems)
-            {
+            foreach (InvItem item in getBot().viewItems)
+                if ((item.Class == "Health" || item.Class == "MedBox" ) && item.Reachable )
+                    return true;
 
-            }
+            return false;
         }
-    }
+
+        [ExecutableSense("SeeReachableWeapon")]
+        public bool SeeReachableWeapon()
+        {
+            if (getBot().viewItems.Count < 1)
+                return false;
+
+            // look through items for a Medkit
+            foreach (InvItem item in getBot().viewItems)
+                if ( item.IsKnownWeaponClass() && item.Reachable )
+                    return true;
+
+            return false;
+        }
+
+        [ExecutableSense("TooCloseForPath")]
+        public long TooCloseForPath()
+        {
+            if ( posInfo.HasTooCloseForPathExpired() )
+                posInfo.ExpireTooCloseForPath();
+
+            if (posInfo.TooCloseForPath != 0L )
+                Console.Out.WriteLine("we are too close for path");
+            return posInfo.TooCloseForPath;
+        }
+
+        ///
+        /// ACTIONS
+        /// 
+
+        [ExecutableAction("RuntoMedicalKit")]
+        public bool RuntoMedicalKit()
+        {
+            if (getBot().viewItems.Count < 1)
+                return true;
+            
+            // look through for a medical kit
+            foreach (InvItem item in getBot().viewItems )
+                if ( (item.Class == "Health" || item.Class == "MedBox" ) && item.Reachable )
+                    SendRuntoOrStrafeToLocation(item.Location);
+            
+            return true;
+        }
+
+        [ExecutableAction("RuntoWeapon")]
+        public bool RuntoWeapon()
+        {
+            if (getBot().viewItems.Count < 1)
+                return true;
+            
+            // look through for a weapon
+            foreach (InvItem item in getBot().viewItems )
+                if ( item.IsKnownWeaponClass() && item.Reachable )
+                {
+                    if (_debug_)
+                    {
+                        Console.Out.WriteLine("in RuntoWeapon");
+                        Console.Out.WriteLine(item.Class);
+                    }
+                    SendRuntoOrStrafeToLocation(item.Location);
+                    return true;
+                }
+            return true;
+        }
+
+        /// <summary>
+        /// Runs to the chosen Navpoint
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("WalkToNavPoint")]
+        public bool WalkToNavPoint()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in WalkToNavPoint");
+            SendRuntoOrStrafeToLocation(posInfo.chosenNavPoint.Location);
+            
+            return true;
+        }
+
+        /// <summary>
+        /// runs to the enemy flag
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("ToEnemyFlag")]
+        public bool ToEnemyFlag()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ToEnemyFlag");
+            if (posInfo.HasEnemyFlagInfoExpired())
+                posInfo.ExpireEnemyFlagInfo();
+            if (posInfo.enemyFlagInfo is Dictionary<string,string>)
+                getBot().SendMessage("RUNTO", new Dictionary<string,string>() 
+                {
+                    {"Target",posInfo.enemyFlagInfo["Id"]}
+                });
+
+            return true;
+        }
+
+        /// <summary>
+        /// runs to own flag
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("ToOwnFlag")]
+        public bool ToOwnFlag()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ToOwnFlag");
+            if (posInfo.HasEnemyFlagInfoExpired())
+                posInfo.ExpireEnemyFlagInfo();
+            if (posInfo.ourFlagInfo is Dictionary<string,string>)
+                SendRuntoOrStrafeToLocation(Vector3.ConvertToVector3(posInfo.ourFlagInfo["Location"]));
+
+            return true;
+        }
+
+        private void ToBase(Dictionary<int,Vector3> pathToBase,NavPoint baseNavPoint, string name, string reachId,int distanceTolerance)
+        {
+            // TODO: method looks incomplete
+            if (_debug_)
+                Console.Out.WriteLine("in To"+name+"Base");
+            // If we don't know where our own base is, then do nothing
+            // However, this action should never fire unless we do know where our base is
+            if (baseNavPoint == null)
+            {
+                Console.Out.WriteLine("Don't know where "+name+" base is!");
+                return;
+            }
+            SendGetPath();
+            // OLD-COMMENT: if we haven't already got a list of path nodes to follow then send the GETPATH message
+            // to try and mitigate the problem of pathhome being cleared part way through this, we assign
+            // the relevant value to a variable and then use that throughout, so the array is checked as infrequently as possible
+            // it's not an ideal fix though!
+            
+            if (pathToBase.Count < 1)
+                SendGetPath();
+            else if ( ! ToKnownLocation(pathToBase,distanceTolerance) )
+            {
+                Console.Out.WriteLine("DT check failed, tailing");
+                pathToBase.Remove(0);
+                if (pathToBase.Count > 0)
+                {
+                    Console.Out.WriteLine("tail not empty");
+                    SendRuntoOrStrafeToLocation(pathToBase[0]);
+                }
+                else
+                    SendGetPath();
+            }
+            // before we return, send a checkreach command about the current navpoint.  That way the list can be recreated if it becomes incorrect
+            if (pathToBase is Dictionary<int,Vector3> && pathToBase.Count > 0 )
+                getBot().SendMessage("CHECKREACH", new Dictionary<string,string>()
+                    {
+                        {"Location", pathToBase[0].ToString()}, {"Id",reachId},{"From",getBot().botinfo["Location"]}
+                    });
+            Console.Out.WriteLine("about to return from To"+name+"Base");
+        }
+
+
+        [ExecutableAction("ToOwnBase")]
+        public void ToOwnBase()
+        {
+            ToBase(posInfo.pathHome,posInfo.ownBasePos,"Own",reachPathHomeId,30);
+        }
+
+        [ExecutableAction("ToOwnBase")]
+        public void ToEnemyBase()
+        {
+            ToBase(posInfo.pathToEnemyBase,posInfo.enemyBasePos,"Enemy",reachPathToEnemyBaseID,30);
+        }
+
+
+    //#not used at present (18/2/2005)
+    //def inch(self):
+    //    # just add a bit to the x value
+    //    print "in inch"
+    //    (SX, SY, SZ) = utilityfns.location_string_to_tuple(self.agent.Bot.botinfo["Location"])
+    //    NewLocTuple = (SX + 150, SY, SZ)
+    //    self.send_runto_or_strafe_to_location(utilityfns.location_tuple_to_string(NewLocTuple))
+  
+    //# just because something was reachable the last time we knew about it doesn't mean it still is
+    //#def expire_reachable_info(self):
+    //#    if self.PosInfo.OurFlagInfo != {} and self.PosInfo.OurFlagInfo.has_key("Reachable"):
+    //#        self.PosInfo.OurFlagInfo["Reachable"] = "0"
+    //#    if self.PosInfo.EnemyFlagInfo != {} and self.PosInfo.EnemyFlagInfo.has_key("Reachable"):
+    //#        self.PosInfo.EnemyFlagInfo["Reachable"] = "0"
+    //#    
+    //#    self.PosInfo.TooCloseForPath = 0
+    
+
+                
+    
+            }
 
     
 }
-
-        
-    def see_reachable_medical_kit(self):
-        if len(self.agent.Bot.view_items) < 1:
-            return 0
-        else:
-            # look through for a medical kit
-            ItemValues = self.agent.Bot.view_items.values()
-            for CurrentItem in ItemValues:
-                if (CurrentItem["Class"].find("Health") != -1 or CurrentItem["Class"].find("MedBox")) and CurrentItem["Reachable"] == "True":
-                    return 1
-            return 0
-            
-    def see_reachable_weapon(self):
-        if len(self.agent.Bot.view_items) < 1:
-            return 0
-        else:
-            # look through for a weapon
-            ItemValues = self.agent.Bot.view_items.values()
-            for CurrentItem in ItemValues:
-                if utilityfns.is_known_weapon_class(CurrentItem["Class"]) and CurrentItem["Reachable"] == "True":
-                    return 1
-            return 0
-            
-    # see PositionsInfo class for comments on TooCloseForPath
-    def too_close_for_path(self):        
-        if self.PosInfo.has_too_close_for_path_expired():
-            self.PosInfo.expire_too_close_for_path()
-    
-        if self.PosInfo.TooCloseForPath:
-            print "we are too close for path"
-        return self.PosInfo.TooCloseForPath
-                
-    # === ACTIONS ===
-    
-    def runto_medical_kit(self):
-        if len(self.agent.Bot.view_items) < 1:
-            return 1
-        else:
-            # look through for a medical kit
-            ItemValues = self.agent.Bot.view_items.values()
-            for CurrentItem in ItemValues:
-                if (CurrentItem["Class"].find("Health") != -1 or CurrentItem["Class"].find("MedBox")) and CurrentItem["Reachable"] == "True":
-                    self.send_runto_or_strafe_to_location(CurrentItem["Location"])
-            return 1
-            
-    def runto_weapon(self):
-        if len(self.agent.Bot.view_items) < 1:
-            return 1
-        else:
-            # look through for a weapon
-            ItemValues = self.agent.Bot.view_items.values()
-            for CurrentItem in ItemValues:
-                if utilityfns.is_known_weapon_class(CurrentItem["Class"]) and CurrentItem["Reachable"] == "True":
-                    print "runto weapon",
-                    print CurrentItem["Class"]
-                    self.send_runto_or_strafe_to_location(CurrentItem["Location"])
-                    return 1
-            return 1
-    
-    # Runs to the ChosenNavPoint
-    def walk_to_nav_point(self):
-        #print "walk_to_nav_point: " + utilityfns.location_tuple_to_string(self.PosInfo.ChosenNavPoint)
-        
-        # have we already sent it?
-        #if not utilityfns.is_previous_message(self.agent.Bot, ("RUNTO", {"Location" : utilityfns.location_tuple_to_string(self.PosInfo.ChosenNavPoint)})):
-        #    self.agent.Bot.send_message("RUNTO", {"Location" : utilityfns.location_tuple_to_string(self.PosInfo.ChosenNavPoint)})
-            #print "sending message"
-        #else:
-            #print "already sent"
-            
-        # new version just calls the utility function
-        #utilityfns.send_if_not_prev(self.agent.Bot, ("RUNTO", {"Location" : utilityfns.location_tuple_to_string(self.PosInfo.ChosenNavPoint)}))
-        
-        #even newer version has a strafe check
-        self.send_runto_or_strafe_to_location(utilityfns.location_tuple_to_string(self.PosInfo.ChosenNavPoint))
-        
-        return 1
-            
-    # runs to the enemy flag
-    def to_enemy_flag(self):
-        print "!!in to_enemy_flag"
-        print "\n".join(["%s=%s" % (k, v) for k, v in self.PosInfo.EnemyFlagInfo.items()])
-        
-        if self.PosInfo.has_enemy_flag_info_expired():
-            self.PosInfo.expire_enemy_flag_info()
-        
-        if self.PosInfo.EnemyFlagInfo != {}:
-            self.agent.Bot.send_message("RUNTO", {"Target" : self.PosInfo.EnemyFlagInfo["Id"]})
-        return 1
-            
-    def to_own_flag(self):  
-        if self.PosInfo.has_our_flag_info_expired():
-            self.PosInfo.expire_our_flag_info()
-    
-        if self.PosInfo.OurFlagInfo != {}:
-            # was self.agent.Bot.send_message("RUNTO", {"Location" : self.PosInfo.OurFlagInfo["Location"]})
-            self.send_runto_or_strafe_to_location(self.PosInfo.OurFlagInfo["Location"])
-        return 1
-            
-    # runs to the bot's own base by getting a list of navpoints showing the way there
-    def to_own_base(self):
-        print "to_own_base"
-        DistanceTolerance = 30
-        # If we don't know where our own base is, then do nothing
-        # However, this action should never fire unless we do know where our base is
-        if self.PosInfo.OwnBasePos == None:
-            print "Don't know where own base is!"
-            return 1
-        
-        def send_getpath():
-            print "in send_getpath"
-            if not utilityfns.is_previous_message(self.agent.Bot, ("GETPATH", {"Location" : self.PosInfo.OwnBasePos, "Id" : self.PathHomeID})):
-                self.agent.Bot.send_message("GETPATH", {"Location" : self.PosInfo.OwnBasePos, "Id" : self.PathHomeID}) # the ID allows us to match requests with answers
-                print "sent GETPATH"
-            else:
-                print "GETPATH already sent"
-        
-        # if we haven't already got a list of path nodes to follow then send the GETPATH message
-        # to try and mitigate the problem of pathhome being cleared part way through this, we assign
-        # the relevant value to a variable and then use that throughout, so the array is checked as infrequently as possible
-        # it's not an ideal fix though!
-        if self.PosInfo.PathHome == []:
-            send_getpath()
-        else:
-            if not self.to_known_location(self.PosInfo.PathHome, DistanceTolerance):
-                print "DT check failed, tailing"
-                self.PosInfo.PathHome = utilityfns.tail(self.PosInfo.PathHome)
-                if self.PosInfo.PathHome != []:
-                    print "tail not empty"
-                    PathLoc = self.PosInfo.PathHome[0]
-                    self.send_runto_or_strafe_to_location(PathLoc)
-                else:
-                    send_getpath()
-    
-        #before we return, send a checkreach command about the current navpoint.  That way the list can be recreated if it becomes incorrect
-        if self.PosInfo.PathHome != [] and self.PosInfo.PathHome != None:
-            self.agent.Bot.send_message("CHECKREACH", {"Location" : self.PosInfo.PathHome[0], "Id" : self.ReachPathHomeID, "From" : self.agent.Bot.botinfo["Location"]})
-        print "about to return from to_own_base"
-    
-    # runs to the enemy's base by getting a list of navpoints showing the way there
-    def to_enemy_base(self):
-        print "to_enemy_base"
-        DistanceTolerance = 30
-        # If we don't know where the base is, then do nothing
-        # However, this action should never fire unless we do know where it is
-        if self.PosInfo.EnemyBasePos == None:
-            print "Don't know where enemy base is!"
-            return 1
-        
-        def send_getpath():
-            print "in send_getpath"
-            utilityfns.send_if_not_prev(self.agent.Bot, ("GETPATH", {"Location" : self.PosInfo.EnemyBasePos, "Id" : self.PathToEnemyBaseID}))
-        
-        # if we haven't already got a list of path nodes to follow then send the GETPATH message
-        # to try and mitigate the problem of pathhome being cleared part way through this, we assign
-        # the relevant value to a variable and then use that throughout, so the array is checked as infrequently as possible
-        # it's not an ideal fix though!
-        if self.PosInfo.PathToEnemyBase == []:
-            send_getpath()
-        else:
-            if not self.to_known_location(self.PosInfo.PathToEnemyBase, DistanceTolerance):
-                print "DT check failed, tailing"
-                self.PosInfo.PathToEnemyBase = utilityfns.tail(self.PosInfo.PathToEnemyBase)
-                if self.PosInfo.PathToEnemyBase != []:
-                    print "tail not empty"
-                    PathLoc = self.PosInfo.PathToEnemyBase[0]
-                    self.send_runto_or_strafe_to_location(PathLoc)
-                else:
-                    send_getpath()
-    
-        #before we return, send a checkreach command about the current navpoint.  That way the list can be recreated if it becomes incorrect
-        if self.PosInfo.PathToEnemyBase != [] and self.PosInfo.PathToEnemyBase != None:
-            self.agent.Bot.send_message("CHECKREACH", {"Location" : self.PosInfo.PathToEnemyBase[0], "Id" : self.ReachPathToEnemyBaseID, "From" : self.agent.Bot.botinfo["Location"]})
-        print "about to return from to_enemy_base"
-    
-    # returns 1 and sends a runto message for the provided location if the DistanceTolerance check passes
-    # otherwise returns 0
-    def to_known_location(self, Location, DistanceTolerance):
-        if len(Location) == 0:
-            return 1 # even though we failed, we return 1 so that it doesn't tail the list
-        # to first point in current list, if we're not already there
-        Location0 = Location[0]
-        (HX, HY, HZ) = utilityfns.location_string_to_tuple(Location0)
-        (SX, SY, SZ) = utilityfns.location_string_to_tuple(self.agent.Bot.botinfo["Location"])
-        if utilityfns.find_distance((HX, HY), (SX, SY)) > DistanceTolerance:
-            print "DistanceTolerance check passed"
-            
-            print "About to send RUNTO to",
-            print Location0
-            print "Current location",
-            print self.agent.Bot.botinfo["Location"]
-            
-            self.send_runto_or_strafe_to_location(Location0, 0)
-            # was
-            #if not utilityfns.is_previous_message(self.agent.Bot, ("RUNTO", {"Location" : PathLoc})):
-            #    self.agent.Bot.send_message("RUNTO", {"Location" : PathLoc})
-            #    print "Running to " + PathLoc
-            return 1
-        else:
-            return 0
-        
-    #not used at present (18/2/2005)
-    def inch(self):
-        # just add a bit to the x value
-        print "in inch"
-        (SX, SY, SZ) = utilityfns.location_string_to_tuple(self.agent.Bot.botinfo["Location"])
-        NewLocTuple = (SX + 150, SY, SZ)
-        self.send_runto_or_strafe_to_location(utilityfns.location_tuple_to_string(NewLocTuple))
-  
-    # just because something was reachable the last time we knew about it doesn't mean it still is
-    #def expire_reachable_info(self):
-    #    if self.PosInfo.OurFlagInfo != {} and self.PosInfo.OurFlagInfo.has_key("Reachable"):
-    #        self.PosInfo.OurFlagInfo["Reachable"] = "0"
-    #    if self.PosInfo.EnemyFlagInfo != {} and self.PosInfo.EnemyFlagInfo.has_key("Reachable"):
-    #        self.PosInfo.EnemyFlagInfo["Reachable"] = "0"
-    #    
-    #    self.PosInfo.TooCloseForPath = 0
-    
-    # === OTHER FUNCTIONS ===
-    
-    # checks the previous sent message against the provided one, returning 1 if they match
-    # now replaced by is_previous_message(bot, Msg) in utilityfns
-    #def is_previous_message(self, Msg):
-    #    if self.agent.Bot.sent_msg_log == None or \
-    #    len(self.agent.Bot.sent_msg_log) == 0 or \
-    #    self.agent.Bot.sent_msg_log[-1] != Msg:
-    #        return 0
-    #    return 1
-    
-    # updates the flag positions in PositionsInfo
-    # also updates details of bases, if relevant info sent
-    # the position of a flag is how we determine where the bases are
-    def receive_flag_details(self, values):
-        #print "f",
-        #print values["Reachable"]
-        print 'in receive_flag_details'
-        print "\n".join(["%s=%s" % (k, v) for k, v in values.items()])
-        if self.agent.Bot.botinfo == {}: #if botinfo is {}, we can't yet set anything
-            return
-        
-        #print "in receive_flag_details.  Values are:"
-        #print values
-        
-        #set flag stuff
-        OurTeam = self.agent.Bot.botinfo["Team"]
-        if values["Team"] == OurTeam:
-            self.PosInfo.OurFlagInfo = values
-            #print "our flag"
-        else:
-            self.PosInfo.EnemyFlagInfo = values
-            #print "enemy flag"
-        
-        # now set base stuff if appliable
-        if values["State"] == "home":
-            if values["Team"] == self.agent.Bot.botinfo["Team"]:
-                self.PosInfo.OwnBasePos = values["Location"]
-            else:
-                self.PosInfo.EnemyBasePos = values["Location"]
-                #print "enemy base at",
-                #print self.PosInfo.EnemyBasePos
-                #print "self.PosInfo.EnemyBasePos has type",
-                #print type(self.PosInfo.EnemyBasePos)
-    
-    # if the 'ID' key is PathHome then it tells the bot how to get home.
-    # we need to turn the dictionary into a list, ordered by key ('0' ... 'n')
-    # at present other IDs are ignored
-    def receive_pth_details(self, ValuesDict):
-        if not ValuesDict.has_key("ID"):
-            return
-        elif ValuesDict["ID"] == self.PathHomeID:
-            self.PosInfo.PathHome =  utilityfns.nav_point_dict_to_ordered_list(ValuesDict)
-        elif ValuesDict["ID"] == self.PathToEnemyBaseID:
-            self.PosInfo.PathToEnemyBase =  utilityfns.nav_point_dict_to_ordered_list(ValuesDict)
-            
-        # if there's no 0 key we're being given an empty path, so set TooCloseForPath to the current time
-        # so that we can check how old the information is later on
-        if not ValuesDict.has_key("0"):
-            self.PosInfo.TooCloseForPath = current_time()
-        else:
-            self.PosInfo.TooCloseForPath = 0
-            
-    
-    # used in validating the bot's path home or to the enemy flag
-    # if the thing has the right ID, then clear the relevant path if it's not reachable
-    def receive_rch_details(self, ValuesDict):
-        print "in receive_rch_details"
-        if not ValuesDict.has_key("ID"):
-            return
-        elif ValuesDict["ID"] == self.ReachPathHomeID and ValuesDict["Reachable"] == "False":
-            self.PosInfo.PathHome = []
-            print "Cleared PathHome"
-        elif ValuesDict["ID"] == self.ReachPathToEnemyBaseID and ValuesDict["Reachable"] == "False":
-            self.PosInfo.PathToEnemyBase = []
-            print "Cleared PathToEnemyBase"
-        
-    # if the combatinfo class specifies that we need to remain focused on a player, send a relevant strafe command
-    # to move to the provided location.  Otherwise, a runto
-    def send_runto_or_strafe_to_location(self, Location, PerformPrevCheck = 1):
-        #expire focus id info if necessary FA 
-        if self.agent.Combat.CombatInfo.KeepFocusOnID != None and self.agent.Combat.CombatInfo.has_focus_id_expired(): 
-            self.agent.Combat.CombatInfo.expire_focus_id()
-
-            # Seems out of place, need to find a better way of doing this FA
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-    
-        if self.agent.Combat.CombatInfo.KeepFocusOnID != None:
-            Message = ("STRAFE", {"Location" : Location, "Target": self.agent.Combat.CombatInfo.KeepFocusOnID})
-            if PerformPrevCheck:
-                utilityfns.send_if_not_prev(self.agent.Bot, Message)
-            else:
-                self.agent.Bot.send_message(Message[0], Message[1])
-            
-        else:
-            Message = ("RUNTO", {"Location" : Location})
-            if PerformPrevCheck:
-                utilityfns.send_if_not_prev(self.agent.Bot, Message)
-            else:
-                self.agent.Bot.send_message(Message[0], Message[1])
-                print "have just sent",
-                print Message
-                
-    # clean-up after dying
-    def receive_die_details(self, ValuesDict):
-        self.PosInfo.PathHome = []
-        self.PosInfo.PathToEnemyBase = []
-        self.PosInfo.VisitedNavPoints = [] # this is new
-        self.PosInfo.OurFlagInfo = {}
-        self.PosInfo.EnemyFlagInfo = {}
-                
-    

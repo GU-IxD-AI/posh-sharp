@@ -251,7 +251,25 @@ namespace Posh_sharp.examples.BODBot
             return new Tuple<string,Dictionary<string,string>>(cmd,varDict);
         }
 
-        public bool sendMessage(string command, Dictionary<string,string> dictionary)
+        /// <summary>
+        /// checks the bot's previous sent message against the provided one, returning true if they match
+        /// </summary>
+        /// <param name="?"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public bool IsPreviousMessage(string cmd,Dictionary<string,string> message)
+        {
+            if (sentMsgLog.Count == 0 || sentMsgLog[sentMsgLog.Count-1] != (new Tuple<string,Dictionary<string,string>>(cmd,message)) )
+                return false;
+            return true;
+        }
+        public void SendIfNotPreviousMessage(string cmd ,Dictionary<string,string> message)
+        {
+            if (!IsPreviousMessage(cmd,message))
+                SendMessage(cmd,message);
+        }
+        
+        public bool SendMessage(string command, Dictionary<string,string> dictionary)
         {
             string output = command;
             this.sentMsgLog.Add(new Tuple<string,Dictionary<string,string>>(command,dictionary));
@@ -360,7 +378,7 @@ namespace Posh_sharp.examples.BODBot
                 {
                     // Send INIT message
                     this.conninfo = result.Second;
-                    sendMessage("INIT", new Dictionary<string, string> {{"Name" , botName}, {"Team", team.ToString()}});
+                    SendMessage("INIT", new Dictionary<string, string> {{"Name" , botName}, {"Team", team.ToString()}});
                     // ready to send messages
                     connReady = true;
                     break;
@@ -421,10 +439,10 @@ namespace Posh_sharp.examples.BODBot
                     this.events.Add(TimerBase.TimeStamp()+" "+ result.ToString());
                 else if (result.First == "SEE")
                     // Update the player Position
-                    this.viewPlayers[result.Second["Id"]] = result.Second;
+                    this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
                 else if (result.First == "PTH")
                     // pass the details to the movement behaviour
-                    (Movement)agent.getBehaviour("Movement").receive_pth_details(dict)
+                    ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
                     else if (result.First == "SEE")
                         else if (result.First == "SEE")
             }

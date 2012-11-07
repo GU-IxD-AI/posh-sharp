@@ -12,8 +12,8 @@ namespace Posh_sharp.examples.BODBot.util
     /// </summary>
     public class PositionsInfo
     {
-        protected internal NavPoint ownBasePos { private set; protected internal get; }
-        protected internal NavPoint enemyBasePos { private set; protected internal get; }
+        protected internal NavPoint ownBasePos { internal set; protected internal get; }
+        protected internal NavPoint enemyBasePos { internal set; protected internal get; }
 
         /// <summary>
         /// contains an ordered list of all visited NavPoint Ids
@@ -23,14 +23,14 @@ namespace Posh_sharp.examples.BODBot.util
         protected internal Dictionary<string, string> ourFlagInfo;
         protected internal Dictionary<string,string> enemyFlagInfo;
 
-        List<NavPoint> pathHome;
-        List<NavPoint> pathToEnemyBase;
+        protected internal Dictionary<int, Vector3> pathHome;
+        protected internal Dictionary<int, Vector3> pathToEnemyBase;
 
         /// <summary>
         /// set to current time if we're sent a blank path
         /// Blank paths indicate that we're right next to something but can't actually see it
         /// </summary>
-        long tooCloseForPath;
+        public long TooCloseForPath { get; internal set; }
 
         public PositionsInfo()
         {
@@ -41,13 +41,13 @@ namespace Posh_sharp.examples.BODBot.util
             ourFlagInfo = new Dictionary<string,string>();
             enemyFlagInfo = new Dictionary<string,string>();
 
-            pathHome = new List<NavPoint>();
-            pathToEnemyBase = new List<NavPoint>();
+            pathHome = new Dictionary<int, Vector3>();
+            pathToEnemyBase = new Dictionary<int, Vector3>();
 
-            tooCloseForPath = 0L;
+            TooCloseForPath = 0L;
         }
 
-        public bool hasEnemyFlagInfoExpired(int lsecs = 10)
+        public bool HasEnemyFlagInfoExpired(int lsecs = 10)
         {
             if (enemyFlagInfo.Count > 0 && enemyFlagInfo.ContainsKey("Reachable"))
                 if (long.Parse(enemyFlagInfo["timestamp"]) < ( TimerBase.TimeStamp() - lsecs) )
@@ -59,12 +59,12 @@ namespace Posh_sharp.examples.BODBot.util
         /// <summary>
         /// Have to call check_enemy_flag_info_expired before calling this FA 
         /// </summary>
-        public void expireEnemyFlagInfo()
+        public void ExpireEnemyFlagInfo()
         {
             enemyFlagInfo["Reachable"] = false.ToString();
         }
 
-        public bool hasOurFlagInfoExpired(int lsecs = 10)
+        public bool HasOurFlagInfoExpired(int lsecs = 10)
         {
             if ( ourFlagInfo.Count > 0 && ourFlagInfo.ContainsKey("Reachable") )
                 if (long.Parse(ourFlagInfo["timestamp"]) < ( TimerBase.TimeStamp() - lsecs) )
@@ -76,22 +76,22 @@ namespace Posh_sharp.examples.BODBot.util
         /// <summary>
         /// Have to call check_our_flag_info_expired before calling this FA 
         /// </summary>
-        public void expireOurFlagInfo()
+        public void ExpireOurFlagInfo()
         {
             ourFlagInfo["Reachable"] = false.ToString();
         }
 
-        public bool hasTooCloseForPathExpired(int lsecs)
+        public bool HasTooCloseForPathExpired(int lsecs = 10)
         {
-            if ( tooCloseForPath < TimerBase.TimeStamp() - lsecs )
+            if ( TooCloseForPath < TimerBase.TimeStamp() - lsecs )
                 return true;
 
             return false;
         }
 
-        public void expireTooCloseForPath()
+        public void ExpireTooCloseForPath()
         {
-            tooCloseForPath = 0L;
+            TooCloseForPath = 0L;
         }
     }
 }

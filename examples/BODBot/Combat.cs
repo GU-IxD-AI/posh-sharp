@@ -8,13 +8,13 @@ using POSH_sharp.sys.annotations;
 
 namespace Posh_sharp.examples.BODBot
 {
-    public class CombatBehaviour : Behaviour
+    public class Combat : Behaviour
     {
         private string [] senses;
         private string [] actions;
-        private CombatInfo info;
+        internal CombatInfo info;
 
-        public CombatBehaviour(AgentBase agent)
+        public Combat(AgentBase agent)
             :base(agent,new string[] {"ShootEnemyCarryingOurFlag",
                             "RunToTnemyCarryingOurFlag",
                             "FaceAttacker", "SetAttacker", "ShootAttacker"},
@@ -26,7 +26,76 @@ namespace Posh_sharp.examples.BODBot
         {
             info = new CombatInfo();
         }
+            
+        /*
+         * 
+         * OTHER FUNCTIONS 
+         * 
+         */
 
+        internal ReceiveFlagDetails()
+    
+    def receive_flag_details(self, values):
+        # if its status is "held", update the CombatInfoClass to show who's holding it
+        # otherwise, set that to None as it means no-one is holding it
+        
+        #print "in rfd"
+        #print values
+        
+        if self.agent.Bot.botinfo == {}: #if botinfo is {}, we can't yet set anything
+            return
+        
+        OurTeam = self.agent.Bot.botinfo["Team"]
+        #print "OurTeam is of type",
+        #print type(OurTeam),
+        #print " and value is",
+        #print OurTeam
+        #print "values[\"Team\"] is ",
+        #print values["Team"]
+        
+        if values["Team"] == OurTeam:
+            if values["State"].lower() == "held":
+                #print "setting holder"
+                self.CombatInfo.HoldingOurFlag = values["Holder"]
+            else:
+                #print "not being held"
+                self.CombatInfo.HoldingOurFlag = None
+                self.CombatInfo.HoldingOurFlagPlayerInfo = None
+                
+    def receive_prj_details(self, valuesdict):
+        print "received details of incoming projectile!"
+        print valuesdict
+        self.CombatInfo.ProjectileDetails = valuesdict
+        
+    def receive_dam_details(self, valuesdict):
+        self.CombatInfo.DamageDetails = valuesdict
+        
+    # handle details about a player (not itself) dying
+    # remove any info about that player from CombatInfo
+    def receive_kil_details(self, ValuesDict):
+        print "receive_kil_details",
+        print ValuesDict
+        print "-----"
+        print self.CombatInfo.HoldingOurFlag
+        if ValuesDict["Id"] == self.CombatInfo.HoldingOurFlag:
+            self.CombatInfo.HoldingOurFlag = None
+            self.CombatInfo.HoldingOurFlagPlayerInfo = None
+            self.agent.Bot.send_message("STOPSHOOT", {})
+
+        if self.CombatInfo.KeepFocusOnID != None:
+            (ID, TimeStamp) = self.CombatInfo.KeepFocusOnID
+            if ValuesDict["Id"] == ID:
+                self.CombatInfo.expire_focus_id()
+                self.CombatInfo.expire_focus_location()
+                self.agent.Bot.send_message("STOPSHOOT", {})
+            
+    
+    # clean-up after dying
+    def receive_die_details(self, ValuesDict):
+        self.CombatInfo.expire_damage_info()
+        self.CombatInfo.expire_focus_id()
+        self.CombatInfo.expire_focus_location()
+        self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
         /*
          * 
          * SENSES
@@ -42,9 +111,11 @@ namespace Posh_sharp.examples.BODBot
 
     }
 }
-   
-    # === SENSES ===
-    
+        /*
+         * 
+         * SENSES 
+         * 
+         */
     def see_enemy_with_our_flag(self):
         #print "in see_enemy_with_our_flag sense"
         if len(self.agent.Bot.view_players) == 0:
@@ -285,122 +356,5 @@ namespace Posh_sharp.examples.BODBot
                 self.agent.Bot.send_message("SHOOT", {"Target" : Target, "Location" : Location})
         return 1
         
-    # === OTHER FUNCTIONS ===
-    
-    def receive_flag_details(self, values):
-        # if its status is "held", update the CombatInfoClass to show who's holding it
-        # otherwise, set that to None as it means no-one is holding it
-        
-        #print "in rfd"
-        #print values
-        
-        if self.agent.Bot.botinfo == {}: #if botinfo is {}, we can't yet set anything
-            return
-        
-        OurTeam = self.agent.Bot.botinfo["Team"]
-        #print "OurTeam is of type",
-        #print type(OurTeam),
-        #print " and value is",
-        #print OurTeam
-        #print "values[\"Team\"] is ",
-        #print values["Team"]
-        
-        if values["Team"] == OurTeam:
-            if values["State"].lower() == "held":
-                #print "setting holder"
-                self.CombatInfo.HoldingOurFlag = values["Holder"]
-            else:
-                #print "not being held"
-                self.CombatInfo.HoldingOurFlag = None
-                self.CombatInfo.HoldingOurFlagPlayerInfo = None
-                
-    def receive_prj_details(self, valuesdict):
-        print "received details of incoming projectile!"
-        print valuesdict
-        self.CombatInfo.ProjectileDetails = valuesdict
-        
-    def receive_dam_details(self, valuesdict):
-        self.CombatInfo.DamageDetails = valuesdict
-        
-    # handle details about a player (not itself) dying
-    # remove any info about that player from CombatInfo
-    def receive_kil_details(self, ValuesDict):
-        print "receive_kil_details",
-        print ValuesDict
-        print "-----"
-        print self.CombatInfo.HoldingOurFlag
-        if ValuesDict["Id"] == self.CombatInfo.HoldingOurFlag:
-            self.CombatInfo.HoldingOurFlag = None
-            self.CombatInfo.HoldingOurFlagPlayerInfo = None
-            self.agent.Bot.send_message("STOPSHOOT", {})
 
-        if self.CombatInfo.KeepFocusOnID != None:
-            (ID, TimeStamp) = self.CombatInfo.KeepFocusOnID
-            if ValuesDict["Id"] == ID:
-                self.CombatInfo.expire_focus_id()
-                self.CombatInfo.expire_focus_location()
-                self.agent.Bot.send_message("STOPSHOOT", {})
-            
     
-    # clean-up after dying
-    def receive_die_details(self, ValuesDict):
-        self.CombatInfo.expire_damage_info()
-        self.CombatInfo.expire_focus_id()
-        self.CombatInfo.expire_focus_location()
-        self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-    
-class CombatInfoClass:
-    def __init__(self):
-        self.HoldingOurFlag = None # the ID of the player holding our flag
-        self.HoldingOurFlagPlayerInfo = None # details about that player
-        
-        self.ProjectileDetails = None
-        self.DamageDetails = None
-        self.KeepFocusOnID = None
-        self.KeepFocusOnLocation = None
-        
-        #self.TriedToFindAttacker = 0
-        
-    # Checks the timestamp against current time less lifetime of damagedetails FA
-    def has_damage_info_expired(self, lsecs = 5):
-        if self.DamageDetails != None and self.DamageDetails["timestamp"] < (current_time() - lsecs):
-            return 1
-        return 0
-        
-    # not the usual sort of action, but ensures that details about e.g. damage taken doesn't reside forever and inform decisions too far into the future
-    def expire_damage_info(self):
-        self.DamageDetails = None
-        return 1
-        
-    # Checks the timestamp against current time less lifetime of focus_id FA
-    def has_focus_id_expired(self, lsecs = 15):
-        if self.KeepFocusOnID != None:
-            (ID, timestamp) = self.KeepFocusOnID
-            if timestamp < (current_time() - lsecs):
-                return 1
-        return 0
-        
-    # Split expire_focus_info in to two methods for better accuracy FA 
-    def expire_focus_id(self):
-        self.KeepFocusOnID = None
-    
-    # Checks the timestamp against current time less lifetime of focus_id FA
-    def has_focus_location_expired(self, lsecs = 15):
-        if self.KeepFocusOnLocation != None:
-            (location, timestamp) = self.KeepFocusOnLocation
-            if timestamp < (current_time() - lsecs):
-                return 1
-        return 0
-    
-    # Split expire_focus_info in to two methods for better accuracy FA  
-    def expire_focus_location(self):
-        self.KeepFocusOnLocation = None
-        
-    def has_projectile_details_expired(self, lsecs = 2):
-        if self.ProjectileDetails != None and self.ProjectileDetails["timestamp"] < (current_time() - lsecs):
-            return 1
-        return 0
-    
-    def expire_projectile_info(self):
-        self.ProjectileDetails = None
-        return 1
