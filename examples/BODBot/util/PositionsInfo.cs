@@ -50,7 +50,7 @@ namespace Posh_sharp.examples.BODBot.util
         public bool HasEnemyFlagInfoExpired(int lsecs = 10)
         {
             if (enemyFlagInfo.Count > 0 && enemyFlagInfo.ContainsKey("Reachable"))
-                if (long.Parse(enemyFlagInfo["timestamp"]) < ( TimerBase.TimeStamp() - lsecs) )
+                if (long.Parse(enemyFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
                     return true;
             
             return false;
@@ -67,7 +67,7 @@ namespace Posh_sharp.examples.BODBot.util
         public bool HasOurFlagInfoExpired(int lsecs = 10)
         {
             if ( ourFlagInfo.Count > 0 && ourFlagInfo.ContainsKey("Reachable") )
-                if (long.Parse(ourFlagInfo["timestamp"]) < ( TimerBase.TimeStamp() - lsecs) )
+                if (long.Parse(ourFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
                     return true;
             
             return false;
@@ -83,7 +83,7 @@ namespace Posh_sharp.examples.BODBot.util
 
         public bool HasTooCloseForPathExpired(int lsecs = 10)
         {
-            if ( TooCloseForPath < TimerBase.TimeStamp() - lsecs )
+            if ( TooCloseForPath < TimerBase.CurrentTimeStamp() - lsecs )
                 return true;
 
             return false;

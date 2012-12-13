@@ -57,7 +57,7 @@ namespace POSH_sharp.sys.strict
         public override FireResult fire()
         {
             log.Debug("Fired");
-            long timeStamp = timer.time();
+            long timeStamp = timer.Time();
             elements = LAPParser.ShuffleList(elements);
             // new_elements=self.get_sorted_drive()
 

@@ -12,7 +12,7 @@ namespace Posh_sharp.examples.BODBot
 {
     public class Movement : Behaviour
     {
-        PositionsInfo posInfo;
+        internal PositionsInfo posInfo;
         string pathHomeId;
         string reachPathHomeId;
         string pathToEnemyBaseId;
@@ -21,7 +21,7 @@ namespace Posh_sharp.examples.BODBot
         public Movement(AgentBase agent) 
             : base(agent, 
             new string[] {"WalkToNavPoint", "ToEnemyFlag", 
-                            "ToOwnBase", "ToOwnFlag", "ToEnemyBase", "Inch",
+                            "ToOwnBase", "ToOwnFlag", "ToEnemyBase", 
                             "RuntoMedicalKit", "RuntoWeapon"},
             new string[] {"AtEnemyBase", "AtOwnBase", "KnowEnemyBasePos",
                             "KnowOwnBasePos", "ReachableNavPoint",
@@ -57,16 +57,16 @@ namespace Posh_sharp.examples.BODBot
             Console.Out.WriteLine("in receiveFlagDetails");
             Console.Out.WriteLine(values.ToArray().ToString());
 
-            if ( getBot().botinfo == null ||  getBot().botinfo.Count < 1 )
+            if ( getBot().info == null ||  getBot().info.Count < 1 )
                 return;
             // set flag stuff
-            if ( values["Team"] == getBot().botinfo["Team"] )
+            if ( values["Team"] == getBot().info["Team"] )
                 posInfo.ourFlagInfo = values;
             else
                 posInfo.enemyFlagInfo = values;
 
             if (values["State"] == "home")
-                if ( values["Team"] == getBot().botinfo["Team"] )
+                if ( values["Team"] == getBot().info["Team"] )
                     posInfo.ownBasePos = NavPoint.ConvertToNavPoint(values);
                 else
                     posInfo.enemyBasePos = NavPoint.ConvertToNavPoint(values);
@@ -90,7 +90,7 @@ namespace Posh_sharp.examples.BODBot
             // if there's no 0 key we're being given an empty path, so set TooCloseForPath to the current time
             // so that we can check how old the information is later on
             if ( !valuesDict.ContainsKey("0") )
-                posInfo.TooCloseForPath = TimerBase.TimeStamp();
+                posInfo.TooCloseForPath = TimerBase.CurrentTimeStamp();
             else
                 posInfo.TooCloseForPath = 0L;
         }
@@ -142,14 +142,14 @@ namespace Posh_sharp.examples.BODBot
             // IMPORTANT-TODO: completely remodel this method as it uses stuff from a different behaviour it should not use.
             Tuple<string,Dictionary<string,string>> message;
             // expire focus id info if necessary FA
-            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,int> && 
+            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,long> && 
                 ((Combat)agent.getBehaviour("Combat")).info.HasFocusIdExpired())
                 ((Combat)agent.getBehaviour("Combat")).info.ExpireFocusId();
 
             //OLD-COMMENT: Seems out of place, need to find a better way of doing this FA
             getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>() ); //no-one to focus on
 
-            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,int>)
+            if ( ((Combat)agent.getBehaviour("Combat")).info.KeepFocusOnID is Tuple<string,long>)
             {
                 message = new Tuple<string,Dictionary<string,string>>("STRAFE",
                     new Dictionary<string,string>() 
@@ -201,13 +201,13 @@ namespace Posh_sharp.examples.BODBot
             if ( location.Count == 0 )
                 // even though we failed, we return 1 so that it doesn't tail the list
                 return true;
-            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().botinfo["Location"]) ) > distanceTolerance)
+            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().info["Location"]) ) > distanceTolerance)
             {
                 Console.Out.WriteLine("DistanceTolerance check passed");
                 Console.Out.WriteLine("About to send RUNTO to");
                 Console.Out.WriteLine(location[0].ToString());
                 Console.Out.WriteLine("Current location");
-                Console.Out.WriteLine(getBot().botinfo["Location"]);
+                Console.Out.WriteLine(getBot().info["Location"]);
 
                 SendRuntoOrStrafeToLocation(location[0],false);
                 return true;
@@ -223,9 +223,9 @@ namespace Posh_sharp.examples.BODBot
                 
         private bool atTargetLocation(NavPoint target, int distanceTolerance)
         {
-            if ( !getBot().botinfo.ContainsKey("Location") )
+            if ( !getBot().info.ContainsKey("Location") )
                 return false;
-            Vector3 location = Vector3.ConvertToVector3(getBot().botinfo["Location"]);
+            Vector3 location = Vector3.ConvertToVector3(getBot().info["Location"]);
 
             if (target == null)
                 return false;
@@ -289,8 +289,8 @@ namespace Posh_sharp.examples.BODBot
             NavPoint navPoint;
             int distanceTolerance = 30; // how near we must be to be thought of as at the nav point
 
-            if ( getBot().botinfo.ContainsKey("Location") )
-                location = Vector3.ConvertToVector3(getBot().botinfo["Location"]);
+            if ( getBot().info.ContainsKey("Location") )
+                location = Vector3.ConvertToVector3(getBot().info["Location"]);
             else
                 // if we don't know where we are, treat it as (0,0,0) 
                 // as that will just mean we go to the nav point even if we're close by
@@ -431,11 +431,11 @@ namespace Posh_sharp.examples.BODBot
         [ExecutableSense("SeeEnemy")]
         public bool SeeEnemy()
         {
-            if (getBot().viewPlayers.Count  == 0 ||  getBot().botinfo.Count == 0)
+            if (getBot().viewPlayers.Count  == 0 ||  getBot().info.Count == 0)
                 return false;
             
             // work through, looking for an enemy
-            string ourTeam = getBot().botinfo["Team"];
+            string ourTeam = getBot().info["Team"];
             UTPlayer [] players = getBot().viewPlayers.Values.ToArray();
             foreach (UTPlayer currentPlayer in players )
                 if ( currentPlayer.Team != ourTeam )
@@ -613,7 +613,7 @@ namespace Posh_sharp.examples.BODBot
             if (pathToBase is Dictionary<int,Vector3> && pathToBase.Count > 0 )
                 getBot().SendMessage("CHECKREACH", new Dictionary<string,string>()
                     {
-                        {"Location", pathToBase[0].ToString()}, {"Id",reachId},{"From",getBot().botinfo["Location"]}
+                        {"Location", pathToBase[0].ToString()}, {"Id",reachId},{"From",getBot().info["Location"]}
                     });
             Console.Out.WriteLine("about to return from To"+name+"Base");
         }

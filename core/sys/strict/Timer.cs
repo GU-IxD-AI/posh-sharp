@@ -33,13 +33,13 @@ namespace POSH_sharp.sys.strict
         ///</summary>
         public TimerBase()
         {
-            reset();
+            Reset();
         }
 
         ///<summary>
         ///Returns the current timestamp in milliseconds.
         ///</summary>
-        public static long TimeStamp(){
+        public static long CurrentTimeStamp(){
             return System.DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
@@ -48,7 +48,7 @@ namespace POSH_sharp.sys.strict
         ///All calls to L{time} after calling this method return the time 
         ///that has passed since the this method has been classed.
         ///</summary>
-        public virtual void reset(){
+        public virtual void Reset(){
             throw new NotImplementedException();
         }
         ///<summary>
@@ -57,7 +57,7 @@ namespace POSH_sharp.sys.strict
         ///The current time in milliseconds using the long Data type
         ///</returns>
         ///</summary>
-        public virtual long time(){
+        public virtual long Time(){
             throw new NotImplementedException();
         }
         ///<summary>
@@ -66,7 +66,7 @@ namespace POSH_sharp.sys.strict
         /// For a stepped timer, this method increases the time. For a 
         /// real-time timer, this method does nothing.
         ///</summary>
-        public virtual void loopEnd(){
+        public virtual void LoopEnd(){
             throw new NotImplementedException();
         }
         ///<summary>
@@ -79,7 +79,7 @@ namespace POSH_sharp.sys.strict
         /// methods and adjusts the wait time to achieve the required time
         /// difference.
         ///</summary>
-        public virtual void loopWait(){
+        public virtual void LoopWait(){
             throw new NotImplementedException();
         }
         ///<summary>
@@ -89,7 +89,7 @@ namespace POSH_sharp.sys.strict
         ///The loop frequence, given by the time in milliseconds that one loop should take.
         ///</value>
         ///</summary>
-        public virtual void setLoopFreq(long loopFreq)
+        public virtual void SetLoopFreq(long loopFreq)
         {
             throw new NotImplementedException();
         }
@@ -113,7 +113,7 @@ namespace POSH_sharp.sys.strict
         {
         }
 
-        public override void reset()
+        public override void Reset()
         {
             _time = 0;
         }
@@ -122,7 +122,7 @@ namespace POSH_sharp.sys.strict
         /// Returns the current state of the internal timer.
         /// </summary>
         /// <returns>current time</returns>
-        public override long time()
+        public override long Time()
         {
             return _time;
         }
@@ -130,7 +130,7 @@ namespace POSH_sharp.sys.strict
         /// <summary>
         /// Increases the internal timer by 1.
         /// </summary>
-        public override void loopEnd()
+        public override void LoopEnd()
         {
             _time +=1;
         }
@@ -138,7 +138,7 @@ namespace POSH_sharp.sys.strict
         /// <summary>
         /// Does nothing, as the stepped timer does not provide loop control.
         /// </summary>
-        public override void loopWait()
+        public override void LoopWait()
         {
             
         }
@@ -148,7 +148,7 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="loopFreq"> is ignored
         /// </param>
-        public override void setLoopFreq(long loopFreq)
+        public override void SetLoopFreq(long loopFreq)
         {
             throw new NotImplementedException();
         }
@@ -194,10 +194,10 @@ namespace POSH_sharp.sys.strict
         /// All future calls to L{time} return the time that passed since this
         /// method was called last.
         ///</summary>
-        public override void reset(){
+        public override void Reset(){
         _lastReturn = 0;
         _procTime = new Queue<long>();
-        _base = TimeStamp();
+        _base = CurrentTimeStamp();
         }
 
         ///<summary>
@@ -206,15 +206,15 @@ namespace POSH_sharp.sys.strict
         ///Time passed in milliseconds.
         ///</returns>
         ///</summary>
-        public override long time(){
-            return TimeStamp() - _base;
+        public override long Time(){
+            return CurrentTimeStamp() - _base;
         }
         ///<summary>
         ///To be called at the end of each loop.
         ///
         /// Does nothing, as the timing is provided by the system clock.
         ///</summary>
-        public override void loopEnd(){
+        public override void LoopEnd(){
         }
         ///<summary>
         ///Waits some time to adjust the loop frequency.
@@ -235,9 +235,9 @@ namespace POSH_sharp.sys.strict
         ///timer has to be resetted (by calling L{reset}) just before the
         ///loop is started (for the first time, or after a pause).
         ///</summary>
-        public override void loopWait(){
+        public override void LoopWait(){
             
-            long ts = time();
+            long ts = Time();
             Queue<long> pc = _procTime;
             long avgTime;
             long waitTime;
@@ -260,7 +260,7 @@ namespace POSH_sharp.sys.strict
             // the time we're going to return is the time this method was
             // called + the waiting time (given that is > 0)
             if (waitTime > 0){
-                ts = time();
+                ts = Time();
                 Thread.Sleep((int)(waitTime / 1000.0));
                 _lastReturn = ts + waitTime;
             }else{
@@ -273,10 +273,10 @@ namespace POSH_sharp.sys.strict
         ///The loop frequence, given by the time in milliseconds that one loop should take.
         ///</value>
         ///</summary>
-        public override void setLoopFreq(long loopFreq)
+        public override void SetLoopFreq(long loopFreq)
         {
             _freq= loopFreq;
-            reset();
+            Reset();
         }
     }
 }

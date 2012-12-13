@@ -41,9 +41,11 @@
     <None Include="poshbot\plans\poshbotfollow.lap" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BODBot\Andy.cs" />
     <Compile Include="BODBot\BODBot.cs" />
     <Compile Include="BODBot\Combat.cs" />
-    <Compile Include="BODBot\CombatInfo.cs" />
+    <Compile Include="BODBot\Status.cs" />
+    <Compile Include="BODBot\util\CombatInfo.cs" />
     <Compile Include="BODBot\Movement.cs" />
     <Compile Include="BODBot\util\Damage.cs" />
     <Compile Include="BODBot\util\InvItem.cs" />

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
+using Posh_sharp.BODBot.util;
+using Posh_sharp.examples.BODBot.util;
+using POSH_sharp.sys.strict;
 //import utilityfns
 
 namespace Posh_sharp.examples.BODBot
@@ -33,328 +36,416 @@ namespace Posh_sharp.examples.BODBot
          * 
          */
 
-        internal ReceiveFlagDetails()
-    
-    def receive_flag_details(self, values):
-        # if its status is "held", update the CombatInfoClass to show who's holding it
-        # otherwise, set that to None as it means no-one is holding it
-        
-        #print "in rfd"
-        #print values
-        
-        if self.agent.Bot.botinfo == {}: #if botinfo is {}, we can't yet set anything
-            return
-        
-        OurTeam = self.agent.Bot.botinfo["Team"]
-        #print "OurTeam is of type",
-        #print type(OurTeam),
-        #print " and value is",
-        #print OurTeam
-        #print "values[\"Team\"] is ",
-        #print values["Team"]
-        
-        if values["Team"] == OurTeam:
-            if values["State"].lower() == "held":
-                #print "setting holder"
-                self.CombatInfo.HoldingOurFlag = values["Holder"]
-            else:
-                #print "not being held"
-                self.CombatInfo.HoldingOurFlag = None
-                self.CombatInfo.HoldingOurFlagPlayerInfo = None
-                
-    def receive_prj_details(self, valuesdict):
-        print "received details of incoming projectile!"
-        print valuesdict
-        self.CombatInfo.ProjectileDetails = valuesdict
-        
-    def receive_dam_details(self, valuesdict):
-        self.CombatInfo.DamageDetails = valuesdict
-        
-    # handle details about a player (not itself) dying
-    # remove any info about that player from CombatInfo
-    def receive_kil_details(self, ValuesDict):
-        print "receive_kil_details",
-        print ValuesDict
-        print "-----"
-        print self.CombatInfo.HoldingOurFlag
-        if ValuesDict["Id"] == self.CombatInfo.HoldingOurFlag:
-            self.CombatInfo.HoldingOurFlag = None
-            self.CombatInfo.HoldingOurFlagPlayerInfo = None
-            self.agent.Bot.send_message("STOPSHOOT", {})
+        private void FindEnemyInView()
+        {
+            // work through who we can see, looking for an enemy
+            string ourTeam = getBot().info["Team"];
+            Console.Out.WriteLine("Our Team: "+ourTeam);
+            foreach(UTPlayer player in getBot().viewPlayers.Values)
+            {
+                if (player.Team != ourTeam)
+                {
+                    // Turned KeepFocusOnID in to a tuple with the current_time as a timestamp FA
+                    info.KeepFocusOnID = new Tuple<string,long>(player.Id,TimerBase.CurrentTimeStamp());
+                    info.KeepFocusOnLocation = new Tuple<Vector3,long>(player.Location,TimerBase.CurrentTimeStamp());
+                    return;
+                }
+            }
+        }
 
-        if self.CombatInfo.KeepFocusOnID != None:
-            (ID, TimeStamp) = self.CombatInfo.KeepFocusOnID
-            if ValuesDict["Id"] == ID:
-                self.CombatInfo.expire_focus_id()
-                self.CombatInfo.expire_focus_location()
-                self.agent.Bot.send_message("STOPSHOOT", {})
-            
-    
-    # clean-up after dying
-    def receive_die_details(self, ValuesDict):
-        self.CombatInfo.expire_damage_info()
-        self.CombatInfo.expire_focus_id()
-        self.CombatInfo.expire_focus_location()
-        self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
+        private BODBot getBot(string name="Bot")
+        {
+            return ((BODBot)agent.getBehaviour(name));
+        }
+        private Movement getMovement(string name="Movement")
+        {
+            return ((Movement)agent.getBehaviour(name));
+        }
+        
+        /// <summary>
+        /// if its status is "held", update the CombatInfoClass to show who's holding it
+        /// otherwise, set that to None as it means no-one is holding it
+        /// </summary>
+        /// <param name="values">Dictionary containing the Flag details</param>
+        internal void ReceiveFlagDetails(Dictionary<string,string> values)
+        {
+            // TODO: fix the mix of information in this method it should just contain relevant info
+
+            Console.Out.WriteLine("in receiveFlagDetails");
+            Console.Out.WriteLine(values.ToArray().ToString());
+
+            if ( getBot().info == null ||  getBot().info.Count < 1 )
+                return;
+            // set flag stuff
+            if ( values["Team"] == getBot().info["Team"] )
+                if (values["State"].ToLower() == "held")
+                    info.HoldingOurFlag = values["Holder"];
+                else
+                {
+                    info.HoldingOurFlag = string.Empty;
+                    info.HoldingOurFlagPlayerInfo = null;
+                }
+        }
+
+        internal void ReceiveProjectileDetails(Dictionary<string,string> values)
+        {
+            Console.Out.WriteLine("received details of incoming projectile!");
+            Console.Out.WriteLine(values.ToString());
+            info.ProjectileDetails = new Projectile(values);
+        }
+
+        internal void ReceiveDamageDetails(Dictionary<string,string> values)
+        {
+            Console.Out.WriteLine("received details of damage!");
+            Console.Out.WriteLine(values.ToString());
+            info.DamageDetails = new Damage(values);
+        }
+
+        /// <summary>
+        /// handle details about a player (not itself) dying
+        /// remove any info about that player from CombatInfo
+        /// </summary>
+        /// <param name="values"></param>
+        internal void ReceiveKillDetails(Dictionary<string,string> values)
+        {
+            Console.Out.WriteLine("received details of a kill!");
+            Console.Out.WriteLine(values.ToString());
+            Console.Out.WriteLine("-----");
+            Console.Out.WriteLine(info.HoldingOurFlag);
+
+            info.ProjectileDetails = new Projectile(values);
+
+            if (values["Id"] == info.HoldingOurFlag)
+            {
+                info.HoldingOurFlag = string.Empty;
+                info.HoldingOurFlagPlayerInfo = null;
+                getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+            }
+
+            if (info.KeepFocusOnID != null && info.KeepFocusOnID.First != string.Empty)
+                if (values["Id"] == info.KeepFocusOnID.First)
+                {
+                    info.ExpireFocusId();
+                    info.ExpireFocusLocation();
+                    getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+                }
+
+        }
+
+        internal void ReceiveDeathDetails(Dictionary<string,string> value)
+        {
+            info.ExpireDamageInfo();
+            info.ExpireFocusId();
+            info.ExpireFocusLocation();
+            getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+        }
+
         /*
          * 
          * SENSES
          * 
          */
+
+        
         [ExecutableSense("SeeEnemyWithOurFlag")]
         public bool SeeEnemyWithOurFlag()
         {
             // print "in see_enemy_with_our_flag sense"
-            if (this.agent.getBehaviour("Bot").)
+            if (getBot().viewPlayers.Count == 0)
+            {
+                Console.Out.WriteLine("  no players visible");
+                return false;
+            }
+            
+            // check through every player we can see to check whether they're the one holding our flag
+            foreach (string playerId in getBot().viewPlayers.Keys)
+            {
+                if (playerId == info.HoldingOurFlag)
+                {
+                    Console.Out.WriteLine("  can see the player holding our flag");
+                    info.HoldingOurFlagPlayerInfo = getBot().viewPlayers[playerId];
+                    return true;
+                }
+            }
+
+            Console.Out.WriteLine(string.Format("  cannot see player '{0}' holding our flag.",info.HoldingOurFlag));
             return false;
         }
 
-    }
-}
+        [ExecutableSense("OurFlagOnGround")]
+        public bool OurFlagOnGround()
+        {
+            // TODO: mixed parts of Movement again into different behaviour, needs to be cleaned later
+            if ( getMovement().posInfo.HasOurFlagInfoExpired() )
+                getMovement().posInfo.ExpireOurFlagInfo();
+
+            if (getMovement().posInfo.ourFlagInfo.Count == 0)
+                return false;
+            else
+            {
+                // in case the flag was returned but we didn't actually see it happen
+                if (!getBot().gameinfo.Contains("EnemyHasFlag"))
+                    getMovement().posInfo.ourFlagInfo["State"] = "home";
+
+                if (getMovement().posInfo.ourFlagInfo["State"].ToLower() == "dropped")
+                {
+                    Console.Out.WriteLine("our flag is dropped!");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [ExecutableSense("EnemyFlagOnGround")]
+        public bool EnemyFlagOnGround()
+        {
+            // TODO: remove interdependance on Movement
+            if (getMovement().posInfo.HasEnemyFlagInfoExpired())
+                getMovement().posInfo.ExpireEnemyFlagInfo();
+            /*
+             *  Made simpler FA
+                By adding self.agent.Movement.PosInfo.EnemyFlagInfo["Reachable"] == "True" it has semi fixed the problem of the bot
+                standing still after it has picked up the flag off the ground and dropped it off at base.
+                This is because Reachable set to 0 on expiry of EnemyFlagInfo FA.
+            */
+            if (getMovement().posInfo.enemyFlagInfo.Count > 0 && getMovement().posInfo.enemyFlagInfo["State"].ToLower() == "dropped"
+                && getMovement().posInfo.enemyFlagInfo["Reachable"] == "True")
+                return true;
+
+            return false;
+        }
+
+        [ExecutableSense("IncomingProjectile")]
+        public bool IncomingProjectile()
+        {
+            if (info.HasProjectileDetailsExpired())
+                info.ExpireProjectileInfo();
+
+            if (info.ProjectileDetails is Projectile)
+            {
+                Console.Out.WriteLine("incoming-projectile returning 1");
+                return true;
+            }
+
+            return false;
+        }
+
+        [ExecutableSense("TakenDamageFromSpecificPlayer")]
+        public bool TakenDamageFromSpecificPlayer()
+        {
+            // expire Damage info
+            if (info.DamageDetails is Damage && info.HasDamageInfoExpired())
+                info.ExpireDamageInfo();
+            
+            // expire focus id info 
+            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
+            {
+                info.ExpireFocusId();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            // expire focus location info
+            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired() )
+            {
+                info.ExpireFocusLocation();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            if (info.DamageDetails is Damage && info.DamageDetails.AttackerID != string.Empty)
+            {
+                Console.Out.WriteLine(string.Format("Taken damage from specific player '{0}'; returning true ",info.DamageDetails.AttackerID));
+                return true;
+            }
+            else if (info.KeepFocusOnLocation is Tuple<Vector3,long>)
+                return true;
+
+            return false;
+        }
+        /// <summary>
+        /// expire damage info if necassary FA
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableSense("TakenDamage")]
+        public bool TakenDamage()
+        {
+            if (info.DamageDetails is Damage)
+            {
+                if (info.HasDamageInfoExpired())
+                {
+                    info.ExpireDamageInfo();
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// At present just test against KeepFocusOnID.  However, that doesn't 100% guarantee that we've started shooting,
+        /// just that we know who we ought to shoot.  For now, however, I will use this check.
+        /// </summary>
+        /// <returns>returns 1 if we're already responding to the most recent attack</returns>
+        [ExecutableSense("IsRespondingToAttack")]
+        public bool IsRespondingToAttack()
+        {
+            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
+            {
+                info.ExpireFocusId();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            if (info.KeepFocusOnID is Tuple<string,long>)
+                return true;
+
+            return false;
+        }
+
+        
         /*
          * 
-         * SENSES 
+         * ACTIONS 
          * 
          */
-    def see_enemy_with_our_flag(self):
-        #print "in see_enemy_with_our_flag sense"
-        if len(self.agent.Bot.view_players) == 0:
-            #print "  no players visible"
-            return 0
-        
-        #else check through every player we can see to check whether they're the one holding our flag
-        players = self.agent.Bot.view_players.values()
-        for CurrentPlayer in players:
-            #print CurrentPlayer
-            if CurrentPlayer["Id"] == self.CombatInfo.HoldingOurFlag:
-                print "  can see the player holding our flag"
-                self.CombatInfo.HoldingOurFlagPlayerInfo = CurrentPlayer
-                return 1
-        #print "  cannot see the player holding our flag (",
-        #print self.CombatInfo.HoldingOurFlag,
-        #print ")"
-        return 0
-        
-    def our_flag_on_ground(self):
-        if self.agent.Movement.PosInfo.has_our_flag_info_expired():
-            self.agent.Movement.PosInfo.expire_our_flag_info()
-            
-        if self.agent.Movement.PosInfo.OurFlagInfo == {}:
-            return 0
-        else:
-            # in case the flag was returned but we didn't actually see it happen
-            if not self.agent.Bot.gameinfo.has_key("EnemyHasFlag"):
-                self.agent.Movement.PosInfo.OurFlagInfo["State"] = "home"
-            
-            if self.agent.Movement.PosInfo.OurFlagInfo["State"].lower() == "dropped":
-                #print "our flag is dropped!"
-                return 1
-        return 0
-        
-    def enemy_flag_on_ground(self):
-        if self.agent.Movement.PosInfo.has_enemy_flag_info_expired():
-            self.agent.Movement.PosInfo.expire_enemy_flag_info()
-        
-        # Made simpler FA
-        # By adding self.agent.Movement.PosInfo.EnemyFlagInfo["Reachable"] == "True" it has semi fixed the problem of the bot
-        # standing still after it has picked up the flag off the ground and dropped it off at base.
-        # This is because Reachable set to 0 on expiry of EnemyFlagInfo FA.
-        if self.agent.Movement.PosInfo.EnemyFlagInfo != {} and self.agent.Movement.PosInfo.EnemyFlagInfo["State"].lower() == "dropped" and self.agent.Movement.PosInfo.EnemyFlagInfo["Reachable"] == "True":
-            return 1
-        return 0
-        
-    def incoming_projectile(self):
-        if self.CombatInfo.has_projectile_details_expired():
-            self.CombatInfo.expire_projectile_details()
-    
-        if self.CombatInfo.ProjectileDetails != None:
-            print "incoming-projectile returning 1"
-            return 1
-        return 0
-    
-    def taken_damage_from_specific_player(self):
-        #expire damage info if necessary FA
-        if self.CombatInfo.DamageDetails != None and self.CombatInfo.has_damage_info_expired():
-            self.CombatInfo.expire_damage_info()
-            
-        #expire focus id info if necessary FA 
-        if self.CombatInfo.KeepFocusOnID != None and self.CombatInfo.has_focus_id_expired(): 
-            self.CombatInfo.expire_focus_id()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-        
-        #expire focus location info if necessary FA 
-        if self.CombatInfo.KeepFocusOnLocation != None and self.CombatInfo.has_focus_location_expired(): 
-            self.CombatInfo.expire_focus_location()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-                    
-        if self.CombatInfo.DamageDetails != None and self.CombatInfo.DamageDetails.has_key("Instigator"):
-            print "taken_damage_from_specific_player returning 1"
-            return 1
-        #alternatively, even if we don't know who shot us this time, we may know from another recent attack
-        elif self.CombatInfo.KeepFocusOnLocation != None:
-            return 1
-        else:
-            return 0
-    
-    # expire damage info if necassary FA
-    def taken_damage(self):
-        if self.CombatInfo.DamageDetails != None:
-            if self.CombatInfo.has_damage_info_expired():
-                self.CombatInfo.expire_damage_info()
-                return 0
-            return 1
-        return 0      
-            
-    #def taken_damage_from_specific_player(self):
-        #if self.CombatInfo.DamageDetails != None and self.CombatInfo.DamageDetails.has_key("Instigator"):
-            #print "taken_damage_from_specific_player returning 1"
-            #return 1
-        # alternatively, even if we don't know who shot us this time, we may know from another recent attack
-        #elif self.CombatInfo.KeepFocusOnLocation != None:
-            #return 1
-        #else:
-            #return 0
-            
-    #def taken_damage(self):
-        #if self.CombatInfo.DamageDetails != None:
-            #return 1
-        #return 0
-        
-    # returns 1 if we're already responding to the most recent attack
-    # At present just test against KeepFocusOnID.  However, that doesn't 100% guarantee that we've started shooting,
-    # just that we know who we ought to shoot.  For now, however, I will use this check.
-    def is_responding_to_attack(self):
-        #expire focus id info if necessary FA 
-        if self.CombatInfo.KeepFocusOnID != None and self.CombatInfo.has_focus_id_expired(): 
-            self.CombatInfo.expire_focus_id()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-    
-        if self.CombatInfo.KeepFocusOnID != None:
-            return 1
-        else:
-            return 0
-            
-    # === ACTIONS ===
-    
-    def shoot_enemy_carrying_our_flag(self):
-        print "in secof"
-        if self.CombatInfo.HoldingOurFlag != None and self.CombatInfo.HoldingOurFlagPlayerInfo != None:
-            Target = self.CombatInfo.HoldingOurFlag
-            Location = self.CombatInfo.HoldingOurFlagPlayerInfo["Location"]
-            self.agent.Bot.send_message("SHOOT", {"Target" : Target, "Location" : Location})
-        return 1
-            
-    def run_to_enemy_carrying_our_flag(self):
-        print "in rtecof very start"
-        if self.CombatInfo.HoldingOurFlag != None and self.CombatInfo.HoldingOurFlagPlayerInfo != None:
-            print "in rtecof, past initial if"
-            
-            #Target = self.CombatInfo.HoldingOurFlag
-            #if not utilityfns.is_previous_message(self.agent.Bot, ("RUNTO", {"Target" : Target})):
-            #    self.agent.Bot.send_message("RUNTO", {"Target" : Target})
-            #    print "running after enemy"
-            
-            Location = self.CombatInfo.HoldingOurFlagPlayerInfo["Location"]
-            if not utilityfns.is_previous_message(self.agent.Bot, ("RUNTO", {"Location" : Location})):
-                self.agent.Bot.send_message("RUNTO", {"Location" : Location})
-            print "running after enemy"
-        return 1
 
-    #def set_tried_to_find_attacker(self):
-    #    self.CombatInfo.TriedToFindAttacker = 1
-        
-        
-    # if we can see the player currently, store his ID so e.g. runtos will be replaced by strafes to keep him in focus
-    # and issue a turnto command
-    def face_attacker(self):
-        print "in face_attacker"
-        
-        #expire focus id info if necessary FA 
-        if self.CombatInfo.KeepFocusOnID != None and self.CombatInfo.has_focus_id_expired(): 
-            self.CombatInfo.expire_focus_id()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-        
-        #expire focus location info if necessary FA 
-        if self.CombatInfo.KeepFocusOnLocation != None and self.CombatInfo.has_focus_location_expired(): 
-            self.CombatInfo.expire_focus_location()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-        
-        if self.CombatInfo.KeepFocusOnLocation == None and self.CombatInfo.KeepFocusOnID == None:
-            return 1
+        [ExecutableAction("ShootEnemyCarryingOurFlag")]
+        public bool ShootEnemyCarryingOurFlag()
+        {
+            Console.Out.WriteLine(" in EnemyCarryingOurFlag");
+            if (info.HoldingOurFlag != string.Empty && info.HoldingOurFlagPlayerInfo is UTPlayer)
+            {
+                getBot().SendMessage("SHOOT", new Dictionary<string,string>()
+                    {
+                        {"Target", info.HoldingOurFlag},
+                        {"Location", info.HoldingOurFlagPlayerInfo.Location.ToString()}
+                    });
+                return true;
+            }
+            return false;
+        }
 
-        if self.CombatInfo.KeepFocusOnID == None: #just provide location
-            Location = self.CombatInfo.KeepFocusOnLocation
-            Msg = ("TURNTO", {"Location" : Location})
-            utilityfns.send_if_not_prev(self.agent.Bot, Msg)
-        else:
-            (Target, Timestamp) = self.CombatInfo.KeepFocusOnID
-            (Location, Timestamp) = self.CombatInfo.KeepFocusOnLocation
-            self.agent.Bot.send_message("TURNTO", {"Target" : Target})
-        return 1
-    
-    # sets the attacker (i.e. the keepfocuson one) to be the first enemy player we have seen
-    # or the instigator of the most recent damage, if we know who that is
-    def set_attacker(self):
-        print "in set_attacker"
-        #if self.CombatInfo.DamageDetails != None and has_damage_info_expired(): self.CombatInfo.DamageDetails = None
-        def find_enemy_in_view():
-            # work through who we can see, looking for an enemy
-            OurTeam = self.agent.Bot.botinfo["Team"]
-            print "OurTeam:",
-            print OurTeam
-            Players = self.agent.Bot.view_players.values()
-            for CurrentPlayer in Players:
-                if CurrentPlayer["Team"] != OurTeam:
-                    # Turned KeepFocusOnID in to a tuple with the current_time as a timestamp FA
-                    self.CombatInfo.KeepFocusOnID = (CurrentPlayer["Id"], current_time())
-                    self.CombatInfo.KeepFocusOnLocation = (CurrentPlayer["Location"], current_time())
-                    return 1
-        
-        if len(self.agent.Bot.view_players) == 0 or self.agent.Bot.botinfo == {}: #if botinfo is {}, we can't yet set anything
-            return 1
-        else:
-            # expire damage info if necessary FA
-            if self.CombatInfo.DamageDetails != None and self.CombatInfo.has_damage_info_expired():
-                self.CombatInfo.expire_damage_info()
-            if self.CombatInfo.DamageDetails != None and self.CombatInfo.DamageDetails.has_key("Instigator"):
-                InstID = self.CombatInfo.DamageDetails["Instigator"]
-                if self.agent.Bot.view_players.has_key(InstID):
-                    # set variables so that other commands will keep him in view
-                    # Turned KeepFocusOnID in to a tuple with the current_time as a timestamp FA
-                    self.CombatInfo.KeepFocusOnID = (InstID, current_time())
-                    self.CombatInfo.KeepFocusOnLocation = (self.agent.Bot.view_players[InstID]["Location"], current_time())
-                else:
-                    find_enemy_in_view()
-            else:
-                find_enemy_in_view()
-            return 1
-        
-    def shoot_attacker(self):
-        print "in shoot_attacker"
-        
-        #expire focus id info if necessary FA 
-        if self.CombatInfo.KeepFocusOnID != None and self.CombatInfo.has_focus_id_expired(): 
-            self.CombatInfo.expire_focus_id()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-        
-        #expire focus location info if necessary FA 
-        if self.CombatInfo.KeepFocusOnLocation != None and self.CombatInfo.has_focus_location_expired(): 
-            self.CombatInfo.expire_focus_location()
-            self.agent.Bot.send_message("STOPSHOOT", {}) # no-one to focus on
-        
-        if self.CombatInfo.KeepFocusOnLocation == None:
-            return 1
+        [ExecutableAction("ShootEnemyCarryingOurFlag")]
+        public bool RunToEnemyCarryingOurFlag()
+        {
+            Console.Out.WriteLine(" in ShootEnemyCarryingOurFlag");
+            if (info.HoldingOurFlag != string.Empty && info.HoldingOurFlagPlayerInfo is UTPlayer)
+            {
+                Console.Out.WriteLine("in ShootEnemyCarryingOurFlag: a Player is holding our Flag");
+                getBot().SendIfNotPreviousMessage("RUNTO", new Dictionary<string,string>()
+                    {
+                        {"Location",info.HoldingOurFlagPlayerInfo.Location.ToString()},
+                    });
+                return true;
+            }
+            return false;
+        }
 
-        if self.CombatInfo.KeepFocusOnID == None: #just provide location
-            (Location, Timestamp) = self.CombatInfo.KeepFocusOnLocation
-            if not utilityfns.is_previous_message(self.agent.Bot, ("SHOOT", {"Location" : Location})):
-                self.agent.Bot.send_message("SHOOT", {"Location" : Location})
-        else:
-            (Target, Timestamp) = self.CombatInfo.KeepFocusOnID
-            (Location, Timestamp) = self.CombatInfo.KeepFocusOnLocation
-            if not utilityfns.is_previous_message(self.agent.Bot, ("SHOOT", {"Target" : Target, "Location" : Location})):
-                self.agent.Bot.send_message("SHOOT", {"Target" : Target, "Location" : Location})
-        return 1
-        
+        /// <summary>
+        /// we can see the player currently, store his ID so e.g. runtos will be replaced 
+        /// by strafes to keep him in focus and issue a turnto command
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("FaceAttacker")]
+        public bool FaceAttacker()
+        {
+            
+
+            //expire focus id info
+            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
+            {
+                info.ExpireFocusId();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            //expire focus location info
+            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired())
+            {
+                info.ExpireFocusLocation();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            if (info.KeepFocusOnID  == null && info.KeepFocusOnLocation == null)
+                return false;
+            if (info.KeepFocusOnID == null)
+                getBot().SendMessage("TURNTO", new Dictionary<string,string>()
+                    {
+                    {"Location",info.KeepFocusOnLocation.First.ToString()}
+                    });
+            else 
+                getBot().SendMessage("TURNTO", new Dictionary<string,string>()
+                    {
+                    {"Target",info.KeepFocusOnID.First.ToString()}
+                    });
+            return true;
+        }
+
+        /// <summary>
+        /// sets the attacker (i.e. the keepfocuson one) to be the first enemy player we have seen
+        /// or the instigator of the most recent damage, if we know who that is
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("SetAttacker")]
+        public bool SetAttacker()
+        {
+            Console.Out.WriteLine(" in SetAttacker");
+
+            if (getBot().viewPlayers.Count == 0 || getBot().info.Count == 0)
+                return false;
+
+            // expire damage info if mecessary FA
+            if (info.DamageDetails != null && info.HasDamageInfoExpired())
+                info.ExpireDamageInfo();
+            if (info.DamageDetails is Damage && info.DamageDetails.AttackerID != "")
+                if ( getBot().viewPlayers.ContainsKey(info.DamageDetails.AttackerID) )
+                {
+                    // set variables so that other commands will keep him in view
+                    // Turned KeepFocusOnID into a tuple with the current_time as a timestamp FA
+                    info.KeepFocusOnID = new Tuple<string,long>(info.DamageDetails.AttackerID,TimerBase.CurrentTimeStamp());
+                    info.KeepFocusOnLocation = new Tuple<Vector3,long>(getBot().viewPlayers[info.DamageDetails.AttackerID].Location,TimerBase.CurrentTimeStamp());
+                }
+                else
+                    FindEnemyInView();
+            else
+                FindEnemyInView();
+            
+            return true;
+        }
+
+        [ExecutableAction("ShootAttacker")]
+        public bool ShootAttacker()
+        {
+            Console.Out.WriteLine(" in ShootAttacker");
+            //expire focus id info
+            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
+            {
+                info.ExpireFocusId();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            //expire focus location info
+            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired())
+            {
+                info.ExpireFocusLocation();
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
+            }
+
+            if (info.KeepFocusOnLocation == null)
+                return false;
+                        
+            if (info.KeepFocusOnID == null)
+                getBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
+                    {
+                        {"Location",info.KeepFocusOnLocation.First.ToString()}
+                    });
+            else
+                getBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
+                    {
+                        {"Target",info.KeepFocusOnID.First},
+                        {"Location",info.KeepFocusOnLocation.First.ToString()}
+                    });
+            return true;
+        }
+
+    }
+}     
 
     

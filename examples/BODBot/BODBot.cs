@@ -68,11 +68,11 @@ namespace Posh_sharp.examples.BODBot
         StreamReader reader;
         StreamWriter writer;
         
-        List<string> gameinfo;
+        public List<string> gameinfo{ protected internal get; private set;}
         public Dictionary<string,UTPlayer> viewPlayers { protected internal get; private set;}
         public List<InvItem> viewItems { protected internal get; private set;}
         protected internal List<NavPoint> navPoints;
-        public Dictionary<string,string> botinfo { protected internal get; private set;}
+        public Dictionary<string,string> info { protected internal get; private set;}
 
         List<string> sGameinfo;
         Dictionary<string,UTPlayer> sViewPlayers;
@@ -129,7 +129,7 @@ namespace Posh_sharp.examples.BODBot
             viewPlayers = new Dictionary<string,UTPlayer>(); 
             viewItems = new List<InvItem>();
             navPoints = new List<NavPoint>();
-            botinfo = new Dictionary<string,string>();
+            info = new Dictionary<string,string>();
             
             sGameinfo = new List<string>();
             sViewPlayers = new Dictionary<string,UTPlayer>();
@@ -246,7 +246,7 @@ namespace Posh_sharp.examples.BODBot
                 varDict[attribute] = value;
             }
             if (cmd == "DAM" && cmd == "PRJ")
-                varDict["timestamp"] = POSH_sharp.sys.strict.TimerBase.TimeStamp().ToString();
+                varDict["timestamp"] = POSH_sharp.sys.strict.TimerBase.CurrentTimeStamp().ToString();
 
             return new Tuple<string,Dictionary<string,string>>(cmd,varDict);
         }
@@ -424,7 +424,7 @@ namespace Posh_sharp.examples.BODBot
                     this.viewPlayers = this.sViewPlayers;
                     this.viewItems = this.sViewItems;
                     this.navPoints = this.sNavPoints;
-                    this.botinfo = this.sBotinfo;
+                    this.info = this.sBotinfo;
 
                     // Also a good time to trim the events list
                     // Only keep the last 50 events
@@ -436,7 +436,7 @@ namespace Posh_sharp.examples.BODBot
                 else if ( events.Contains(result.First) )
                     // The bot hit a wall or an actor, make a note
                     // of it in the events list with timestamp
-                    this.events.Add(TimerBase.TimeStamp()+" "+ result.ToString());
+                    this.events.Add(TimerBase.CurrentTimeStamp()+" "+ result.ToString());
                 else if (result.First == "SEE")
                     // Update the player Position
                     this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);

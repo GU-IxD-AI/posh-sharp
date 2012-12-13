@@ -6,7 +6,7 @@ using Posh_sharp.BODBot.util;
 using POSH_sharp.sys.strict;
 using POSH_sharp.sys;
 
-namespace Posh_sharp.examples.BODBot
+namespace Posh_sharp.examples.BODBot.util
 {
     public class CombatInfo
     {
@@ -18,8 +18,8 @@ namespace Posh_sharp.examples.BODBot
         
         internal Projectile ProjectileDetails;
         internal Damage DamageDetails;
-        internal Tuple<string,int> KeepFocusOnID;
-        internal Tuple<Vector3,int> KeepFocusOnLocation;
+        internal Tuple<string,long> KeepFocusOnID;
+        internal Tuple<Vector3,long> KeepFocusOnLocation;
 
         public CombatInfo()
         {
@@ -37,7 +37,7 @@ namespace Posh_sharp.examples.BODBot
         /// <param name="lsec"></param>
         public bool HasDamageInfoExpired(int lsec = 5)
         {
-            if (DamageDetails != null && DamageDetails.TimeStamp < TimerBase.TimeStamp() - lsec )
+            if (DamageDetails != null && DamageDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsec )
                 return true;
             return false;
         }
@@ -59,8 +59,8 @@ namespace Posh_sharp.examples.BODBot
         /// <returns></returns>
         public bool HasFocusIdExpired(int lsec = 15)
         {
-            if (KeepFocusOnID is Tuple<string,int> && KeepFocusOnID.First != string.Empty )
-                if (KeepFocusOnID.Second < TimerBase.TimeStamp() - lsec)
+            if (KeepFocusOnID is Tuple<string,long> && KeepFocusOnID.First != string.Empty )
+                if (KeepFocusOnID.Second < TimerBase.CurrentTimeStamp() - lsec)
                     return true;
             return false;
 
@@ -82,8 +82,8 @@ namespace Posh_sharp.examples.BODBot
         /// <returns></returns>
         public bool HasFocusLocationExpired(int lsec = 15)
         {
-            if (KeepFocusOnLocation is Tuple<Vector3,int> && KeepFocusOnID.First is Vector3 )
-                if (KeepFocusOnLocation.Second < TimerBase.TimeStamp() - lsec)
+            if (KeepFocusOnLocation is Tuple<Vector3,long> && KeepFocusOnLocation.First is Vector3 )
+                if (KeepFocusOnLocation.Second < TimerBase.CurrentTimeStamp() - lsec)
                     return true;
             return false;
         }
@@ -98,7 +98,7 @@ namespace Posh_sharp.examples.BODBot
 
         public bool HasProjectileDetailsExpired(int lsecs = 2)
         {
-            if (ProjectileDetails != null && ProjectileDetails.TimeStamp < TimerBase.TimeStamp() - lsecs)
+            if (ProjectileDetails != null && ProjectileDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsecs)
                 return true;
             return false;
         }

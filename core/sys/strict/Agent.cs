@@ -71,7 +71,7 @@ namespace POSH_sharp.sys.strict
         public void setLoopFreq(long freq)
         {
             // causes an AttributeError for non-real-time timers
-            timer.setLoopFreq(freq);
+            timer.SetLoopFreq(freq);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace POSH_sharp.sys.strict
         {
  	         if (!base.reset())
                  return false;
-            timer.reset();
+            timer.Reset();
             return true;
         }
 
@@ -121,7 +121,7 @@ namespace POSH_sharp.sys.strict
             log.Debug("Processing Drive Collection");
 
             result = dc.fire();
-            timer.loopEnd();
+            timer.LoopEnd();
 
             if (result.continueExecution())
                 return DRIVEFOLLOWED;
@@ -148,7 +148,7 @@ namespace POSH_sharp.sys.strict
                     while (_loopPause)
                         // PARAMETER: the waiting time needs to be checked and parameterized
                         Thread.Sleep(10);
-                    timer.reset();
+                    timer.Reset();
                     // check if stopLoop was called
                 }
                 if (!_execLoop)
@@ -157,7 +157,7 @@ namespace POSH_sharp.sys.strict
                 result = followDrive();
                 if (result == DRIVEWON || result == DRIVELOST)
                     return;
-                timer.loopWait();
+                timer.LoopWait();
             }
         }
 
