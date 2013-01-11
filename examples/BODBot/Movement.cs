@@ -122,7 +122,7 @@ namespace Posh_sharp.examples.BODBot
         /// <summary>
         /// clean-up after dying
         /// </summary>
-        internal void receiveDieDetails()
+        internal void ReceiveDieDetails()
         {
             posInfo.pathHome.Clear();
             posInfo.pathToEnemyBase.Clear();

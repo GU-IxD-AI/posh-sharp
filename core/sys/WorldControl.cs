@@ -245,7 +245,7 @@ namespace POSH_sharp.sys
         /// <param name="lib">The library that the plan is from</param>
         /// <param name="plan">The name of the plan (without the .lap ending)</param>
         /// <returns>If the plan exists (i.e. is a file)</returns>
-        internal bool isPlan(string lib,string plan)
+        public bool isPlan(string lib,string plan)
         {
             return getPlans(lib).Contains<string>(plan) ? true : false;
         }
@@ -281,7 +281,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="lib">Name of the library to check</param>
         /// <returns>If the library is a valid library</returns>
-        internal bool isLibrary(string lib)
+        public bool isLibrary(string lib)
         {
             return (Directory.Exists(getLibraryPath(lib))) ? true : false;
         }
@@ -346,7 +346,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="lib">Name of the library</param>
         /// <returns>Agent initialisation file filename, or "" if not found</returns>
-        protected internal string defaultAgentInit(string lib)
+        public string defaultAgentInit(string lib)
         {
             string agentInitScript = getLibraryPath(lib)+Path.PathSeparator+agentInit;
             return File.Exists(agentInitScript) ? agentInitScript : "";
@@ -380,7 +380,7 @@ namespace POSH_sharp.sys
         /// <param name="worldArgs">arguments given to the world initialisation script</param>
         /// <param name="agentsInit">agent initialisation information structure</param>
         /// <returns>tuple (world object, if script created and ran agents)</returns>
-        internal Tuple<World,bool> runWorldScript(Tuple<string,string> scriptFile, string lib, string worldArgs = null , Dictionary<string, object> agentsInit = null)
+        public Tuple<World,bool> runWorldScript(Tuple<string,string> scriptFile, string lib, string worldArgs = null , Dictionary<string, object> agentsInit = null)
         {
             // TODO: @swen: agentsInit is a file containing environment variables possible switch to json or some other xml notation
             // @raise IOError: If it cannot file the script

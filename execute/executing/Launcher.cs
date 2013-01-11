@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys;
 using POSH_sharp.sys.exceptions;
 using System.IO;
 using log4net.Core;
 using System.Threading;
+using POSH_sharp.sys;
 
 namespace POSH_sharp.executing
 {
@@ -166,23 +166,6 @@ namespace POSH_sharp.executing
              set to 10, and attribute 'y' of behaviour 'beh2' to 20. For the second
              agent, the attribute 'x' of behaviour 'beh1' is set to 20.";
 
-        //# Jython compatibility
-        //from __future__ import nested_scopes
-        //from POSH.jython_compat import *
-
-        //import sys
-        //import getopt
-        //import time
-
-        //from POSH.utils import is_library, is_plan, get_library_file, \
-        //default_agent_init, default_world_script, run_world_script
-        //from POSH.agentinitparser import parse_agent_init_file
-        //from POSH import create_agents
-        //from POSH.logbase import setup_console_logging, INFO, DEBUG
-
-        //there is probably a better way to do this, but we need a few libraries which require compiling
-        //from POSH.utils import compile_mason_java
-
         internal WorldControl control;
 
         /// <summary>
@@ -294,6 +277,88 @@ namespace POSH_sharp.executing
             return new Tuple<World,bool>(null,false);
         }
 
+        private void InitAgent(bool verbose, ref string agentFile, string planFile, string library, ref Dictionary<string, object> agentsInit)
+        {
+            if (planFile == string.Empty)
+            {
+                if (agentFile == string.Empty)
+                    agentFile = control.defaultAgentInit(library);
+                if (verbose)
+                    Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentFile));
+                try
+                {
+                    agentsInit = AgentInitParser.initAgentFile(library);
+                }
+                catch (Exception e)
+                {
+                    try
+                    {
+                        agentsInit = AgentInitParser.initAgentFile(control.getLibraryFile(library, agentFile));
+                    }
+                    catch (Exception)
+                    {
+                        Console.Out.WriteLine("reading agent initialisation file failed");
+                        if (verbose)
+                            Console.Out.WriteLine(e);
+                    }
+                }
+            }
+            else
+            {
+                if (verbose)
+                    Console.Out.WriteLine(string.Format("create single agent with plan '{0}'", planFile));
+                agentsInit = new Dictionary<string, object>();
+                agentsInit.Add(planFile, null);
+            }
+        }
+
+        private AgentBase[] createAgents(bool verbose, string library, Dictionary<string, object> agentsInit, Tuple<World, bool> setting)
+        {
+            // create the agents
+            AgentBase[] agents = null;
+            if (verbose)
+                Console.Out.WriteLine("- creating agent(s)");
+            try
+            {
+                agents = AgentFactory.createAgents(library, "", agentsInit, setting.First);
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("creating agent(s) failed, see following error");
+                Console.Out.WriteLine("----");
+                if (verbose)
+                    Console.Out.WriteLine(e);
+            }
+            return agents;
+        }
+
+        private bool Run(bool verbose, AgentBase[] agents, bool loopsRunning)
+        {
+            // check all 0.1 seconds if the loops are still running, and exit otherwise
+            while (loopsRunning)
+            {
+                Thread.Sleep(100);
+                loopsRunning = false;
+                foreach (AgentBase agent in agents)
+                    if (agent.loopStatus().First)
+                        loopsRunning = true;
+            }
+            if (verbose)
+                Console.Out.WriteLine("- all agents stopped");
+            return loopsRunning;
+        }
+
+        private bool StartAgents(bool verbose, AgentBase[] agents)
+        {
+            if (verbose)
+                Console.Out.WriteLine("- starting the agent(s)");
+            if (agents is AgentBase[])
+                foreach (AgentBase agent in agents)
+                    agent.startLoop();
+
+            return true;
+        }
+
         public static void Main(string [] args)
         {
             // OLDCOMMENT: There must be a beter way to do this... see jyposh.py and utils compile_mason_java() 
@@ -308,10 +373,13 @@ namespace POSH_sharp.executing
             Launcher application = new Launcher();
 
             Tuple<bool,bool,string,string,string,string,string> arguments = null;
-            if (args is string [] && args.Length > 0)
-              arguments = application.ProcessOptions(args);
+            if (args is string[] && args.Length > 0)
+                arguments = application.ProcessOptions(args);
             else
+            {
                 Console.Out.WriteLine("for help use --help");
+                return;
+            }
             if (arguments != null && arguments.First)
             {
                 Console.Out.WriteLine(helpText);
@@ -339,37 +407,8 @@ namespace POSH_sharp.executing
 
             if (verbose)
                 Console.Out.WriteLine("- collect agent initialisation options");
-            if (planFile == string.Empty)
-            {
-                if (agentFile == string.Empty)
-                    agentFile = application.control.defaultAgentInit(library);
-                if (verbose)
-                    Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentFile));
-                try
-                {
-                    agentsInit = AgentInitParser.initAgentFile(library);
-                }
-                catch (Exception e)
-                {
-                    try
-                    {
-                        agentsInit = AgentInitParser.initAgentFile(application.control.getLibraryFile(library, agentFile));
-                    }
-                    catch (Exception)
-                    {
-                        Console.Out.WriteLine("reading agent initialisation file failed");
-                        if (verbose)
-                            Console.Out.WriteLine(e);
-                    }
-                }
-            }
-            else 
-            {
-                if (verbose)
-                    Console.Out.WriteLine(string.Format("create single agent with plan '{0}'", planFile));
-                agentsInit = new Dictionary<string, object>();
-                agentsInit.Add(planFile,null);
-            }
+            application.InitAgent(verbose, ref agentFile, planFile, library, ref agentsInit);
+
             if (verbose)
                 Console.Out.WriteLine(string.Format("will create {0} agent(s)", agentsInit.Count));
 
@@ -393,6 +432,7 @@ namespace POSH_sharp.executing
                     Console.Out.WriteLine("-------");
                     if (verbose)
                         Console.Out.WriteLine(e);
+                    
                 }
             }
 
@@ -404,55 +444,20 @@ namespace POSH_sharp.executing
                 return;
             }
 
-            // create the agents
-            if (verbose)
-                Console.Out.WriteLine("- creating agent(s)");
-            try
-            {
-                agents = AgentFactory.createAgents(library, "", agentsInit, setting.First);
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteLine("creating agent(s) failed, see following error");
-                Console.Out.WriteLine("----");
-                if (verbose)
-                    Console.Out.WriteLine(e);
-            }
-
+            agents = application.createAgents(verbose, library, agentsInit, setting);
+            if (agents == null)
+                return;
             // start the agents
-            if (verbose)
-                Console.Out.WriteLine("- starting the agent(s)");
-            if (agents is AgentBase[])
-                foreach (AgentBase agent in agents)
-                    agent.startLoop();
-            // check all 0.1 seconds if the loops are still running, and exit otherwise
-            bool loopsRunning = true;
-            while (loopsRunning)
-            {
-                Thread.Sleep(100);
-                loopsRunning = false;
-                foreach (AgentBase agent in agents)
-                    if (agent.loopStatus().First)
-                        loopsRunning = true;
-            }
-            if (verbose)
-                Console.Out.WriteLine("- all agents stopped");
+            bool loopsRunning = application.StartAgents(verbose, agents);
+
+            loopsRunning = application.Run(verbose, agents, loopsRunning);
 
         }
+
+
+
+        
+
+
     }
 }
-
-////
-//if __name__ == '__main__':
-//    if (is_jython):
-//        import jyposh
-//#    jyposh.compile_java()
-//    exit_code = main()
-//    # only call sys.exit() if there was some error. Otherwise, sys.exit() would
-//    # cause all background threads to be killed. This leads to problems if
-//    # the world initialisation script spawns a separate thread and returns,
-//    # while initialising and running the agents in the background (e.g. MASON).
-//    # Calling sys.exit(0) in such a case would kill the Java GUI thread and
-//    # with it MASON.
-//    if exit_code != 0:
-//        sys.exit(exit_code)

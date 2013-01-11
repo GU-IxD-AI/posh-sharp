@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.core", "core\POSH-sharp.core.csproj", "{A29EA261-C940-427B-AB72-B27EEFDC15A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.tests", "testing\POSH-sharp.tests.csproj", "{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}"
@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.tests", "testing
 		{A29EA261-C940-427B-AB72-B27EEFDC15A0} = {A29EA261-C940-427B-AB72-B27EEFDC15A0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.examples", "examples\Posh-sharp.examples.csproj", "{3C63DE90-5139-408D-8F1F-F08F0CF1B644}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posh-sharp.examples", "examples\Posh-sharp.examples.csproj", "{3C63DE90-5139-408D-8F1F-F08F0CF1B644}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp", "execute\POSH-sharp.csproj", "{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -37,22 +37,18 @@ Global
 		{A29EA261-C940-427B-AB72-B27EEFDC15A0}.Release|x86.ActiveCfg = Release|Any CPU
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|x86.ActiveCfg = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|x86.Build.0 = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|Any CPU.ActiveCfg = Release|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|Mixed Platforms.Build.0 = Release|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|x86.ActiveCfg = Release|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|x86.Build.0 = Release|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Debug|x86.ActiveCfg = Debug|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Debug|x86.Build.0 = Debug|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Release|Any CPU.ActiveCfg = Release|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Release|Mixed Platforms.Build.0 = Release|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Release|x86.ActiveCfg = Release|x86
 		{3C63DE90-5139-408D-8F1F-F08F0CF1B644}.Release|x86.Build.0 = Release|x86
 		{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}.Debug|Any CPU.ActiveCfg = Debug|x86

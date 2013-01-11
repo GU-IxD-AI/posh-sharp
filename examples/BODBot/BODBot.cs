@@ -65,19 +65,18 @@ namespace Posh_sharp.examples.BODBot
         List<string> events;
         Dictionary<string,string> conninfo;
 
-        StreamReader reader;
         StreamWriter writer;
         
-        public List<string> gameinfo{ protected internal get; private set;}
+        public Dictionary<string,string> gameinfo{ protected internal get; private set;}
         public Dictionary<string,UTPlayer> viewPlayers { protected internal get; private set;}
         public List<InvItem> viewItems { protected internal get; private set;}
-        protected internal List<NavPoint> navPoints;
+        protected internal Dictionary<string,NavPoint> navPoints;
         public Dictionary<string,string> info { protected internal get; private set;}
 
-        List<string> sGameinfo;
+        Dictionary<string,string> sGameinfo;
         Dictionary<string,UTPlayer> sViewPlayers;
         List<InvItem> sViewItems;
-        List<NavPoint> sNavPoints;
+        Dictionary<string,NavPoint> sNavPoints;
         Dictionary<string,string> sBotinfo;
 
         /// <summary>
@@ -102,8 +101,8 @@ namespace Posh_sharp.examples.BODBot
         bool hitTimestamp;
         bool threadActive;
         bool killConnection;
-        List<string> rotationHist;
-        List<string> velocityHist;
+        List<int> rotationHist;
+        List<float> velocityHist;
         bool connReady;
         Thread connThread;
 
@@ -125,16 +124,16 @@ namespace Posh_sharp.examples.BODBot
             // all the rest is standard
             events  = new List<string>();
             conninfo = null;
-            gameinfo = new List<string>();
+            gameinfo = new Dictionary<string,string>();
             viewPlayers = new Dictionary<string,UTPlayer>(); 
             viewItems = new List<InvItem>();
-            navPoints = new List<NavPoint>();
+            navPoints = new Dictionary<string,NavPoint>();
             info = new Dictionary<string,string>();
             
-            sGameinfo = new List<string>();
+            sGameinfo = new Dictionary<string,string>();
             sViewPlayers = new Dictionary<string,UTPlayer>();
             sViewItems = new List<InvItem>();
-            sNavPoints = new List<NavPoint>();
+            sNavPoints = new Dictionary<string,NavPoint>();
             sBotinfo = new Dictionary<string,string>();
 
             msgLog = new List<Tuple<string,Dictionary<string,string>>>();
@@ -144,8 +143,8 @@ namespace Posh_sharp.examples.BODBot
             hitTimestamp = false;
             threadActive = false;
             killConnection = false;
-            rotationHist = new List<string>();
-            velocityHist = new List<string>();
+            rotationHist = new List<int>();
+            velocityHist = new List<float>();
             
             connReady = false;
             connThread = null;
@@ -299,7 +298,7 @@ namespace Posh_sharp.examples.BODBot
             return true;
         }
 
-        private string ReadDataInput()
+        private string ReadDataInput(StreamReader reader)
         {
             string dataIn=string.Empty;
             try 
@@ -321,14 +320,16 @@ namespace Posh_sharp.examples.BODBot
         void ConnectThread()
         {
             NetworkStream stream = null;
-            reader = null;
+            StreamReader reader = null;
+            TcpClient client = null;
+            IPEndPoint ipe = null;
             writer = null;
             killConnection = false;
             
             try
             {
-                IPEndPoint ipe = new IPEndPoint(this.ip, this.port);
-                TcpClient client = new TcpClient(ipe);
+                ipe = new IPEndPoint(this.ip, this.port);
+                client = new TcpClient(ipe);
                 client.Connect(ipe);
 
                 if(client.Connected)
@@ -365,7 +366,7 @@ namespace Posh_sharp.examples.BODBot
             // This loop waits for the first NFO message
             while (!killConnection)
             {
-                string dataIn = ReadDataInput();
+                string dataIn = ReadDataInput(reader);
                 if (dataIn == string.Empty)
                 {
                     log.Error("Connection Closed from Remote End");
@@ -390,7 +391,7 @@ namespace Posh_sharp.examples.BODBot
             // Not everything is implemented. Just some basics
             while (!killConnection)
             {
-                string dataIn = ReadDataInput();
+                string dataIn = ReadDataInput(reader);
                 if (dataIn == string.Empty)
                 {
                     log.Error("Connection Closed from Remote End");
@@ -407,32 +408,17 @@ namespace Posh_sharp.examples.BODBot
                 {
                     // When a sync batch is arriving, make sure the shadow
                     // states are cleared
-                    this.sGameinfo = new List<string>();
+                    this.sGameinfo = new Dictionary<string,string>();
                     this.sViewPlayers = new Dictionary<string,UTPlayer>();
                     this.sViewItems = new List<InvItem>();
-                    this.sNavPoints = new List<NavPoint>();
+                    this.sNavPoints = new Dictionary<string,NavPoint>();
                     this.sBotinfo = new Dictionary<string,string>();
                 }
                 else if ( syncStates.Contains(result.First) )
                     // These are sync. messages, handle them with another method
                     ProcessSync(result);
                 else if (result.First == "END")
-                {
-                    // When a sync batch ends, we want to make the shadow
-                    // states that we were writing to to be the real one
-                    this.gameinfo = this.sGameinfo;
-                    this.viewPlayers = this.sViewPlayers;
-                    this.viewItems = this.sViewItems;
-                    this.navPoints = this.sNavPoints;
-                    this.info = this.sBotinfo;
-
-                    // Also a good time to trim the events list
-                    // Only keep the last 50 events
-                    if (this.events.Count > 50)
-                        this.events.RemoveRange(0, this.events.Count - 50);
-                    if (this.msgLog.Count > 1000)
-                        this.msgLog.RemoveRange(0, this.msgLog.Count - 1000);
-                }
+                    SynShadowStates();
                 else if ( events.Contains(result.First) )
                     // The bot hit a wall or an actor, make a note
                     // of it in the events list with timestamp
@@ -443,58 +429,132 @@ namespace Posh_sharp.examples.BODBot
                 else if (result.First == "PTH")
                     // pass the details to the movement behaviour
                     ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
-                    else if (result.First == "SEE")
-                        else if (result.First == "SEE")
+                else if (result.First == "RCH")
+                    ((Movement)agent.getBehaviour("Movement")).ReceiveCheckReachDetails(result.Second);
+                else if (result.First == "PRJ")
+                    // incoming projectile
+                    ((Combat)agent.getBehaviour("Combat")).ReceiveProjectileDetails(result.Second);
+                else if (result.First == "DAM")
+                    // incoming projectile
+                    ((Combat)agent.getBehaviour("Combat")).ReceiveDamageDetails(result.Second);
+                else if (result.First == "KIL")
+                    // incoming projectile
+                    ((Combat)agent.getBehaviour("Combat")).ReceiveKillDetails(result.Second);
+                else if (result.First == "DIE")
+                    // incoming projectile
+                    ((Combat)agent.getBehaviour("Combat")).ReceiveDeathDetails(result.Second);
+            }
+
+            log.Info("Closing Connection and Cleaning Up...");
+            try
+            {
+                writer.Flush();
+                writer.Close();
+                reader.Close();
+                if (client is TcpClient && client.Connected)
+                    client.GetStream().Close();
+                    client.Close();
+                
+            }
+            catch (IOException)
+            {
+                log.Error("Could not close Reader or Writer on Socket.");
+                // Skip the read loop
+            }
+            catch (Exception)
+            {
+                log.Error("Closing Connection to server failed.");
+                // Skip the read loop
+                killConnection = true;
+            }
+
+            this.threadActive = false;
+            this.connReady = false;
+            this.connThread = null;
+            log.Info("Connection Thread Terminating...");
+        }
+
+        private void SynShadowStates()
+        {
+            // When a sync batch ends, we want to make the shadow
+            // states that we were writing to to be the real one
+            this.gameinfo = this.sGameinfo;
+            this.viewPlayers = this.sViewPlayers;
+            this.viewItems = this.sViewItems;
+            this.navPoints = this.sNavPoints;
+            this.info = this.sBotinfo;
+
+            // Also a good time to trim the events list
+            // Only keep the last 50 events
+            if (this.events.Count > 50)
+                this.events.RemoveRange(0, this.events.Count - 50);
+            if (this.msgLog.Count > 1000)
+                this.msgLog.RemoveRange(0, this.msgLog.Count - 1000);
+        }
+
+        /// <summary>
+        /// all info from within the game are converted here 
+        /// handles synchronisation messages
+        /// </summary>
+        /// <param name="message">Tuples[command,valuesDictionary]</param>
+        internal void ProcessSync(Tuple<string,Dictionary<string,string>> message)
+        {Regex intMatcher = new Regex(",(.*?),");
+
+            switch (message.First){
+                case "SLF":
+                    // info about bot's state
+                    this.sBotinfo = message.Second;
+                    // Keep track of orientation so we can tell when we are moving
+                    // Yeah, we only need to know the Yaw
+                    this.rotationHist.Add(
+                        int.Parse(
+                        intMatcher.Match( message.Second["Rotation"] )
+                            .NextMatch()
+                            .Value)
+                    );
+                    // Trim list to 3 entries
+                    if ( this.rotationHist.Count > 3 )
+                        this.rotationHist.RemoveRange(0,this.rotationHist.Count - 3);
+                    // Keep track of velocity so we know when we are stuck
+                    this.velocityHist.Add(
+                        CalculateVelocity(message.Second["Velocity"])
+                    );
+                    // Trim it to 20 entries
+                    if (this.velocityHist.Count > 20)
+                        this.velocityHist.RemoveRange(0,velocityHist.Count - 20);
+                    break;
+                case "GAM":
+                    this.sGameinfo = message.Second;
+                    break;
+                case "PLR":
+                    // another character visible
+                    // TODO: Test that this python statement is still true: For some reason, this doesn't work in ut2003
+                    this.sViewPlayers[message.Second["Id"]] = new UTPlayer(message.Second);
+                    break;
+                case "NAV":
+                    // a path marker
+                    // TODO: Neither does this
+                    // print "We have details about a nav point at " + values["Location"]
+                    this.sNavPoints[message.Second["Id"]] = NavPoint.ConvertToNavPoint(message.Second);
+                    break;
+                case "INV":
+                    // an object on the ground that can be picked up
+                    this.sViewItems.Add();
+                    break;      
             }
         }
+
+        private float CalculateVelocity(string velocityString)
+        {
+ 	        throw new NotImplementedException();
+        }
+
     }
 
 
 }
-        while not self.kill_connection:
-            if cmd == "BEG":
 
-            elif cmd in sync_states:
-                # These are sync. messages, handle them with another method
-                self.proc_sync(cmd, dict)
-            elif cmd == "END":
 
-            elif cmd in events:
-                # The bot hit a wall or an actor, make a note
-                # of it in the events list with timestamp
-                self.events.append((current_time(), cmd, dict))
-            elif cmd == "SEE":
-                # Update the player positions
-                self.view_players[dict["Id"]] = dict
-            elif cmd == "PTH":
-                # pass the details to the movement behaviour
-                self.agent.Movement.receive_pth_details(dict)
-            elif cmd == "RCH":
-                self.agent.Movement.receive_rch_details(dict)
-            elif cmd == "PRJ": # incoming projectile
-                self.agent.Combat.receive_prj_details(dict)
-            elif cmd == "DAM": # damage taken
-                self.agent.Combat.receive_dam_details(dict)
-            elif cmd == "KIL": # some other player died
-                self.agent.Combat.receive_kil_details(dict)
-            elif cmd == "DIE": # this player died
-                self.agent.Combat.receive_die_details(dict)
-            else:
-                pass
-
-        self.log.info("Closing Sockets and Cleaning Up...")
-        try:
-            self.sockout.flush()
-            self.sockout.close()
-            self.sockin.close()
-            self.sockobj.close()
-        except:
-            self.log.error("Error closing files and sockets")
-            
-        self.thread_active = 0
-        self.conn_ready = 0
-        self.conn_thread_id = None
-        self.log.info("Connection Thread Terminating...")
 
 
 
@@ -504,31 +564,7 @@ namespace Posh_sharp.examples.BODBot
     // all info from within the game are converted here
     #handles synchronisation messages
     def proc_sync(self, command, values):
-        if command == "SLF": #info about bot's state
-            self.s_botinfo = values
-            # Keep track of orientation so we can tell when we are moving
-            # Yeah, we only need to know the Yaw
-            self.rotation_hist.append(int(
-                re.search(',(.*?),', values['Rotation']).group(1)))
-            # Trim list to 3 entries
-            if len(self.rotation_hist) > 3:
-                del(self.rotation_hist[0])
-            # Keep track of velocity so we know when we are stuck
-            self.velocity_hist.append(self.calculate_velocity( \
-                values['Velocity']))
-            # Trim it to 20 entries
-            if len(self.velocity_hist) > 20:
-                del(self.velocity_hist[0])
-            
-        elif command == "GAM": #info about the game
-            self.s_gameinfo = values
-        elif command == "PLR": #another character visible
-            # For some reason, this doesn't work in ut2003
-            self.s_view_players[values["Id"]] = values
-        elif command == "NAV": #a path marker
-            # Neither does this
-            #print "We have details about a nav point at " + values["Location"]
-            self.s_nav_points[values["Id"]] = values
+
         elif command == "INV": #an object on the ground that can be picked up
             #print values
             self.s_view_items[values["Id"]] = values
