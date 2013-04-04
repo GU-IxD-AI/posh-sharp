@@ -87,6 +87,7 @@
     <Compile Include="sys\AgentBase.cs" />
     <Compile Include="sys\LogBase.cs" />
     <Compile Include="sys\strict\Trigger.cs" />
+    <Compile Include="sys\World.cs" />
     <Compile Include="sys\Tuple.cs" />
     <Compile Include="sys\WorldControl.cs" />
   </ItemGroup>

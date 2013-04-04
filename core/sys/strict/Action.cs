@@ -10,7 +10,7 @@ namespace POSH_sharp.sys.strict
     /// 
     /// An action as a thin wrapper around a behaviour's action method.
     /// </summary>
-    public class Action : CopiableElement
+    public class POSHAction : CopiableElement
     {
         BehaviourDict behaviourDict;
         private Tuple<string,Behaviour> action;
@@ -29,7 +29,7 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="agent">The agent that can perform the action.</param>
         /// <param name="actionName">The name of the action</param>
-        public Action(Agent agent, string actionName)
+        public POSHAction(Agent agent, string actionName)
             :base(string.Format("Action.{0}",actionName),agent)
         {
             behaviourDict = agent.getBehaviourDict();

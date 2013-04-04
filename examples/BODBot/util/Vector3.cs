@@ -2,11 +2,11 @@
 
 namespace Posh_sharp.examples.BODBot.util
 {
-    class Vector3
+    public class Vector3
     {
-        public float X { public get; private set; }
-        public float Y { public get; private set; }
-        public float Z { public get; private set; }
+        public float X { get; private set; }
+        public float Y { get; private set; }
+        public float Z { get; private set; }
 
         public enum Orientation {XY,XZ,YZ};
 
@@ -22,6 +22,11 @@ namespace Posh_sharp.examples.BODBot.util
                 return new Vector3();
 
             return new Vector3(float.Parse(locList[0]), float.Parse(locList[1]), float.Parse(locList[2]));
+        }
+
+        public static Vector3 NullVector()
+        {
+            return new Vector3(0,0,0);
         }
 
         public Vector3(float x = 0, float y = 0, float z = 0)

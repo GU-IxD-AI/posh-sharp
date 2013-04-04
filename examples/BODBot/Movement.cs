@@ -173,9 +173,9 @@ namespace Posh_sharp.examples.BODBot
 
         }
 
-        private BODBot getBot(string name="Bot")
+        private BODBot getBot(string name = "BODBot")
         {
-            return ((BODBot)agent.getBehaviour("Bot"));
+            return ((BODBot)agent.getBehaviour(name));
         }
 
         private void SendGetPath()
@@ -321,7 +321,7 @@ namespace Posh_sharp.examples.BODBot
             {
                 // nav_points is a list of tuples.  Each tuple contains an ID and a dictionary of attributes as defined in the API
                 // Search for reachable nav points
-                List<NavPoint> possibleNPs = new List<NavPoint>(GetReachableNavPoints(getBot().navPoints.ToArray(), distanceTolerance, location));
+                List<NavPoint> possibleNPs = new List<NavPoint>(GetReachableNavPoints(getBot().navPoints.Values.ToArray(), distanceTolerance, location));
 
                 // now work through this list of NavPoints until we find once that we haven't been to
                 // or the one we've been to least often

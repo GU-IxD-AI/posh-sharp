@@ -9,69 +9,6 @@ using log4net;
 
 namespace POSH_sharp.sys
 {
-    public class World
-    {
-        /// <summary>
-        /// Returns the behaviour library name that the agents are to use.
-        /// </summary>
-        public string library{get; private set;}
-
-        /// <summary>
-        /// Returns the arguments for customised world initialisation.
-        /// 
-        /// If no arguments are given, None is returned.
-        /// </summary>
-        public string args{get; private set;}
-
-        /// <summary>
-        /// Returns the agents initialisation structure.
-        /// </summary>
-        public Dictionary<string,object> agentsInit{get; private set;}
-        public bool createsAgents{get; private set;}
-
-        /// <summary>
-        /// The World class that is used to communicate with the world
-        /// initialisation script.
-        /// 
-        /// Upon running the world initialisation script, using the L{run_world_script},
-        /// an instance of this class, named 'world' is given to the script. The
-        /// script can use this instance to gather information on how the world is to
-        /// be initialised, and can return the world object and other information to
-        /// the instance that calls this script.
-        /// </summary>
-        /// <param name="library">name of the behaviour library that is to be used.</param>
-        /// <param name="world_args">arguments to be given to the world initialisation script.</param>
-        /// <param name="agentsInit">structure containing information to initialise the agents. as returned by
-        /// L{POSH.agentinitparser.parse_agent_init_file}</param>
-        public World(string library, string worldArgs=null, Dictionary<string,object> agentsInit = null)
-        {
-            this.library=library;
-            this.args= worldArgs;
-            this.agentsInit = (agentsInit == null) ? new Dictionary<string,object>() {} : agentsInit;
-            this.createsAgents=false;
-            
-        }
-
-        /// <summary>
-        /// Specifies that the agents are created an run by the world
-        /// initialisation script.
-        /// 
-        /// By default, the world initialisation script is only responsible for
-        /// setting up the world, and eventually returning the world object to
-        /// initialise the agents with. Calling this method from the world
-        /// initialisation script indicates that both creation and running the
-        /// agents is performed by the world initialisation script. For this
-        /// purpose, the script can use L{library()} and L{agentsInit()}.
-        /// </summary>
-        void createAgents()
-        {
-            this.createsAgents = true;
-        }
-
-    }
-
-
-
     public class WorldControl
     {
         int agentId = 0;
@@ -89,8 +26,16 @@ namespace POSH_sharp.sys
             }
 
         }
-        
 
+        private WorldControl()
+        {
+            config = new Dictionary<string,string> {
+                {"InitPath","init"},
+                {"PlanPath","plans"},
+                {"LibraryPath","library"},
+                {"PlanEnding",".lap"}
+            };
+        }
 
 
         /// <summary>
@@ -114,7 +59,7 @@ namespace POSH_sharp.sys
         /// <summary>
         /// config is a file containing a list of different environment variables
         /// </summary>
-        internal Dictionary<string,object> config{get; set;}
+        public Dictionary<string,string> config{get; set;}
 
 
 
@@ -126,21 +71,26 @@ namespace POSH_sharp.sys
         /// <returns>Root path</returns>
         public string getRootPath()
         {
-            return Assembly.GetExecutingAssembly().Location;
+            string assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            return assembly;
         }
 
         /// <summary>
-        /// Returns the path to the behaviour library. If no library is given,
-        /// the the base path of the library is returned.
+        /// Returns the path to the behaviour assembly directory. If no library is given,
+        /// then the base path of the library is returned.
         /// </summary>
         /// <param name="lib">The library to return the path for</param>
         /// <returns>The base library path or the path to the given library</returns>
-        public string getLibraryPath(string lib="")
+        public string getAssemblyLibrary(string lib="")
         {
-            if (lib != string.Empty)
-                return getRootPath()+Path.PathSeparator+config["LibraryPath"]+Path.PathSeparator+lib;
-            else
-                return getRootPath()+Path.PathSeparator+config["LibraryPath"];
+            string path = getRootPath() + Path.DirectorySeparatorChar + config["LibraryPath"];
+            if (!Directory.Exists(path))
+                return null;
+            if (lib.Split(',').Length > 1)
+                lib = lib.Split(',')[0];
+
+            return (lib != string.Empty && Directory.Exists(path + Path.DirectorySeparatorChar + lib)) ? path + Path.DirectorySeparatorChar + lib : path;
         }
 
         /// <summary>
@@ -150,7 +100,7 @@ namespace POSH_sharp.sys
         /// <returns>The path to the plans</returns>
         string getPlanPath(string lib)
         {
-            return getLibraryPath(lib)+Path.PathSeparator+config["PlanPath"];
+            return getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+config["PlanPath"];
             
         }
 
@@ -207,13 +157,15 @@ namespace POSH_sharp.sys
             string result="";
 
             try{
-                if (File.Exists(planPath))
+                if (Directory.Exists(planPath))
                     plans=Directory.GetFiles(planPath,"*",SearchOption.AllDirectories);
                 
                 foreach (string p in plans)
                 {
-                    if (p.StartsWith(plan)){
-                        result=getPlanPath(lib)+Path.PathSeparator+p;
+                    if (p.Split(Path.DirectorySeparatorChar)
+                            .Last().Contains(plan))
+                    {
+                        result=p;
                         break;
                     }
                 }
@@ -231,9 +183,20 @@ namespace POSH_sharp.sys
         /// <param name="lib">The library that the file is in</param>
         /// <param name="file">The name of the file (including any needed ending)</param>
         /// <returns>The filename with full path</returns>
-        public string getLibraryFile(string lib, string file)
+        public StreamReader getLibraryFile(string lib, string file)
         {
-            return getLibraryPath(lib)+Path.PathSeparator+file;
+            return new StreamReader(getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+file);
+        }
+
+        /// <summary>
+        /// Returns the file name for the given library (not for plans, see above)
+        /// </summary>
+        /// <param name="lib">The library that the file is in</param>
+        /// <param name="file">The name of the file (including any needed ending)</param>
+        /// <returns>The filename with full path</returns>
+        public string getAssemblyFile(string lib, string file)
+        {
+            return getAssemblyLibrary(lib) + Path.DirectorySeparatorChar + file;
         }
 
         /// <summary>
@@ -259,7 +222,7 @@ namespace POSH_sharp.sys
         /// <returns>List of libraries</returns>
         internal string [] getLibraries()
         {
-            string libraryPath=getLibraryPath();
+            string libraryPath=getAssemblyLibrary();
             string []dirList=Directory.GetDirectories(libraryPath);
             List<string> result=new List<string>();
 
@@ -281,9 +244,15 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="lib">Name of the library to check</param>
         /// <returns>If the library is a valid library</returns>
-        public bool isLibrary(string lib)
+        public bool isLibrary(string assembly,string lib)
         {
-            return (Directory.Exists(getLibraryPath(lib))) ? true : false;
+            if (!File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly))
+                return false;
+
+            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+            ManifestResourceInfo info = libAssembly.GetManifestResourceInfo(lib);
+            
+            return (File.Exists(getAssemblyLibrary(lib))) ? true : false;
         }
 
         /// <summary>
@@ -295,8 +264,8 @@ namespace POSH_sharp.sys
         /// <returns>World initialisatoin script filename, of '' if not found</returns>
         public string defaultWorldScript(string lib)
         {
-            return File.Exists(getLibraryPath(lib)+Path.PathSeparator+this.worldScript) ? 
-                getLibraryPath(lib)+Path.PathSeparator+this.worldScript : "";
+            return File.Exists(getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+this.worldScript) ? 
+                getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+this.worldScript : "";
         }
 
         /// <summary>
@@ -319,21 +288,17 @@ namespace POSH_sharp.sys
             // get list of python files is behaviour library
             if (log is ILog)
                 log.Debug("Scanning library "+lib+" for behaviour classes");
-            string libraryPath = getLibraryPath(lib);
-            string []files=Directory.GetFiles(libraryPath,"*.dll",SearchOption.TopDirectoryOnly);
-            
+
             Dictionary<string,List<Type>> modules=new Dictionary<string,List<Type>>();
  
-            foreach (string f in files)
-            {
-                Assembly a = Assembly.LoadFile(libraryPath+Path.PathSeparator+f);
-                foreach(Type t in a.GetTypes())
-                    if (t.IsClass && t.IsSubclassOf(typeof(POSH_sharp.sys.Behaviour)) && t.Name != this.worldScript.Second)
-                        if (!modules.ContainsKey(a.FullName))
-                            modules.Add(a.FullName,new List<Type> {t});
-                        else
-                            modules[a.FullName].Add(t);
-            }
+            Assembly a = GetAssembly(lib);
+            foreach(Type t in a.GetTypes())
+                if (t.IsClass && t.IsSubclassOf(typeof(POSH_sharp.sys.Behaviour)) && (this.worldScript == null || t.Name != this.worldScript.Second))
+                    if (!modules.ContainsKey(a.Location))
+                        modules.Add(a.Location, new List<Type> { t });
+                    else
+                        modules[a.Location].Add(t);
+            
 
             return ( modules.Count > 0 ) ? modules : null;
         }
@@ -348,7 +313,7 @@ namespace POSH_sharp.sys
         /// <returns>Agent initialisation file filename, or "" if not found</returns>
         public string defaultAgentInit(string lib)
         {
-            string agentInitScript = getLibraryPath(lib)+Path.PathSeparator+agentInit;
+            string agentInitScript = getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+config["InitPath"]+lib+"_init.txt";
             return File.Exists(agentInitScript) ? agentInitScript : "";
         }
 
@@ -365,6 +330,7 @@ namespace POSH_sharp.sys
             return (agentId++).ToString();
         }
 
+        // TODO: Check as this is new and untested
         /// <summary>
         /// Runs the given file to initialise the world and returns the world object
         /// and if the world initialisation script creates and runs the agents
@@ -380,13 +346,13 @@ namespace POSH_sharp.sys
         /// <param name="worldArgs">arguments given to the world initialisation script</param>
         /// <param name="agentsInit">agent initialisation information structure</param>
         /// <returns>tuple (world object, if script created and ran agents)</returns>
-        public Tuple<World,bool> runWorldScript(Tuple<string,string> scriptFile, string lib, string worldArgs = null , Dictionary<string, object> agentsInit = null)
+        public Tuple<World, bool> runWorldScript(Type worldType, string assembly, string worldArgs = null, List<Tuple<string, object>> agentsInit = null)
         {
             // TODO: @swen: agentsInit is a file containing environment variables possible switch to json or some other xml notation
             // @raise IOError: If it cannot file the script
             // @raise Exception: If the script causes an exception
 
-            this.world = new World(lib, worldArgs, agentsInit);
+            // this.world = new World(lib, worldArgs, agentsInit);
             // OLDCOMMENT world instance is given as local variable
             // note that if the global and local variables (when calling execfile)
             // refer to a different object, then some strange things happen as soon as
@@ -397,28 +363,20 @@ namespace POSH_sharp.sys
             // variables = {'world' : w}
             // execfile(script_file, variables, variables)
             
-            if (File.Exists(getLibraryPath(lib)+Path.PathSeparator+scriptFile.First))
+            if (worldType.IsClass && worldType.IsSubclassOf(typeof(World)))
             {
                 // UNCKECKED: this is really complicated to call external Methods from Objects it will need to be checked
                 // the idea was to have an external dll including the world setting and load this
-                Tuple<Type,object> worldInit = externalDllObjectCall(getLibraryPath(lib)+Path.PathSeparator+scriptFile.First,
-                    scriptFile.Second,new object[] {world});
+                World world = (World)ClassConstructorCall(worldType,new object[] {assembly, worldArgs,agentsInit});
                 
-
-                MethodInfo worldInitReturn = worldInit.First.GetMethod("returnWorld");
-                
-                world = (World) worldInitReturn.Invoke(worldInit.Second,null);
-
             } else return null;
 
             return new Tuple<World,bool>(this.world, this.world.createsAgents);
         }
 
 
-        public static Tuple<Type,object> externalDllObjectCall(string path,string type, object [] constructorParams = null)
+        public static object ClassConstructorCall(Type worldType, object [] constructorParams = null)
         {
-            Assembly a = Assembly.LoadFile(path);
-            Type typeofObject = a.GetType(type);
             Type[] parameters=null;
             
             if(constructorParams != null)
@@ -428,11 +386,11 @@ namespace POSH_sharp.sys
                     parameters[i] = constructorParams[i].GetType();
             }
 
-            ConstructorInfo cons = typeofObject.GetConstructor(parameters);
+            ConstructorInfo cons = worldType.GetConstructor(parameters);
             
             object resultObject = cons.Invoke(constructorParams);
 
-            return new Tuple<Type,object>(typeofObject,resultObject);
+            return resultObject;
         }
         // TODO: @swen currently the profiler does nothing because I removed mason, I shoudl think about including another framework maybe
         // possible options would be netlogo,repast 
@@ -450,6 +408,120 @@ namespace POSH_sharp.sys
           //if java_src!=classes:
           //      cmd = 'javac -target 1.4 -source 1.4 -cp %smason.jar %s*.java' % (dir,dir)
           //      os.system(cmd)
+
+        public bool checkDirectory(string planDir)
+        {
+            return Directory.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + planDir);
+        }
+
+        public bool IsAssembly(string assembly)
+        {
+            if (GetAssembly(assembly) is Assembly)
+                return true;
+
+            return false;
+            
+        }
+
+        public Assembly GetAssembly(string assembly)
+        {
+            if (!File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar+ assembly))
+                return null;
+            try
+            {
+                Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+                return libAssembly;
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine(string.Format("The Assembly can not be found inside '{0}' directory", getRootPath()));
+            }
+            catch (FileLoadException)
+            {
+                Console.WriteLine(string.Format("A file was found inside '{0}' directory named '{1}' but is not an assembly", getRootPath(), assembly));
+            }
+            catch (BadImageFormatException)
+            {
+                Console.WriteLine(string.Format("An assembly named '{0}' was found but is malformatted (possibly wrong system or architecture).", assembly));
+            }
+            return null;
+
+        }
+
+        public bool IsLibraryInAssembly(string assembly,string agentLibrary)
+        {
+            Module library = null;
+            if (!IsAssembly(assembly))
+                return false;
+
+            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+            
+            try
+            {
+                // TODO: include cases for other platforms
+                switch (Environment.OSVersion.Platform)
+                {
+                    case PlatformID.Win32Windows:
+                    case PlatformID.Win32NT:
+                        agentLibrary += ".dll";
+                        break;
+                    default:
+                        break;
+                }
+                library = libAssembly.GetModule(agentLibrary);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine(string.Format("The Assembly can not be found inside '{0}' directory",getRootPath()));
+            }
+            catch (FileLoadException) 
+            {
+                Console.WriteLine(string.Format("A file was found inside '{0}' directory named '{1}' but is not an assembly",getRootPath(),assembly));
+            }
+            catch(BadImageFormatException)
+            {
+                Console.WriteLine(string.Format("An assembly named '{0}' was found but is malformatted (possibly wrong system or architecture).",assembly));
+            }
+
+            return (library  != null ) ? true : false;
+        }
+
+        public bool checkAgentInitFile(string agentsInitFile)
+        {
+            if (this.config["InitPath"] == null || !Directory.Exists(getAssemblyLibrary()+Path.DirectorySeparatorChar+this.config["InitPath"]))
+                return false;
+            if (File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile))
+                return true;
+            
+            return false;
+        }
+
+        public StreamReader getAgentInitFileStream(string agentsInitFile)
+        {
+            if (!checkAgentInitFile(agentsInitFile))
+                return null;
+            
+            return File.OpenText(getAssemblyLibrary() + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile);
+            
+        }
+
+        public StreamReader getAgentInitFileStream(string assembly, string agentsInitFile)
+        {
+            Assembly assem = GetAssembly(assembly);
+            if (assem is Assembly)
+                foreach (String name in assem.GetManifestResourceNames())
+                {
+                    if (name == agentsInitFile)
+                    {
+                        return new StreamReader(assem.GetFile(name));
+                    }
+
+                }
+
+
+
+            return null;
+        }
     }
 
 

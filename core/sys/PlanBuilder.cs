@@ -243,7 +243,7 @@ namespace POSH_sharp.sys
                 case "SDC":
                     agent.setTimer(new SteppedTimer());
                     break;
-                case "SDRC":
+                case "SRDC":
                     agent.setTimer(new RealTimeTimer( (long)(1000.00 / 50.0) ));
                     break;
                 default:
@@ -261,7 +261,7 @@ namespace POSH_sharp.sys
                     DriveElement driveElement = buildDriveElement(element,agent,competences,actionPatterns);
                     driveElement.isLatched = false;
 
-                    foreach(Sense sense in driveElement.trigger.senses)
+                    foreach(POSHSense sense in driveElement.trigger.senses)
                         if (sense.behaviour.GetType().IsSubclassOf(typeof(LatchedBehaviour)))
                         {
                             driveElement.isLatched = true;
@@ -493,7 +493,7 @@ namespace POSH_sharp.sys
         /// <returns>The goal object.</returns>
         internal Trigger buildGoal(Agent agent,List<object> goal)
         {
-            List<Sense> senses = new List<Sense>();
+            List<POSHSense> senses = new List<POSHSense>();
             if (!(goal is List<object>) || goal.Count == 0)
                 return null;
             foreach(object sense in goal)
@@ -511,9 +511,9 @@ namespace POSH_sharp.sys
         /// <param name="agent">The agent to build the sense-act for.</param>
         /// <param name="senseName">The name of the sense-act.</param>
         /// <returns>The created sense-act object</returns>
-        internal Sense buildSenseAct(Agent agent, string senseName)
+        internal POSHSense buildSenseAct(Agent agent, string senseName)
         {
-            return new Sense(agent,senseName);
+            return new POSHSense(agent,senseName);
         }
 
         /// <summary>
@@ -529,9 +529,9 @@ namespace POSH_sharp.sys
         /// <exception cref="NameException">
         /// If the sense could not be found in the behaviour dictionary.
         /// </exception>
-        internal Sense buildSense(Agent agent, Tuple<string,string,string> senseStruct)
+        internal POSHSense buildSense(Agent agent, Tuple<string,string,string> senseStruct)
         {
-            return new Sense(agent,senseStruct.First,senseStruct.Second,senseStruct.Third);
+            return new POSHSense(agent,senseStruct.First,senseStruct.Second,senseStruct.Third);
         }
 
         /// <summary>
@@ -562,11 +562,11 @@ namespace POSH_sharp.sys
             // according behaviour in the behaviour dictionary. Hence, if no
             // behaviour provides that action, we need to check competences and
             // action pattern
-            POSH_sharp.sys.strict.Action element;
+            POSH_sharp.sys.strict.POSHAction element;
 
             try
             {
-                element = new POSH_sharp.sys.strict.Action(agent,name);
+                element = new POSH_sharp.sys.strict.POSHAction(agent,name);
             } 
             catch (NameException)
             {

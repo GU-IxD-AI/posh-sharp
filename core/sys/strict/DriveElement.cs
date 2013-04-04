@@ -58,7 +58,7 @@ namespace POSH_sharp.sys.strict
 
             this.behaviours = new List<Behaviour>();
 
-            foreach (Sense sense in trigger.senses)
+            foreach (POSHSense sense in trigger.senses)
                 this.behaviours.Add(sense.behaviour);
         }
 
@@ -121,9 +121,9 @@ namespace POSH_sharp.sys.strict
             // Hence, we didn't descend in the plan tree and can keep
             // the same element.
             
-            if (element is Action || element.GetType().IsSubclassOf(typeof(Action)))
+            if (element is POSHAction || element.GetType().IsSubclassOf(typeof(POSHAction)))
             {
-                ((Action)element).fire();
+                ((POSHAction)element).fire();
                 element = root;
                 return null;
             }

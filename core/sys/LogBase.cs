@@ -55,17 +55,35 @@ namespace POSH_sharp.sys
             _debug_ = debug;
             if (agent == null)
                 agent = ((AgentBase)this);
-            string agentId = agent.id != string.Empty ? agent.id : "NOID";
+            else 
+            {
+                string agentId = agent.id != string.Empty ? agent.id : "NOID";
+
+                if (logName == string.Empty){
+                    // called for the agent
+                    logDomain = agentId;
+                }else
+                    logDomain = agentId+"."+logName;
+                log = LogManager.GetLogger(logDomain);
+            }
+            attributes = new Dictionary<string, object>();
+            if (defaultLevel != null)
+                ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel;
+        }
+
+        protected void Init(string id, string logName = "")
+        {
+            if (id == null)
+                return;
+
+            id = (id != string.Empty) ? id : "NOID";
 
             if (logName == string.Empty){
                 // called for the agent
-                logDomain = agentId;
+                logDomain = id;
             }else
-                logDomain = agentId+"."+logName;
+                logDomain = id+"."+logName;
             log = LogManager.GetLogger(logDomain);
-            
-            if (defaultLevel != null)
-                ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel;
         }
         
 

@@ -7,19 +7,19 @@ namespace Posh_sharp.examples.BODBot.util
 {
     public class NavPoint
     {
-        public string   Id          { public get; internal set; }
-        public Vector3  Location    { public get; private set; }
-        public bool     Visible     { public get; private set; }
-        public bool     Reachable   { public get; protected internal set; }
-        public string   Item        { public get; internal set; }
-        public string   ItemClass   { public get; internal set; }
-        public Vector3  Rotation    { public get; internal set; }
+        public string   Id          { get; internal set; }
+        public Vector3  Location    { get; private set; }
+        public bool     Visible     { get; private set; }
+        public bool     Reachable   { get; protected internal set; }
+        public string   Item        { get; internal set; }
+        public string   ItemClass   { get; internal set; }
+        public Vector3  Rotation    { get; internal set; }
         /// <summary>
         /// Type coressponds to the in-game attribute Flag
         /// </summary>
-        public string Type { public get; private set; }
-        public int Owner { public get; private set; }
-        public Dictionary<int,NavPoint> paths { internal get; private set; }
+        public string Type { get; private set; }
+        public int Owner { get; private set; }
+        internal Dictionary<int,NavPoint> Paths { get; private set; }
 
         public static Dictionary<int, Vector3> ConvertToPath(Dictionary<string, string> rawNP)
         {
@@ -115,7 +115,7 @@ namespace Posh_sharp.examples.BODBot.util
             this.Type = type;
             this.Owner = owner;
             this.Location = location;
-            this.paths = paths;
+            this.Paths = paths;
         }
 
         public float Distance2DFrom(NavPoint target, Vector3.Orientation orientation = Vector3.Orientation.XY)

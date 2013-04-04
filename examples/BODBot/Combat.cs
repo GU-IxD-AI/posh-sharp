@@ -53,7 +53,7 @@ namespace Posh_sharp.examples.BODBot
             }
         }
 
-        private BODBot getBot(string name="Bot")
+        private BODBot getBot(string name="BODBot")
         {
             return ((BODBot)agent.getBehaviour(name));
         }
@@ -184,7 +184,7 @@ namespace Posh_sharp.examples.BODBot
             else
             {
                 // in case the flag was returned but we didn't actually see it happen
-                if (!getBot().gameinfo.Contains("EnemyHasFlag"))
+                if (!getBot().gameinfo.ContainsKey("EnemyHasFlag"))
                     getMovement().posInfo.ourFlagInfo["State"] = "home";
 
                 if (getMovement().posInfo.ourFlagInfo["State"].ToLower() == "dropped")

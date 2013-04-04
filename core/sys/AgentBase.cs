@@ -58,6 +58,7 @@ namespace POSH_sharp.sys
         {
             // get unique id for agent first, as constructor of LogBase accesses it
             id = WorldControl.GetControl().uniqueAgendId();
+            this.Init(id);
             // store library for use when spawning new agents
             this.library = library;
             this.world = world;
@@ -69,7 +70,9 @@ namespace POSH_sharp.sys
 
             // if you are profiling, you need to fix this in your init_world.  see library/latchTest for an example & documentation
             // do this before loading Behaviours
-            profiler= Profiler.initProfile(this); 
+            // TODO: disabled profiler
+            // profiler= Profiler.initProfile(this); 
+
             // load and register the behaviours, and reflect back onto agent
             this._bdict = loadBehaviours();
             reflectBehaviours();
@@ -121,7 +124,8 @@ namespace POSH_sharp.sys
                     ConstructorInfo behaviourConstruct = behaviourClass.GetConstructor(types);
                     object[] para= new object[1] {this};
                     log.Debug("Registering behaviour in behaviour dictionary");
-                    _bdict.RegisterBehaviour((Behaviour) behaviourConstruct.Invoke(para));
+                    if (behaviourConstruct != null)
+                        dict.RegisterBehaviour((Behaviour) behaviourConstruct.Invoke(para));
                 }
             
             return dict;
@@ -208,7 +212,7 @@ namespace POSH_sharp.sys
                 log.Debug(String.Format("Assigning attributes to behaviour {0}", pair.Key.First));
                 try
                 {
-                    _bdict.getBehaviour(pair.Key.First).AssignAttributes((Dictionary<string, object>)pair.Value);
+                    _bdict.getBehaviour(pair.Key.First).AssignAttribute(pair.Key.Second, pair.Value);
                 }
                 catch (NameException )
                 {

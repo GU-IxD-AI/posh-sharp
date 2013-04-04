@@ -47,31 +47,27 @@ namespace Posh_sharp.examples.BODBot
     /// </summary>
     public class BODBot : Behaviour
     {
-        //import utilityfns
-
-        //# import behaviour classes
-        //import movement
-        //import combat
+        Regex firstIntMatcher;
+        Regex middleIntMatcher;
 
         IPAddress ip;
         int port;
-        private NetworkStream _stream;
         string botName;
 
         int team;
         /// <summary>
         /// things like hitting a wall
         /// </summary>
-        List<string> events;
+        List<Tuple<long,string>> events;
         Dictionary<string,string> conninfo;
 
         StreamWriter writer;
-        
-        public Dictionary<string,string> gameinfo{ protected internal get; private set;}
-        public Dictionary<string,UTPlayer> viewPlayers { protected internal get; private set;}
-        public List<InvItem> viewItems { protected internal get; private set;}
+
+        protected internal Dictionary<string, string> gameinfo { get; private set; }
+        protected internal Dictionary<string, UTPlayer> viewPlayers { get; private set; }
+        protected internal List<InvItem> viewItems { get; private set; }
         protected internal Dictionary<string,NavPoint> navPoints;
-        public Dictionary<string,string> info { protected internal get; private set;}
+        protected internal Dictionary<string, string> info { get; private set; }
 
         Dictionary<string,string> sGameinfo;
         Dictionary<string,UTPlayer> sViewPlayers;
@@ -98,7 +94,7 @@ namespace Posh_sharp.examples.BODBot
         /// <summary>
         /// Used to inhibit was_hit()
         /// </summary>
-        bool hitTimestamp;
+        long hitTimestamp;
         bool threadActive;
         bool killConnection;
         List<int> rotationHist;
@@ -112,6 +108,8 @@ namespace Posh_sharp.examples.BODBot
         public BODBot(AgentBase agent, Dictionary<string,object> attributes = null)
             : base(agent, new string[] {}, new string[] {},attributes)
         {
+            middleIntMatcher = new Regex(",(.*?),");
+            firstIntMatcher = new Regex("(.*?),");
             // default connection values, use attributes to override
             ip = IPAddress.Parse("127.0.0.1");
             port = 3000;
@@ -122,7 +120,7 @@ namespace Posh_sharp.examples.BODBot
             team = -1;
         
             // all the rest is standard
-            events  = new List<string>();
+            events  = new List<Tuple<long,string>>();
             conninfo = null;
             gameinfo = new Dictionary<string,string>();
             viewPlayers = new Dictionary<string,UTPlayer>(); 
@@ -140,7 +138,7 @@ namespace Posh_sharp.examples.BODBot
             msgLogMax = 4096;
             sentMsgLog = new List<Tuple<string,Dictionary<string,string>>>();
             sentMsgLogMax = 6;
-            hitTimestamp = false;
+            hitTimestamp = -1;
             threadActive = false;
             killConnection = false;
             rotationHist = new List<int>();
@@ -422,7 +420,7 @@ namespace Posh_sharp.examples.BODBot
                 else if ( events.Contains(result.First) )
                     // The bot hit a wall or an actor, make a note
                     // of it in the events list with timestamp
-                    this.events.Add(TimerBase.CurrentTimeStamp()+" "+ result.ToString());
+                    this.events.Add(new Tuple<long,string>(TimerBase.CurrentTimeStamp(),result.ToString()));
                 else if (result.First == "SEE")
                     // Update the player Position
                     this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
@@ -498,7 +496,7 @@ namespace Posh_sharp.examples.BODBot
         /// </summary>
         /// <param name="message">Tuples[command,valuesDictionary]</param>
         internal void ProcessSync(Tuple<string,Dictionary<string,string>> message)
-        {Regex intMatcher = new Regex(",(.*?),");
+        {
 
             switch (message.First){
                 case "SLF":
@@ -508,7 +506,7 @@ namespace Posh_sharp.examples.BODBot
                     // Yeah, we only need to know the Yaw
                     this.rotationHist.Add(
                         int.Parse(
-                        intMatcher.Match( message.Second["Rotation"] )
+                        middleIntMatcher.Match( message.Second["Rotation"] )
                             .NextMatch()
                             .Value)
                     );
@@ -539,125 +537,135 @@ namespace Posh_sharp.examples.BODBot
                     break;
                 case "INV":
                     // an object on the ground that can be picked up
-                    this.sViewItems.Add();
-                    break;      
+                    this.sViewItems.Add(new InvItem(message.Second));
+                    break;
+                case "FLG":
+                    // pass these details to the movement behaviour as that stores details of locations etc and may need them
+                    // TODO: This needs some clean up as we just spread information which does not belong in all Behaviours
+                    if (this._debug_)
+                        foreach (KeyValuePair<string,string> elem in message.Second) 
+                            Console.WriteLine(string.Format("{0} = {1}",elem.Key,elem.Value));
+                    ((Movement)agent.getBehaviour("Movement")).ReceiveFlagDetails(message.Second);
+                    // inform the combat behaviour as well
+                    ((Combat)agent.getBehaviour("Combat")).ReceiveFlagDetails(message.Second);
+                    break; 
+                default:
+                    break;
             }
         }
 
+
+
         private float CalculateVelocity(string velocityString)
         {
- 	        throw new NotImplementedException();
+ 	        Vector3 velocity = Vector3.ConvertToVector3(velocityString);
+
+            return velocity.Distance2DFrom(Vector3.NullVector(),Vector3.Orientation.XY);
         }
 
+        internal void Turn(int degrees)
+        {
+            int utAngle =(int) ((degrees * 65535) / 360.0);
+            SendMessage("ROTATE",new Dictionary<string,string> { {"Amount",utAngle.ToString()} });
+            // self.send_message("TURNTO", {"Pitch" : str(0)})
+        }
+
+        internal int GetYaw()
+        {
+            if (this.info.ContainsKey("Rotation"))
+                return int.Parse(
+                        middleIntMatcher.Match( this.info["Rotation"] )
+                            .NextMatch()
+                            .Value);
+            return 0;
+        }
+
+        internal int GetPitch()
+        {
+            if (this.info.ContainsKey("Rotation"))
+                return int.Parse(
+                        firstIntMatcher.Match( this.info["Rotation"] )
+                            .NextMatch()
+                            .Value);
+            return 0;
+        }
+
+        internal bool Move()
+        {
+            SendMessage("INCH",new Dictionary<string,string>());
+            return true;
+        }
+
+        /// <summary>
+        /// compares the most recent to the least recent rotationHist
+        /// entry. If there is a descrepancy beyond the error fudge,
+        /// then we say we are rotating
+        /// </summary>
+        /// <param name="fudge">standard 386: in UT units roughly 2 degrees</param>
+        /// <returns></returns>
+        internal bool Turning(int fudge = 386)
+        {
+            if (this.rotationHist.Count > 0)
+                if (Math.Abs( rotationHist[0] - rotationHist[rotationHist.Count-1] ) > fudge )
+                    return true;
+
+            return false;
+        }
+        
+        /// <summary>
+        /// if there is recent velocity return true
+        /// </summary>
+        /// <returns></returns>
+        internal bool Moving()
+        {
+            if (velocityHist.Count > 0 && velocityHist[0] > 0)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// if there is a period of not moving return true
+        /// </summary>
+        /// <param name="fudge">standard 0.0f</param>
+        /// <returns></returns>
+        internal bool Stuck(float fudge = 0.0f)
+        {
+            foreach (float v in this.velocityHist)
+                if (v > fudge)
+                    return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Was the bot hit in the last lsec seconds
+        /// </summary>
+        /// <param name="lsec">how many secs look back</param>
+        /// <param name="isec">number of seconds to inhibit WasHit</param>
+        /// <returns></returns>
+        internal bool WasHit(int lsec = 2, int isec = 0)
+        {
+            int lastEvents=0;
+            long now = TimerBase.CurrentTimeStamp();
+
+            foreach (Tuple<long,string> elem in this.events)
+                if (elem.First > now - lsec)
+                    lastEvents++;
+            
+            if (this.hitTimestamp < now - isec)
+                {
+                // Update the last Hit timestamp
+                this.hitTimestamp = now;
+                if (lastEvents > 0)
+                    return true;
+            }
+
+            return false;
+        }
     }
-
-
 }
 
 
 
 
-
-
-
-
-    // all info from within the game are converted here
-    #handles synchronisation messages
-    def proc_sync(self, command, values):
-
-        elif command == "INV": #an object on the ground that can be picked up
-            #print values
-            self.s_view_items[values["Id"]] = values
-        elif command == "FLG": #info about a flag
-            #pass these details to the movement behaviour as that stores details of locations etc and may need them
-            values["timestamp"] = current_time()
-            print "\n".join(["%s=%s" % (k, v) for k, v in values.items()])
-            
-            self.agent.Movement.receive_flag_details(values)
-            # inform the combat behaviour as well
-            self.agent.Combat.receive_flag_details(values)
-            #print("We have details about a flag.  Its values is: " + values["State"]);
-        else:
-            pass
-    
-    def turn(self, degrees):
-        utangle = int((degrees * 65535) / 360.0)
-        self.send_message("ROTATE", {"Amount" : str(utangle)})
-        # self.send_message("TURNTO", {"Pitch" : str(0)})
-        
-    def get_yaw(self):
-        if self.botinfo.has_key("Rotation"):
-            return int(re.search(',(.*?),', self.botinfo["Rotation"]).group(1))
-        else:
-            return None
-        
-    def get_pitch(self):
-        if self.botinfo.has_key("Rotation"):
-            return int(re.match('(.*?),', self.botinfo["Rotation"]).group(1))
-        else:
-            return None
-        
-    def move(self):
-        self.send_message("INCH", {})
-        return 1
-
-    # Was the bot hit in the last 2 seconds
-    def was_hit(self):
-        lsec = 2 # How many seconds to look back to
-        isec = 0 # Number of seconds to inhibit consecutive was_hits
-        now = current_time()
-        def timefilter(item):
-            (timestamp, command, value) = item
-            if timestamp > now - lsec:
-                return 1
-            else:
-                return 0
-        
-        # Filter the events from the last lsec seconds
-        lastevents = filter(timefilter, self.events)
-
-        if self.hit_timestamp > now - isec:
-            # Update the last hit timestamp
-            return 0
-        else:
-            # Update the last hit timestamp
-            self.hit_timestamp = now
-            if len(lastevents) > 0:
-                return 1
-            else:
-                return 0
-
-    def turning(self):
-        # compares the most recent to the leat recent rotation_hist
-        # entry. If there is a descrepancy beyond the error fudge,
-        # then we say we are rotating
-        fudge = 386 # in UT units, roughly 2 degrees
-        if len(self.rotation_hist) > 0:
-            c_rot = self.rotation_hist[0]
-            e_rot = self.rotation_hist[-1]
-            diff = abs(c_rot - e_rot)
-            if diff > fudge:
-                return 1
-            
-        return 0
-        
-    def moving(self):
-        # If there is recent velocity, return 1
-        if len(self.velocity_hist) > 0:
-            if self.velocity_hist[0] > 0:
-                return 1
-        return 0
-
-    def stuck(self):
-        # If there is a period of no movement, then return 1
-        fudge = 0
-        for v in self.velocity_hist:
-            if v > fudge:
-                return 0
-        return 1
-        
-    def calculate_velocity(self, v):
-        (vx, vy, vz) = re.split(',', v)
-        vx = float(vx)
-        vy = float(vy)
-        return utilityfns.find_distance((0,0), (vx, vy))

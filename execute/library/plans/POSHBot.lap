@@ -1,0 +1,60 @@
+; Name: bodbotattack.lap
+; Derived from: previous version of bodbotattack.lap (see plan archive directory)
+; Created: 21/02/2005 by Sam Partington
+
+(
+  (C wander-around (minutes 10) (goal((ReachableNavPoint))) ;goal was see_player
+    (elements
+      ((stuck (trigger ((IsStuck))) avoid))
+      ;((pickup (trigger ((SeeItem))) pickup_item))
+      ((walk-around (trigger ((IsRotating 0))) Walk))
+    )
+  )
+  
+  (AP avoid (minutes 5) (StopBot Rotate ThenWalk))
+
+  (C ThenWalk (minutes 10) (goal((IsWalking)))
+    (elements
+      ((try-walk (trigger ((IsRotating 0))) Walk))
+    )
+  )
+  
+  (C get-to-enemy-base (minutes 10) (goal ((AtEnemyBase)))
+    (elements
+      (
+        (check-immediate-vicinity (trigger((TooCloseForPath))) BigRotate 2)
+        (run-to-base (trigger((KnowEnemyBasePos))) ToEnemyBase)
+        (find-base (trigger((ReachableNavPoint))) WalkToNavPoint)
+        (find-nav-point (trigger((Succeed))) Rotate 10)
+        (wander-base (trigger((Succeed))) wander-around)
+      )
+    )
+  )
+  
+  (C go-to-own-base (minutes 10) (goal ((AtOwnBase)))
+    (elements
+      (
+        (check-immediate-vicinity (trigger((TooCloseForPath))) BigRotate 2)
+        (run-to-own-flag (trigger((OurFlagReachable))) ToOwnFlag)
+        (run-to-own-base (trigger((KnowOwnBasePos))) ToOwnBase)
+        (find-base (trigger((ReachableNavPoint))) WalkToNavPoint)
+        (find-nav-point (trigger((Succeed))) Rotate 10)
+        (wander-base (trigger((Succeed))) wander-around)
+      )
+    )
+  )
+        
+  
+  (AP go-to-own-flag (minutes 10) (ToOwnFlag))
+  (AP go-to-enemy-flag (minutes 10) (ToEnemyFlag))
+  
+  
+  (SRDC life (goal ((Fail)))
+      (drives        
+        ((hit (trigger((HitObject)(IsRotating 0))) avoid)) ; was in first place
+        ((go-home (trigger((HaveEnemyFlag))) go-to-own-base))
+        ;((pickup-weapon-though-armed (trigger  ((SeeReachableWeapon))) GetWeapon))
+        ((get-yourself-to-enemy-base (trigger((Succeed))) get-to-enemy-base))
+      )
+  )
+)

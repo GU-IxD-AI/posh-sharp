@@ -81,8 +81,8 @@ namespace POSH_sharp.sys.strict
         public override FireResult  fire()
         {
  	        log.Debug("Fired");
-            if (element is Action){
-                ((Action)element).fire();
+            if (element is POSHAction){
+                ((POSHAction)element).fire();
                 return new FireResult(false, null);
             }
             return new FireResult(true, element);

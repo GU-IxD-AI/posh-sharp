@@ -10,7 +10,7 @@ namespace POSH_sharp.sys.strict
     /// </summary>
     public class Trigger : ElementBase
     {
-        protected internal Sense [] senses;
+        protected internal POSHSense [] senses;
 
         public static string [] getNames(ElementBase [] elements)
         {
@@ -29,7 +29,7 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="agent">The agent that uses the trigger.</param>
         /// <param name="senses">The list of senses and sense-acts for the trigger.</param>
-        public Trigger(Agent agent,Sense []senses)
+        public Trigger(Agent agent,POSHSense []senses)
             : base(string.Format("T.{0}",string.Join("+",getNames(senses))),agent)
         {
             this.senses = senses;
@@ -48,7 +48,7 @@ namespace POSH_sharp.sys.strict
         public bool fire()
         {
             log.Debug("Firing");
-            foreach (Sense sense in this.senses)
+            foreach (POSHSense sense in this.senses)
                 if (!sense.fire())
                 {
                     log.Debug(string.Format("Sense {0} failed",sense.getName()));

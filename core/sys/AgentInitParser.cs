@@ -62,9 +62,9 @@ namespace POSH_sharp.sys
 
 
         // symbols
-        public static Regex INTMATCHER =  new Regex("-?[0-9]+$");
-        public static Regex FLOATMATCHER = new Regex(@"\-?(\d*\.\d+|\d+\.)([eE][\+\-]?\d+)?$");
-        public static Regex BOOLMATCHER = new Regex(@"([Tt]rue|[Ff]alse)$");
+        public static Regex INTMATCHER =  new Regex("^-?[0-9]*$");
+        public static Regex FLOATMATCHER = new Regex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$");
+        public static Regex BOOLMATCHER = new Regex(@"^([Tt]rue|[Ff]alse)$");
         public static Regex IDENTIFIERMATCHER = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*$");
 
         // structures (whole lines, except for comments)
@@ -89,7 +89,7 @@ namespace POSH_sharp.sys
             if (BOOLMATCHER.IsMatch(s))
                 return bool.Parse(s);
 
-            return null;
+            return s;
 
         }
 
@@ -104,24 +104,16 @@ namespace POSH_sharp.sys
         /// <param name="initFile">File path for the agent initialisation.</param>
         /// <returns>Data structure representing content of the file
         /// dictionary (behaviour, attribute) -> value</returns>
-        public static Dictionary<string, object> initAgentFile(string initFile)
+        public static List<Tuple<string, object>> initAgentFile(StreamReader initFileReader)
         {
-            StreamReader reader = null;
-            try
-            {
-                reader = new StreamReader(initFile);
-            }
-            catch (FileNotFoundException )
-            {
-                throw new AgentInitParseException(string.Format("Cannot access agent init file (tried {0})." , initFile ));
-            }
+
 
             string plan = ""; ;
-            Dictionary<string, object> agentsInit = new Dictionary<string, object>();
+            List<Tuple<string, object>> agentsInit = new List<Tuple<string, object>>();
             Dictionary<Tuple<string, string>, object> currentAttributes = new Dictionary<Tuple<string, string>, object>();
             int lineNr = 0;
 
-            string line = reader.ReadLine();
+            string line = initFileReader.ReadLine();
             while (line != null)
             {
                 lineNr++;
@@ -136,7 +128,7 @@ namespace POSH_sharp.sys
                     if (PLANMATCHER.IsMatch(line))
                     {
                         if (plan != string.Empty)
-                            agentsInit[plan] = currentAttributes;
+                            agentsInit.Add(new Tuple<string,object>(plan,currentAttributes));
                         // TODO: I am not sure why the first and last character is removed maybe wrong implementation (my side) 
                         plan = line.Substring(1, line.Length - 2);
                         currentAttributes = new Dictionary<Tuple<string,string>, object>();
@@ -151,9 +143,9 @@ namespace POSH_sharp.sys
                             // attributes before plan
                             throw new AgentInitParseException(string.Format("line {0}: [plan] expected", lineNr));
                         string behaviour,attribute,value;
-                        behaviour = matchedAttr.Groups[0].Value;
-                        attribute = matchedAttr.Groups[1].Value;
-                        value = matchedAttr.Groups[2].Value;
+                        behaviour = matchedAttr.Groups[1].Value;
+                        attribute = matchedAttr.Groups[2].Value;
+                        value = matchedAttr.Groups[3].Value;
                         // check if behaviour and attribute are identifiers
                         if (IDENTIFIERMATCHER.Match(behaviour) == null ||
                             IDENTIFIERMATCHER.Match(attribute) == null)
@@ -163,10 +155,10 @@ namespace POSH_sharp.sys
                         currentAttributes[new Tuple<string,string>(behaviour,attribute)] =  strToValue(value);
                     }
                 }
-                line = reader.ReadLine();
+                line = initFileReader.ReadLine();
             }
             if (plan != string.Empty)
-                agentsInit[plan] = currentAttributes;
+                agentsInit.Add(new Tuple<string, object>(plan, currentAttributes));
             if (agentsInit.Count == 0)
                 throw new AgentInitParseException("no agents specified in initialisation file");
 

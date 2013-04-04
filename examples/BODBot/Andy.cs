@@ -20,19 +20,29 @@ namespace Posh_sharp.examples.BODBot
                             "HitObject", "IsWalking", "IsStuck",
                             "Fail", "Succeed"})
         {
-            // senses fail and succeed
-            // self.fail = lambda : False
-            // self.succeed = lambda : True
+            
         }
-        private BODBot getBot(string name="Bot")
+        private BODBot getBot(string name="BODBot")
         {
-            return ((BODBot)agent.getBehaviour("Bot"));
+            return ((BODBot)agent.getBehaviour(name));
         }
+
         /*
          * 
          * SENSES
          * 
          */
+        [ExecutableSense("Fail")]
+        public bool Fail()
+        {
+            return false;
+        }
+
+        [ExecutableSense("Succeed")]
+        public bool Succeed()
+        {
+            return true;
+        }
 
         [ExecutableSense("SeePlayer")]
         public bool SeePlayer()
@@ -72,92 +82,137 @@ namespace Posh_sharp.examples.BODBot
         public bool HitObject()
         {
             // print "Was I hit?"
-            if (getBot().WasHit() > 0)
+            if (getBot().WasHit() )
+                // print "Yes!"
                 return true;
                 
             return false;
         }
 
+        [ExecutableSense("IsRotating")]
+        public bool IsRotating()
+        {
+            // print "IsRotating!"
+            return getBot().Turning();
+        }
+
+        [ExecutableSense("IsWalking")]
+        public bool IsWalking()
+        {
+            // print "IsWalking"
+            
+            return getBot().Moving();
+        }
+
+        [ExecutableSense("IsStuck")]
+        public bool IsStuck()
+        {
+            // print "Stuck"
+            
+            return getBot().Stuck();
+        }
+
+        /*
+         * 
+         * ACTIONS
+         * 
+         */
+
+        /// <summary>
+        /// Finds the first player and move towards it
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("MovePlayer")]
+        public bool MovePlayer()
+        {
+            // print "Move the player ..."
+            if (getBot().viewPlayers.Count > 0)
+            {
+                getBot().SendMessage("RUNTO",new Dictionary<string,string> {{"Target",getBot().viewPlayers.First().Value.Id}});
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Pickup the first item on the list
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("PickupItem")]
+        public bool PickupItem()
+        {
+            // print "Pickup item ..."
+            if (getBot().viewItems.Count > 0)
+            {
+                getBot().SendMessage("RUNTO",new Dictionary<string,string> {{"Target",getBot().viewItems.First().Id}});
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Stops the Bot from doing stuff
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("StopBot")]
+        public bool StopBot()
+        {
+            // print "Stopping Bot"
+           getBot().SendMessage("STOP",new Dictionary<string,string>());
+           
+           return true;
+        }
+
+        /// <summary>
+        /// Walking
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("Walk")]
+        public bool Walk()
+        {
+            // print "Walking ..."
+           
+           return getBot().Move();;
+        }
+
+        /// <summary>
+        /// Rotating the bot around itself (left or right)
+        /// </summary>
+        /// <param name="angle">If angle is not given random 90 degree turn is made</param>
+        /// <returns></returns>
+        [ExecutableAction("Rotating")]
+        public bool Rotating(int angle = 0)
+        {
+            // print "Rotating ..."
+            if (angle != 0)
+                getBot().Turn(angle);
+            else if (new Random().Next(2) == 0)
+                // turn left
+                getBot().Turn(90);
+            else
+                // turn right
+                getBot().Turn(-90);
+
+
+           return true;
+        }
+
+        /// <summary>
+        /// Turns the bot 160 degrees
+        /// </summary>
+        /// <returns></returns>
+        [ExecutableAction("BigRotate")]
+        public bool BigRotate()
+        {
+            // print "big rotate ..."
+           
+           return Rotating(160);
+        }
     }
 }
 
-    #  == SENSES ==
-            
 
 
-    def hit_object(self):
-        #print "Was I hit?"
-        if self.agent.Bot.was_hit():
-            #print "yes!!!"
-            return 1
-        else:
-            #print "Ha, got you"
-            return 0
 
-    def is_rotating(self):
-        #print "is_rotating"
-        return self.agent.Bot.turning()
 
-    def is_walking(self):
-        return self.agent.Bot.moving()
 
-    def is_stuck(self):
-        #print "is stuck?"
-        return self.agent.Bot.stuck()
-        
-    
-    #  == ACTIONS ==
-    
-    def move_player(self):
-        #print "Move to player..."
-        # Find the first player and move to it
-        players = self.agent.Bot.view_players.values()
-        
-        if len(players) > 0:
-            id = players[0]["Id"]
-        #    print str(id)
-            self.agent.Bot.send_message("RUNTO", {"Target" : str(id)})
-            
-        return 1
-
-    def pickup_item(self):
-        #print "Pickup item..."
-        # Pickup the first item on the list
-        items = self.agent.Bot.view_items.values()
-        
-        if len(items) > 0:
-            id = items[0]["Id"]           
-            self.agent.Bot.send_message("RUNTO", {"Target": str(id)})
-        return 1
-
-    def rotate(self, angle = None):
-        #print "Rotating..."
-        def turnleft():
-            self.agent.Bot.turn(90)
-            
-        def turnright():
-            self.agent.Bot.turn(-90)
-            
-        actions = (turnleft, turnright)
-        if angle == None:
-            random.choice(actions)() # Run the action randomly
-        else:
-            self.agent.Bot.turn(angle)
-            # was self.agent.Bot.move(angle) but this is silly
-        return 1
-        
-    # rotates by 160 degrees.  Should allow quick exploring of places without getting stuck at edges etc
-    def big_rotate(self):
-        #print "big rotate"
-        angle = 160
-        self.rotate(angle)
-        return 1
-
-    def walk(self):
-        #print "Walking..."
-        return self.agent.Bot.move()
-
-    def stop_bot(self):
-        #print "Stopping Bot"
-        self.agent.Bot.send_message("STOP", {})
-        return 1

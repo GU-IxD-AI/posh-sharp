@@ -7,6 +7,7 @@ using System.IO;
 using log4net.Core;
 using System.Threading;
 using POSH_sharp.sys;
+using System.Reflection;
 
 namespace POSH_sharp.executing
 {
@@ -89,60 +90,49 @@ namespace POSH_sharp.executing
     /// </summary>
     class Launcher
     {
-        const string helpText =@"
+        const string helpText = @"
           Launches a POSH agent or a set of agents.
      
      
              Synopsis:
-             launch.py [OPTIONS] library
+             launcher [OPTIONS] -a=<assembly> library
 
          Description:
              Launches a POSH agent by fist initialising the world and then the
              agents. The specified library is the behaviour library that will be used.
-     
+
+             -h, --help
+                 print this help message.
+             
              -v, --verbose
                  writes more initialisation information to the standard output.
      
-             -h, --help
-                 print this help message.
-     
-             World initialisation:
-     
-             -w, --init-world-file=INITSCRIPT
-                 the python script that initialises the world. To communicate with
-                 launch.py, an instance of class World called 'world' is passed to the
-                 world initialisation script. Its most important methods:
-                     world.args() : Returns the arguments given by the -a options.
-                         If -a is not given, None is returned.
-                     world.set(x) : Passes x as the world object to the agents upon
-                         initialising them.
-                     world.createsAgents() : Needs to be called if the
-                         world initialisation script rather than launch.py creates
-                         and runs the agents.
-                 More information on the World class can be found in the API
-                 documenatation of the POSH.utils.World class.
-                 If no world initialisation script is specified, then the default world
-                 initialisation function of the library is called.
-     
-             -a, --init-world-args=ARGS
-                 the argument string given to the function init_world(args) in the
-                 script specified by -w. If no such script is given, the the arguments
-                 are given to the default world initialisation function of the library.
-     
+         Environment:
+             ALL used paths are currently relative to the execution assembly directory. 
+             Ideally all POSH related elements should be in the same folder anyway. 
+
+             -a --assembly
+                 the assembly which contains the libraries to load
+
+             -i, --init-dir=INITDIR
+                 folder which contains the init files for the agents and worlds
+
+             -p, --plan-dir=PLANDIR
+                 folder which contains the plan files for the agents
+
+             -w, --init-world-args=ARGS
+                the argument string given to the constructor World(args). 
+                This setting overrides the values specified in init file for the library.
+
              Agent initialisation:
                  If none of the below options are given, then the default library
                  initialisation file is used to initialise the agent(s).
      
-             -i, --init-agent-file=INITFILE
-                 initialises the agent(s) according to the given file. The file format
-                 is described below.
-     
-             -p, --plan-file=PLANFILE
-                 initialises a single agent to use the given plan. Only the name of
-                 the plan without the path needs to be given, as it is assumed to have
-                 the ending '.lap' and reside in the default location in the
-                 corresponding behaviour library. This option is only valid if -i 
-                 is not given.
+             -s, --suffix=AGENT
+                 a suffix added to the agent init file to load a different set instead of the standard one.
+                 Example: <agentLibrary>_init_<suffix>.txt             
+
+             
 
          Agent initialisation file format:
              The agent initialisation file allows the initialisation of one or several
@@ -160,6 +150,9 @@ namespace POSH_sharp.executing
          
                  [plan2]
                  beh1.x = 20
+
+                 [world]
+                 gravitation=7.1
      
              This file initialises two agents, one with plan1 and the other with plan2.
              Additionally, the attribute 'x' of behaviour 'beh1' of the first agent is
@@ -167,6 +160,11 @@ namespace POSH_sharp.executing
              agent, the attribute 'x' of behaviour 'beh1' is set to 20.";
 
         internal WorldControl control;
+
+        public Launcher()
+        {
+            control = WorldControl.GetControl();
+        }
 
         /// <summary>
         /// Parses the command line options and returns them.
@@ -179,17 +177,17 @@ namespace POSH_sharp.executing
         /// <param name="argv"></param>
         /// <returns></returns>
         /// <exception cref="UsageException"> whenever something goes wrong with the input string</exception>
-        protected Tuple<bool,bool,string,string,string,string,string>  ProcessOptions(string [] args)
+        protected Tuple<bool,bool,string,string,string,string>  ProcessOptions(string [] args)
         {
             // default values
             bool help = false, verbose = false;
-            string worldFile = "", worldArgs = "", agentFile = "", planFile = "", library = "";
-
+            string worldArgs = "", agentSuffix = "", agentLibrary = "";
+            string assembly = "";
             // parse options
 
-            for(int i = 0; i < args.Length - 1; i++)
+            foreach(string arg in args)
             {   
-                string [] tuple = args[i].Split(new string [] {"="},2,StringSplitOptions.None);
+                string [] tuple = arg.Split(new string [] {"="},2,StringSplitOptions.None);
                 switch (tuple[0])
                 {
                     case "-h":
@@ -200,76 +198,80 @@ namespace POSH_sharp.executing
                     case "--verbose":
                         verbose = true;
                         break;
-                    case "-w":
-                    case "--init-world-file":
-                        worldFile = tuple[1];
+                    case "-i":
+                    case "--init-dir":
+                        // TODO: currenly disabled as it is not working properly
+                        Console.WriteLine("Initialisation by WorldFile is currenly disabled");
+                        control.config["InitPath"] = tuple[1];
                         break;
-                    case "-a":
+                    case "-w":
                     case "--init-world-args":
                         worldArgs = tuple[1];
                         break;
-                    case "-i":
-                    case "--init-agent-file":
-                        agentFile = tuple[1];
+                    case "-s":
+                    case "--suffix":
+                        agentSuffix = tuple[1];
                         break;
                     case "-p":
-                    case "--plan-file":
-                        planFile = tuple[1];
+                    case "--plan-dir":
+                        control.config["PlanPath"] = tuple[1];
+                        break;
+                    case "-a": 
+                    case "--assembly":
+                        if (!control.IsAssembly(tuple[1]))
+                            throw new UsageException(string.Format("cannot find specified assembly '{0}' containing the agent libraries", tuple[1]));
+                        assembly = tuple[1];
                         break;
                     default:
-                        throw new UsageException("unrecognised option: " + tuple[0]);
+                        if (tuple[0].StartsWith("-") || tuple.Length > 1)
+                            throw new UsageException("unrecognised option: " + tuple[0]);
+                        break;
                 }
             }
             if (help)
                 return new Tuple<bool,bool,string,string,string,string,string>(help,false,"","","","","");
-            // get library from only arguments
-            if (args[args.Length].StartsWith("-"))
-                throw new UsageException("requires one and only one argument (the library); plus optional options");
-                
-            library = args[args.Length];
-            if (!control.isLibrary(library))
-                throw new UsageException(string.Format("cannot find specified library '{0}'",library));
+
+            // get agentLibrary from last element arguments
+            if (args[args.Length-1].StartsWith("-"))
+                throw new UsageException("requires as last argument (the library); plus optional options");
+            agentLibrary = args[args.Length-1];
+            if (!control.IsLibraryInAssembly(assembly,agentLibrary))
+                throw new UsageException(string.Format("cannot find specified library '{0}'",agentLibrary));
                 
             // check for option consistency
-            if (agentFile != string.Empty && planFile != string.Empty)
-                throw new UsageException("agent initialisation file and plan file cannot be" +
-                    "specified simultaneously");
+            if (!control.checkDirectory(control.config["PlanPath"]))
+                throw new UsageException(string.Format("cannot find specified plan directory '{0}' which should contain the '{1}'plan files", control.config["PlanPath"], control.config["PlanEnding"]));
 
-            if (planFile != string.Empty && !control.isPlan(library,planFile))
-                throw new UsageException(string.Format("cannot find specified plan '{1}' in library '{0}'",library,planFile));
-                
-            if (agentFile ==string.Empty && planFile==string.Empty && control.defaultAgentInit(library) == string.Empty )
-                throw new UsageException(string.Format("no default agent initialisation file for"+
-                    "library '{0}', please specify one",library));
-         
+            if (!control.checkDirectory(control.config["InitPath"]))
+                throw new UsageException(string.Format("cannot find specified directory '{0}' containing the agent parameter files", control.config["InitPath"]));
+                        
             // all fine
-            return new Tuple<bool,bool,string,string,string,string,string>(help,verbose,worldFile,worldArgs,agentFile,planFile,library);
+            return new Tuple<bool,bool,string,string,string,string>(help,verbose,assembly,worldArgs,agentSuffix,agentLibrary);
         }
 
         /// <summary>
         /// Calls WorldControl.run_world_script() to initialise the world and returns the
-        /// wordls object.
+        /// worldl object.
         /// </summary>
         /// <param name="worldFile"></param>
         /// <param name="library"></param>
         /// <param name="worldArgs"></param>
         /// <param name="agentsInit"></param>
         /// <param name="?"></param>
-        protected Tuple<World,bool> InitWorld(string worldFile, string library, string worldArgs, Dictionary<string,object> agentsInit, bool verbose)
+        protected Tuple<World, bool> InitWorld(string worldArgs, string assembly, List<Tuple<string, object>> agentsInit, bool verbose, Type world = null)
         {
             if (verbose)
                 Console.Out.WriteLine("- initialising world");
             if (worldArgs.Trim() == string.Empty)
                 worldArgs = null;
-
+            
             // find which world script to run
-            if (worldFile.Trim() != string.Empty)
+            if (world != null && world.IsSubclassOf(typeof(World)))
             {
                 
                 if (verbose)
-                    Console.Out.WriteLine(string.Format("running '{0}'", worldFile));
-                return control.runWorldScript(new Tuple<string,string>(Path.GetDirectoryName(worldFile),
-                    Path.GetFileName(worldFile)),library,worldArgs,agentsInit);
+                    Console.Out.WriteLine(string.Format("running '{0}'", world));
+                return control.runWorldScript(world,assembly,worldArgs,agentsInit);
             }
             if (verbose)
                 Console.Out.WriteLine("no default world initialisation script");
@@ -277,42 +279,45 @@ namespace POSH_sharp.executing
             return new Tuple<World,bool>(null,false);
         }
 
-        private void InitAgent(bool verbose, ref string agentFile, string planFile, string library, ref Dictionary<string, object> agentsInit)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="verbose"></param>
+        /// <param name="assembly"></param>
+        /// <param name="agentLibrary"></param>
+        /// <returns>returns a dictionary containing agentnames and a dictionary containing attributes for the agent</returns>
+        private List<Tuple<string, object>> InitAgents(bool verbose, string assembly, string agentLibrary)
         {
-            if (planFile == string.Empty)
+            List<Tuple<string, object>> agentsInit = null;
+            string agentsInitFile = string.Format("{0}_{1}", agentLibrary, "init.txt");
+            
+            // check if the agent init file exists
+            if (!control.checkAgentInitFile(agentsInitFile)) 
+                throw new UsageException(string.Format("cannot find specified agent init file in directory '{0}' which should contain the agent init file '{2}'", 
+                        control.config["InitPath"], agentsInitFile));
+                
+            if (verbose)
+                    Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentsInitFile));
+            try
             {
-                if (agentFile == string.Empty)
-                    agentFile = control.defaultAgentInit(library);
-                if (verbose)
-                    Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentFile));
+                agentsInit = AgentInitParser.initAgentFile(control.getAgentInitFileStream(agentsInitFile));
+            }
+            catch (Exception e)
+            {
                 try
                 {
-                    agentsInit = AgentInitParser.initAgentFile(library);
+                    agentsInit = AgentInitParser.initAgentFile(control.getAgentInitFileStream(assembly,agentsInitFile));
                 }
-                catch (Exception e)
+                catch (Exception )
                 {
-                    try
-                    {
-                        agentsInit = AgentInitParser.initAgentFile(control.getLibraryFile(library, agentFile));
-                    }
-                    catch (Exception)
-                    {
-                        Console.Out.WriteLine("reading agent initialisation file failed");
-                        if (verbose)
-                            Console.Out.WriteLine(e);
-                    }
+                    throw new UsageException("reading agent initialisation file Failed",e);
                 }
             }
-            else
-            {
-                if (verbose)
-                    Console.Out.WriteLine(string.Format("create single agent with plan '{0}'", planFile));
-                agentsInit = new Dictionary<string, object>();
-                agentsInit.Add(planFile, null);
-            }
+
+            return agentsInit;
         }
 
-        private AgentBase[] createAgents(bool verbose, string library, Dictionary<string, object> agentsInit, Tuple<World, bool> setting)
+        private AgentBase[] createAgents(bool verbose, string assembly, List<Tuple<string, object>> agentsInit, Tuple<World, bool> setting)
         {
             // create the agents
             AgentBase[] agents = null;
@@ -320,11 +325,11 @@ namespace POSH_sharp.executing
                 Console.Out.WriteLine("- creating agent(s)");
             try
             {
-                agents = AgentFactory.createAgents(library, "", agentsInit, setting.First);
+                agents = AgentFactory.createAgents(assembly, "", agentsInit, setting.First);
             }
             catch (Exception e)
             {
-                Console.Out.WriteLine("creating agent(s) failed, see following error");
+                Console.Out.WriteLine("creating agent(s) Failed, see following error");
                 Console.Out.WriteLine("----");
                 if (verbose)
                     Console.Out.WriteLine(e);
@@ -364,15 +369,16 @@ namespace POSH_sharp.executing
             // OLDCOMMENT: There must be a beter way to do this... see jyposh.py and utils compile_mason_java() 
 
             bool help = false, verbose = false;
-            string worldFile = "", worldArgs = "", agentFile = "", planFile = "", library = "";
-            Dictionary<string, object> agentsInit = null;
+            string assembly = "", worldArgs = "", agentSuffix = "", agentLibrary = "";
+
+            List<Tuple<string, object>> agentsInit = null;
             Tuple<World, bool> setting = null;
             AgentBase[] agents = null;
 
             // process command line arguments
             Launcher application = new Launcher();
-
-            Tuple<bool,bool,string,string,string,string,string> arguments = null;
+            
+            Tuple<bool,bool,string,string,string,string> arguments = null;
             if (args is string[] && args.Length > 0)
                 arguments = application.ProcessOptions(args);
             else
@@ -388,11 +394,10 @@ namespace POSH_sharp.executing
 
             help = arguments.First;
             verbose = arguments.Second;
-            worldFile = arguments.Third;
+            assembly = arguments.Third;
             worldArgs = arguments.Forth;
-            agentFile = arguments.Fifth;
-            planFile = arguments.Sixth;
-            library = arguments.Seventh;
+            agentSuffix = arguments.Fifth;
+            agentLibrary = arguments.Sixth;
             
             // activate logging. we do this before initialising the world, as it might
             // use this logging facility
@@ -407,33 +412,27 @@ namespace POSH_sharp.executing
 
             if (verbose)
                 Console.Out.WriteLine("- collect agent initialisation options");
-            application.InitAgent(verbose, ref agentFile, planFile, library, ref agentsInit);
+            agentsInit = application.InitAgents(verbose, assembly, agentLibrary);
 
             if (verbose)
                 Console.Out.WriteLine(string.Format("will create {0} agent(s)", agentsInit.Count));
 
             // init the world
-            if (worldFile == string.Empty)
-                worldFile = application.control.defaultWorldScript(library);
+            //if (worldFile == string.Empty)
+            //    worldFile = application.control.defaultWorldScript(library);
             try
             {
-                setting = application.InitWorld(worldFile, library, worldArgs, agentsInit, verbose);
+                setting = application.InitWorld(worldArgs, assembly,agentsInit, verbose);
             }
             catch (Exception e)
             {
-                try
-                {
-                    setting = application.InitWorld(application.control.getLibraryFile(library,worldFile), 
-                        library, worldArgs, agentsInit, verbose);
-                }
-                catch (Exception)
-                {
-                    Console.Out.WriteLine("world initialisation failed");
+
+                    Console.Out.WriteLine("world initialisation Failed");
                     Console.Out.WriteLine("-------");
                     if (verbose)
                         Console.Out.WriteLine(e);
                     
-                }
+                
             }
 
             if (setting != null && setting.Second)
@@ -444,7 +443,7 @@ namespace POSH_sharp.executing
                 return;
             }
 
-            agents = application.createAgents(verbose, library, agentsInit, setting);
+            agents = application.createAgents(verbose, assembly, agentsInit, setting);
             if (agents == null)
                 return;
             // start the agents

@@ -15,7 +15,7 @@ namespace POSH_sharp.sys.strict
     /// A sense / sense-act as a thin wrapper around a behaviour's
     /// sense / sense-act method.
     /// </summary>
-    public class Sense : CopiableElement
+    public class POSHSense : CopiableElement
     {
         BehaviourDict behaviourDict;
         private Tuple<string,Behaviour> sense;
@@ -41,7 +41,7 @@ namespace POSH_sharp.sys.strict
         /// then the sense has to evaluate to True.</param>
         /// <param name="predicate">"==", "!=", "<", ">", "<=", ">=". If null is
         ///    given, then "==" is assumed.</param>
-        public Sense(Agent agent, string senseName, string value = null, string predicate = null)
+        public POSHSense(Agent agent, string senseName, string value = null, string predicate = null)
             :base(string.Format("Sense.{0}",senseName),agent)
         {
             behaviourDict = agent.getBehaviourDict();

@@ -119,40 +119,40 @@ namespace POSH_sharp.sys
         /// as returned by AgentInitParser.initAgentFile}</param>
         /// <param name="world">world object, given to agents at construction</param>
         /// <returns>List of Agents</returns>
-        public static AgentBase[] createAgents(string library, string plan = "", Dictionary<string, object> agentsInit = null, World world = null)
+        public static AgentBase[] createAgents(string assembly, string plan = "", List<Tuple<string, object>> agentsInit = null, World world = null)
         {
             // build initialisation structure
             if (agentsInit == null)
             {
                 if (plan == string.Empty)
                     throw new TypeLoadException("create_agent() requires either plan or agents_init to be specified");
-                agentsInit = new Dictionary<string,object>();
+                agentsInit = new List<Tuple<string, object>>();
                 
                 /// string for the plan and a dictionary for the
                 /// (behaviour, attribute) -> value assignment.
-                agentsInit.Add(plan, new Dictionary<Tuple<string, string>, object>());
+                agentsInit.Add(new Tuple<string,object>(plan, new Dictionary<Tuple<string, string>, object>()));
             }
             // create the agents
             List<AgentBase> agents = new List<AgentBase>();
-            foreach (KeyValuePair<string, object> pair in agentsInit)
+            foreach (Tuple<string, object> pair in agentsInit)
             {
-                string agentPlan = pair.Key;
-                Dictionary<Tuple<string, string>, object> agentAttributes = (Dictionary<Tuple<string, string>, object>) pair.Value;
+                string agentPlan = pair.First;
+                Dictionary<Tuple<string, string>, object> agentAttributes = (Dictionary<Tuple<string, string>, object>) pair.Second;
                 // determine agent type from plan
-                PLANTYPE planType = getPlanType(WorldControl.GetControl().getPlanFile(library, agentPlan));
+                PLANTYPE planType = getPlanType(WorldControl.GetControl().getPlanFile(assembly, agentPlan));
                 if (planType == PLANTYPE.NONE)
                     throw new KeyNotFoundException(string.Format("plan type of plan {0} not recognised", agentPlan));
                 Type agentType = AGENTTYPE.getType(planType);
                 // create agent and append to sequence
 
                 Type[] constructorTypes = new Type[4];
-                constructorTypes[0] = library.GetType();
+                constructorTypes[0] = assembly.GetType();
                 constructorTypes[1] = agentPlan.GetType();
                 constructorTypes[2] = agentAttributes.GetType();
-                constructorTypes[3] = world.GetType();
+                constructorTypes[3] = (world != null) ? world.GetType() : typeof(World);
 
                 System.Reflection.ConstructorInfo constructor = agentType.GetConstructor(constructorTypes);
-                agents.Add((AgentBase)constructor.Invoke(new object[] {library, agentPlan, agentAttributes, world}));
+                agents.Add((AgentBase)constructor.Invoke(new object[] {assembly, agentPlan, agentAttributes, world}));
             }
             return agents.ToArray();
         }

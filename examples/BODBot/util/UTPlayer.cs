@@ -7,15 +7,15 @@ namespace Posh_sharp.examples.BODBot.util
 {
     public class UTPlayer
     {
-        public string Id { public get; protected internal set; }
-        public Vector3 Rotation { public get; protected internal set; }
-        public Vector3 Location { public get; protected internal set; }
-        public float Velocity { public get; protected internal set; }
-        public string Name { public get; protected internal set; }
-        public string Team { public get; protected internal set; }
-        public bool Reachable { public get; protected internal set; }
-        public string Weapon { public get; protected internal set; }
-        public int Firing { public get; protected internal set; }
+        public string Id { get; protected internal set; }
+        public Vector3 Rotation { get; protected internal set; }
+        public Vector3 Location { get; protected internal set; }
+        public float Velocity { get; protected internal set; }
+        public string Name { get; protected internal set; }
+        public string Team { get; protected internal set; }
+        public bool Reachable { get; protected internal set; }
+        public string Weapon { get; protected internal set; }
+        public int Firing { get; protected internal set; }
 
         private UTPlayer()
         {

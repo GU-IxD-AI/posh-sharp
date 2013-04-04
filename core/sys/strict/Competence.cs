@@ -53,7 +53,7 @@ namespace POSH_sharp.sys.strict
             log.Debug("Reset");
             foreach (CompetencePriorityElement elem in elements)
                 elem.reset();
- 	        base.reset();
+ 	        
         }
 
         /// <summary>

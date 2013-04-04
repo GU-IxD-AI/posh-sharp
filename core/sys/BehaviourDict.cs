@@ -50,8 +50,8 @@ namespace POSH_sharp.sys
         /// <param name="behave">The behaviour to register.</param>
         public void RegisterBehaviour(Behaviour behave)
         {
-            Dictionary<string, Behaviour> actions = (Dictionary<string, Behaviour>)behave.attributes[Behaviour.ACTIONS];
-            Dictionary<string, Behaviour> senses = (Dictionary<string, Behaviour>)behave.attributes[Behaviour.SENSES];
+            Dictionary<string, POSHAction> actions = (Dictionary<string, POSHAction>)behave.attributes[Behaviour.ACTIONS];
+            Dictionary<string, POSHSense> senses = (Dictionary<string, POSHSense>)behave.attributes[Behaviour.SENSES];
             string behaviourName = behave.GetName();
 
             //    # add the behaviour
@@ -59,18 +59,18 @@ namespace POSH_sharp.sys
                 throw new NameException(String.Format("Behaviour {0} cannot be registered twice", behaviourName));
             _behaviours.Add(behaviourName, behave);
             //    # add the actions
-            foreach (KeyValuePair<string, Behaviour> action in actions)
+            foreach (KeyValuePair<string, POSHAction> action in actions)
             {
                 if (this._actions.ContainsKey(action.Key))
                     throw new AttributeException(String.Format("Action {0} cannot be registered twice", action));
-                this._actions.Add(action.Key, action.Value);
+                this._actions.Add(action.Key, behave);
             }
             //    # .. and the senses
-            foreach (KeyValuePair<string, Behaviour> sense in senses)
+            foreach (KeyValuePair<string, POSHSense> sense in senses)
             {
-                if (this._actions.ContainsKey(sense.Key))
+                if (this._senses.ContainsKey(sense.Key))
                     throw new AttributeException(String.Format("Sense {0} cannot be registered twice", sense));
-                this._senses.Add(sense.Key, sense.Value);
+                this._senses.Add(sense.Key, behave);
             }
         }
 
@@ -93,7 +93,18 @@ namespace POSH_sharp.sys
         public Behaviour getBehaviour(string behaveName)
         {
             if (!_behaviours.ContainsKey(behaveName))
-                throw new NameException(string.Format("Cannot find Behaviour '{0}'",
+                if (!behaveName.Contains("."))
+                    foreach (string behave in _behaviours.Keys)
+                    {
+                        string fullname = behave.Split('.').Last(); 
+                        if (fullname.Equals(behaveName))
+                        {
+                            behaveName = behave;
+                            break;
+                        }
+                    }
+                else
+                    throw new NameException(string.Format("Cannot find Behaviour '{0}'",
                     behaveName));
 
             return _behaviours.ContainsKey(behaveName) ? _behaviours[behaveName] : null;
@@ -109,8 +120,8 @@ namespace POSH_sharp.sys
             if (!_actions.ContainsKey(actionName))
                 throw new NameException(string.Format("Action '{0}' not provided by any behaviour",
                     actionName));
-            
-            return new Tuple<string,Behaviour>(actionName,_actions[actionName]);
+
+            return new Tuple<string, Behaviour>(actionName, _actions[actionName]);
         }
 
         /// <summary>

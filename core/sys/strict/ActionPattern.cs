@@ -66,13 +66,13 @@ namespace POSH_sharp.sys.strict
         {
  	        log.Debug("Fired");
             CopiableElement element = elements[elementIdx];
-            if (element is Action || element is Sense)
+            if (element is POSHAction || element is POSHSense)
             {
                 bool result;
-                if (element is Action)
-                    result = ((Action)element).fire();
+                if (element is POSHAction)
+                    result = ((POSHAction)element).fire();
                 else
-                    result = ((Sense)element).fire();
+                    result = ((POSHSense)element).fire();
 
                 if (!result)
                 {

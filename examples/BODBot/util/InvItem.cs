@@ -13,12 +13,12 @@ namespace Posh_sharp.BODBot.util
     {
         public enum Event {See, Pickup };
 
-        public string Id { public get; protected internal set; }
-        public Event UtEvent { public get; protected internal set; }
-        public int Amount { public get; protected internal set; }
-        public Vector3 Location { public get; protected internal set; }
-        public bool Reachable { public get; protected internal set; }
-        public string Class { public get; protected internal set; }
+        public string Id { get; protected internal set; }
+        public Event UtEvent { get; protected internal set; }
+        public int Amount { get; protected internal set; }
+        public Vector3 Location { get; protected internal set; }
+        public bool Reachable { get; protected internal set; }
+        public string Class { get; protected internal set; }
         
         private InvItem()
         {

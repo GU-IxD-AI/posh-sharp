@@ -62,10 +62,10 @@ namespace POSH_sharp.sys
                 GetActionsSenses(caller);
             else 
             {
-                Dictionary<string, POSH_sharp.sys.strict.Action> a = new Dictionary<string, POSH_sharp.sys.strict.Action>();
+                Dictionary<string, POSH_sharp.sys.strict.POSHAction> a = new Dictionary<string, POSH_sharp.sys.strict.POSHAction>();
                 foreach (string elem in actions)
                     a.Add(elem,null);
-                Dictionary<string, POSH_sharp.sys.strict.Sense> s = new Dictionary<string, POSH_sharp.sys.strict.Sense>();
+                Dictionary<string, POSH_sharp.sys.strict.POSHSense> s = new Dictionary<string, POSH_sharp.sys.strict.POSHSense>();
                 foreach (string elem in senses)
                     s.Add(elem,null);
 
@@ -164,17 +164,22 @@ namespace POSH_sharp.sys
         public void AssignAttributes(Dictionary<string,object> attribs)
         {
 
-            foreach(KeyValuePair<string,object> e in attribs)
-                if(e.Key != ACTIONS && e.Key != SENSES && e.Key != INSPECTORS)
-                    if (e.Value.GetType().IsSubclassOf(typeof( POSH_sharp.sys.strict.Action)))
-                        ((Dictionary<string,object>) this.attributes[ACTIONS])[e.Key] = e.Value;
-                    else 
-                        if (e.Value.GetType().IsSubclassOf(typeof( POSH_sharp.sys.strict.Sense)))
-                            ((Dictionary<string,object>) this.attributes[SENSES])[e.Key] = e.Value;
-                        else
-                            this.attributes[e.Key] = e.Value;
+            foreach (KeyValuePair<string, object> e in attribs)
+                AssignAttribute(e.Key,e.Value);
         }
-                    
+
+        public void AssignAttribute(string key, object attrib)
+        {
+
+            if (key != ACTIONS && key != SENSES && key != INSPECTORS)
+                if (attrib.GetType().IsSubclassOf(typeof(POSH_sharp.sys.strict.POSHAction)))
+                    ((Dictionary<string, object>)this.attributes[ACTIONS])[key] = attrib;
+                else
+                    if (attrib.GetType().IsSubclassOf(typeof(POSH_sharp.sys.strict.POSHSense)))
+                        ((Dictionary<string, object>)this.attributes[SENSES])[key] = attrib;
+                    else
+                        this.attributes[key] = attrib;
+        }            
                             
         /// <summary>
         /// Returns if the behaviour is ok.

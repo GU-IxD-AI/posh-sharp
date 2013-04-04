@@ -12,8 +12,8 @@ namespace Posh_sharp.examples.BODBot.util
     /// </summary>
     public class PositionsInfo
     {
-        protected internal NavPoint ownBasePos { internal set; protected internal get; }
-        protected internal NavPoint enemyBasePos { internal set; protected internal get; }
+        protected internal NavPoint ownBasePos { internal set; get; }
+        protected internal NavPoint enemyBasePos { internal set; get; }
 
         /// <summary>
         /// contains an ordered list of all visited NavPoint Ids

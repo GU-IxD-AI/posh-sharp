@@ -22,7 +22,7 @@ namespace POSH_sharp.sys.strict
         /// <param name="elements">The set of competence elements of the
         ///         priority element.</param>
         public CompetencePriorityElement(Agent agent, string competenceName, CompetenceElement[] elements)
-            : base(string.Format("CP.{0",competenceName),agent)
+            : base(string.Format("CP.{0}",competenceName),agent)
         {
             this.name = competenceName;
             if (elements.Length > 0)
