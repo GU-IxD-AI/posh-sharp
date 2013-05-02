@@ -14,6 +14,7 @@ namespace Posh_sharp.POSHBot.util
         public string   Item        { get; internal set; }
         public string   ItemClass   { get; internal set; }
         public Vector3  Rotation    { get; internal set; }
+        public List<Neighbor> NGP   { get; internal set; }
         /// <summary>
         /// Type coressponds to the in-game attribute Flag
         /// </summary>
@@ -107,9 +108,10 @@ namespace Posh_sharp.POSHBot.util
 
         private NavPoint()
         {
+            this.NGP = new List<Neighbor>();
         }
 
-        public NavPoint(string id, int owner, Vector3 location, Dictionary<int,NavPoint> paths, string type = "")
+        public NavPoint(string id, int owner, Vector3 location, Dictionary<int,NavPoint> paths, string type = "") : this()
         {
             this.Id = id;
             this.Type = type;
@@ -136,6 +138,45 @@ namespace Posh_sharp.POSHBot.util
         public float DistanceFrom(Vector3 target)
         {
             return Location.DistanceFrom(target);
+        }
+
+        public void SetNeighbors()
+        {
+            this.NGP = new List<Neighbor>();
+        }
+
+        public class Neighbor
+        {
+            public readonly string Id;
+            public readonly int Flags;
+            public readonly int CollisionR;
+            public readonly int CollisionH;
+            public readonly bool ForceDoubleJump;
+            public readonly bool OnlyTranslocator;
+            
+            public Neighbor(Dictionary<string,string> ngp)
+            {
+                foreach(KeyValuePair<string,string> elem in ngp)
+                    switch (elem.Key)
+                    {
+                        case "Id":
+                            Id = elem.Value;
+                            break;
+                        case "Flags":
+                            Flags = int.Parse(elem.Value);
+                            break;
+                        case "CollisionR":
+                            CollisionR = int.Parse(elem.Value);
+                            break;
+                        case "ForceDoubleJump":
+                            ForceDoubleJump = bool.Parse(elem.Value);
+                            break;
+                        case "OnlyTranslocator":
+                            OnlyTranslocator = bool.Parse(elem.Value);
+                            break;
+                    }
+                
+            }
         }
     }
 }

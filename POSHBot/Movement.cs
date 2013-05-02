@@ -481,7 +481,7 @@ namespace Posh_sharp.POSHBot
             if ( posInfo.HasTooCloseForPathExpired() )
                 posInfo.ExpireTooCloseForPath();
 
-            if (posInfo.TooCloseForPath != 0L )
+            if (posInfo.TooCloseForPath != 0 )
                 Console.Out.WriteLine("we are too close for path");
             return posInfo.TooCloseForPath;
         }
