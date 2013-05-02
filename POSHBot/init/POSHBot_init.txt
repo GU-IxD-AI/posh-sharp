@@ -10,8 +10,8 @@ POSHBot.team = 0
 POSHBot.ip = 127.0.0.1
 POSHBot.port = 3000
 
-[POSHBot]
-POSHBot.botname = Delila
-POSHBot.team = 1
-POSHBot.ip = 127.0.0.1
-POSHBot.port = 3000
+#[POSHBot]
+#POSHBot.botname = Delila
+#POSHBot.team = 1
+#POSHBot.ip = 127.0.0.1
+#POSHBot.port = 3000

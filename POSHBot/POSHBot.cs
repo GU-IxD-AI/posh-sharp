@@ -48,6 +48,9 @@ namespace Posh_sharp.POSHBot
     {
         Regex firstIntMatcher;
         Regex middleIntMatcher;
+        Regex spaceMatcher;
+        Regex itemMatcher;
+        Regex attributeMatcher; 
 
         IPAddress ip;
         int port;
@@ -75,6 +78,11 @@ namespace Posh_sharp.POSHBot
         Dictionary<string,string> sBotinfo;
 
         /// <summary>
+        /// used to identify the last synchronized NavPoint in ConnectThread()
+        /// </summary>
+        private string sNavID;
+
+        /// <summary>
         /// Temp Log for message received
         /// </summary>
         List<Tuple<string,Dictionary<string,string>>> msgLog;
@@ -99,6 +107,7 @@ namespace Posh_sharp.POSHBot
         List<int> rotationHist;
         List<float> velocityHist;
         bool connReady;
+        bool connectedToGame;
         Thread connThread;
 
 
@@ -112,6 +121,9 @@ namespace Posh_sharp.POSHBot
         {
             middleIntMatcher = new Regex(",(.*?),");
             firstIntMatcher = new Regex("(.*?),");
+            spaceMatcher = new Regex(@"^(.+?)\s+(.+?)$");
+            itemMatcher = new Regex(@"\{(.*?)\}");
+            attributeMatcher = new Regex(@"\{(.*?)\s+(.*?)\}");
             // default connection values, use attributes to override
             ip = IPAddress.Parse("127.0.0.1");
             port = 3000;
@@ -147,6 +159,7 @@ namespace Posh_sharp.POSHBot
             velocityHist = new List<float>();
             
             connReady = false;
+
             connThread = null;
         }
 
@@ -221,7 +234,8 @@ namespace Posh_sharp.POSHBot
             if(connThread == null)
             {
                 threadActive = true;
-                connThread = new Thread(new ThreadStart(ConnectThread));
+                connThread = new Thread(this.ConnectThread);
+                connThread.Start();
                 return true;
             }
             log.Error("Attempting to Connect() when thread already active");
@@ -230,18 +244,23 @@ namespace Posh_sharp.POSHBot
 
         private Tuple<string,Dictionary<string,string>> ProcessItem(string item)
         {
-            Regex spaceMatcher =  new Regex(@"\s+");
-            Regex itemMatcher = new Regex(@"\{(.*?)\}");
-            Dictionary<string,string> varDict = new Dictionary<string,string>();
             
-            string cmd = spaceMatcher.Split(item,1)[0];
-            string varString = spaceMatcher.Split(item,1)[1];
+            Dictionary<string,string> varDict = new Dictionary<string,string>();
 
-            Match vars = itemMatcher.Match(varString);
-            foreach(Group var in vars.Groups)
+            GroupCollection elements= spaceMatcher.Match(item).Groups;
+            
+            if (elements.Count <= 1)
+                return new Tuple<string, Dictionary<string, string>>(item, varDict);
+
+            string cmd = elements[1].Value;
+            string varString = elements[2].Value;
+
+            MatchCollection vars = itemMatcher.Matches(varString);
+            foreach(Match var in vars)
             {
-                string attribute = spaceMatcher.Split(var.Captures[0].Value,1)[0];
-                string value = spaceMatcher.Split(var.Captures[0].Value,1)[1];
+                GroupCollection pair = attributeMatcher.Match(var.Value).Groups;
+                string attribute = pair[1].Value;
+                string value = pair[2].Value;
                 varDict[attribute] = value;
             }
             if (cmd == "DAM" && cmd == "PRJ")
@@ -322,16 +341,13 @@ namespace Posh_sharp.POSHBot
             NetworkStream stream = null;
             StreamReader reader = null;
             TcpClient client = null;
-            IPEndPoint ipe = null;
             writer = null;
             killConnection = false;
             
             try
             {
-                ipe = new IPEndPoint(this.ip, this.port);
-                client = new TcpClient(ipe);
-                client.Connect(ipe);
-
+                client = new TcpClient(this.ip.ToString(), this.port);
+                // client.Connect(ipe);
                 if(client.Connected)
                 {
                     stream = client.GetStream();
@@ -343,6 +359,7 @@ namespace Posh_sharp.POSHBot
                 log.Error("Connection to server failed");
                 // Skip the read loop
                 killConnection = true;
+                return;
             }
 
             try
@@ -364,7 +381,7 @@ namespace Posh_sharp.POSHBot
             }
 
             // This loop waits for the first NFO message
-            while (!killConnection)
+            while (!killConnection && !this.connectedToGame)
             {
                 string dataIn = ReadDataInput(reader);
                 if (dataIn == string.Empty)
@@ -375,15 +392,34 @@ namespace Posh_sharp.POSHBot
                 }
                 // print dataIn
                 Tuple<string,Dictionary<string,string>> result = ProcessItem(dataIn);
-                if (result.First == "NFO")
+
+                switch (result.First)
                 {
-                    // Send INIT message
-                    this.conninfo = result.Second;
-                    SendMessage("INIT", new Dictionary<string, string> {{"Name" , botName}, {"Team", team.ToString()}});
-                    // ready to send messages
-                    connReady = true;
-                    break;
-                
+                    case "HELLO_BOT":
+                        SendMessage("READY",new Dictionary<string,string>());
+                        break;
+                    case "SNAV":
+                        sNavPoints = new Dictionary<string,NavPoint>();
+                        sNavID = "";
+                        break;
+                    case "NAV":
+                        sNavPoints[result.Second["Id"]]=NavPoint.ConvertToNavPoint(result.Second);
+                        sNavID = result.Second["Id"];
+                        break;
+                    case "SNPG":
+                        sNavPoints[sNavID].SetNeighbors();
+                        break;
+                    case "INGP":
+                        sNavPoints[sNavID].NGP.Add(new NavPoint.Neighbor(result.Second));
+                        break;
+                    case "ENGP":
+                        sNavID = "";
+                        break;
+                    case "ENAV":
+                        navPoints = sNavPoints;
+                        SendMessage("INIT",new Dictionary<string,string> {{"Name",this.botName},{"Team",this.team.ToString()}});
+                        this.connectedToGame = true;
+                        break;
                 }
             }
 
@@ -400,8 +436,10 @@ namespace Posh_sharp.POSHBot
                 }
                 //print "R>> " +  str(self) + x
                 Tuple<string,Dictionary<string,string>> result = ProcessItem(dataIn);
-                string [] syncStates = {"SLF","GAM","PLR","NAV","MOV","DOM","FLG","INV"};
-                string []events = {"WAL", "BMP"};
+                string [] syncStates = {"SLF","GAM","PLR","MOV","DOM","FLG","INV"};
+                string [] pathStates = {"SPTH","IPTH","EPTH"};
+                string [] events = {"WAL", "BMP"};
+                
                 this.msgLog.Add(result);
 
                 if ( result.First =="BEG" )
@@ -419,14 +457,19 @@ namespace Posh_sharp.POSHBot
                     ProcessSync(result);
                 else if (result.First == "END")
                     SynShadowStates();
-                else if ( events.Contains(result.First) )
+                if (this.connectedToGame)
+                {
+                    this.connReady = true;
+                    this.connectedToGame = false;
+                }
+                else if (events.Contains(result.First))
                     // The bot hit a wall or an actor, make a note
                     // of it in the events list with timestamp
-                    this.events.Add(new Tuple<long,string>(TimerBase.CurrentTimeStamp(),result.ToString()));
+                    this.events.Add(new Tuple<long, string>(TimerBase.CurrentTimeStamp(), result.ToString()));
                 else if (result.First == "SEE")
                     // Update the player Position
                     this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
-                else if (result.First == "PTH")
+                else if ( pathStates.Contains(result.First) )
                     // pass the details to the movement behaviour
                     ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
                 else if (result.First == "RCH")
@@ -481,7 +524,6 @@ namespace Posh_sharp.POSHBot
             this.gameinfo = this.sGameinfo;
             this.viewPlayers = this.sViewPlayers;
             this.viewItems = this.sViewItems;
-            this.navPoints = this.sNavPoints;
             this.info = this.sBotinfo;
 
             // Also a good time to trim the events list
@@ -509,8 +551,7 @@ namespace Posh_sharp.POSHBot
                     this.rotationHist.Add(
                         int.Parse(
                         middleIntMatcher.Match( message.Second["Rotation"] )
-                            .NextMatch()
-                            .Value)
+                            .Groups[1].Value)
                     );
                     // Trim list to 3 entries
                     if ( this.rotationHist.Count > 3 )
