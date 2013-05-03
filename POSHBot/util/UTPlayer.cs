@@ -38,7 +38,7 @@ namespace Posh_sharp.POSHBot.util
                         Location = Vector3.ConvertToVector3(attributes["Location"]);
                         break;
                     case "Velocity":
-                        Velocity = float.Parse((attributes["Velocity"]));
+                        Velocity = POSHBot.CalculateVelocity((attributes["Velocity"]));
                         break;
                     case "Name":
                         Name = attributes["Name"].Trim();

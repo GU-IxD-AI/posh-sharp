@@ -263,7 +263,7 @@ namespace Posh_sharp.POSHBot
                 string value = pair[2].Value;
                 varDict[attribute] = value;
             }
-            if (cmd == "DAM" && cmd == "PRJ")
+            if (cmd == "DAM" || cmd == "PRJ")
                 varDict["timestamp"] = POSH_sharp.sys.strict.TimerBase.CurrentTimeStamp().ToString();
 
             return new Tuple<string,Dictionary<string,string>>(cmd,varDict);
@@ -599,7 +599,7 @@ namespace Posh_sharp.POSHBot
 
 
 
-        private float CalculateVelocity(string velocityString)
+        public static float CalculateVelocity(string velocityString)
         {
  	        Vector3 velocity = Vector3.ConvertToVector3(velocityString);
 
