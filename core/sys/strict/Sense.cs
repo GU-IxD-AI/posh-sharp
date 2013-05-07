@@ -73,17 +73,34 @@ namespace POSH_sharp.sys.strict
             else if (predicate.Trim() == "!=")
                 return result != value;
             else if (predicate.Trim() == "<=")
+            {
+                if (result.GetType() == typeof(long))
+                    return (long)result <= (long)value;
                 return (float)result <= (float)value;
+            }
             else if (predicate.Trim() == ">=")
-                return (float)result >= (float)value;
+            {
+                if (result.GetType() == typeof(long))
+                    return (long)result >= (long)value;
+                return (float)result <= (float)value;
+            }
             else if (predicate.Trim() == "<")
-                return (float)result < (float)value;
+            {
+                if (result.GetType() == typeof(long))
+                    return (long)result < long.Parse(value.ToString());
+                return (float)result <= (float)value;
+            }
             else if (predicate.Trim() == ">")
-                return (float)result > (float)value;
+            {
+                if (result.GetType() == typeof(long))
+                    return (long)result > long.Parse(value.ToString());
+                return (float)result <= (float)value;
+            }
             else
                 return (bool) result;
         }
 
+        
         /// <summary>
         /// Returns itsself.
         /// 
