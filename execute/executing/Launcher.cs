@@ -159,11 +159,11 @@ namespace POSH_sharp.executing
              set to 10, and attribute 'y' of behaviour 'beh2' to 20. For the second
              agent, the attribute 'x' of behaviour 'beh1' is set to 20.";
 
-        internal WorldControl control;
+        internal AssemblyControl control;
 
         public Launcher()
         {
-            control = WorldControl.GetControl();
+            control = AssemblyControl.GetControl();
         }
 
         /// <summary>

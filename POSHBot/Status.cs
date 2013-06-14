@@ -17,7 +17,7 @@ namespace Posh_sharp.POSHBot
                         new string[] {},
                         new string[] {"HaveEnemyFlag",
                             "OwnHealthLevel", "AreArmed",
-                            "AmmoAmount", "ArmedAndAmmo"})
+                            "AmmoAmount", "ArmedAndAmmo","Fail","Succeed"})
         {}
 
         private POSHBot getBot(string name="POSHBot")
@@ -30,7 +30,17 @@ namespace Posh_sharp.POSHBot
          * SENSES
          * 
          */
+        [ExecutableSense("Fail")]
+        public bool Fail()
+        {
+            return false;
+        }
 
+        [ExecutableSense("Succeed")]
+        public bool Succeed()
+        {
+            return true;
+        }
         [ExecutableSense("HaveEnemyFlag")]
         public bool HaveEnemyFlag()
         {

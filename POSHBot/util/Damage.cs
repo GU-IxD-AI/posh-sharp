@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Posh_sharp.POSHBot.util
 {
-    class Damage
+    public class Damage
     {
         protected internal int Amount { get; internal set; }
         protected internal string Type { get; internal set; }

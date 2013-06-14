@@ -22,7 +22,7 @@
   (C get-to-enemy-base (minutes 10) (goal ((AtEnemyBase)))
     (elements
       (
-        (check-immediate-vicinity (trigger((TooCloseForPath))) BigRotate 2)
+        (check-immediate-vicinity (trigger((TooCloseForPath 10 <))) BigRotate 2)
         (run-to-base (trigger((KnowEnemyBasePos))) ToEnemyBase)
         (find-base (trigger((ReachableNavPoint))) WalkToNavPoint)
         (find-nav-point (trigger((Succeed))) Rotate 10)
@@ -34,7 +34,7 @@
   (C go-to-own-base (minutes 10) (goal ((AtOwnBase)))
     (elements
       (
-        (check-immediate-vicinity (trigger((TooCloseForPath))) BigRotate 2)
+        (check-immediate-vicinity (trigger((TooCloseForPath 10 <))) BigRotate 2)
         (run-to-own-flag (trigger((OurFlagReachable))) ToOwnFlag)
         (run-to-own-base (trigger((KnowOwnBasePos))) ToOwnBase)
         (find-base (trigger((ReachableNavPoint))) WalkToNavPoint)

@@ -22,7 +22,6 @@ namespace POSH_sharp.sys.strict
 
         private TimerBase timer;
 
-        // TODO: @swen check if this is really the right type
         protected internal DriveCollection dc;
 
         public Agent(string library, string plan, Dictionary<Tuple<string,string>,object> attributes, World world = null)
@@ -169,15 +168,14 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="planFile">Filename of the plan file that is loaded.</param>
         /// <returns></returns>
-        public override void loadPlan(string planFile)
+        public override void loadPlan(Stream plan)
         {
             // if setTimer() is not called, then the first use of
             // the timer will fail. setTimer() is called when the drive
             // collection is built.
             timer = null;
             // read plan, parse it and build drive collection
- 	        string planString = new StreamReader( File.OpenRead(planFile)).ReadToEnd();
-            PlanBuilder builder = new LAPParser().parse(planString);
+ 	        PlanBuilder builder = new LAPParser().parse(new StreamReader(plan).ReadToEnd());
             dc = builder.build(this);
         }
 

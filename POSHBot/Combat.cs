@@ -10,7 +10,7 @@ using POSH_sharp.sys.strict;
 
 namespace Posh_sharp.POSHBot
 {
-    public class Combat : Behaviour
+    public class Combat : UTBehaviour
     {
         private string [] senses;
         private string [] actions;
@@ -18,7 +18,7 @@ namespace Posh_sharp.POSHBot
 
         public Combat(AgentBase agent)
             :base(agent,new string[] {"ShootEnemyCarryingOurFlag",
-                            "RunToTnemyCarryingOurFlag",
+                            "RunToEnemyCarryingOurFlag",
                             "FaceAttacker", "SetAttacker", "ShootAttacker"},
                         new string[] {"SeeEnemyWithOurFlag",
                             "OurFlagOnGround", "EnemyFlagOnGround",
@@ -52,21 +52,21 @@ namespace Posh_sharp.POSHBot
             }
         }
 
-        private POSHBot getBot(string name="POSHBot")
+        private void StopShooting()
         {
-            return ((POSHBot)agent.getBehaviour(name));
+            if (info.GetFocusId() == null || info.GetFocusLocation() == null)
+            {
+                getBot().SendMessage("STOPSHOOT", new Dictionary<string, string>());
+            }
         }
-        private Movement getMovement(string name="Movement")
-        {
-            return ((Movement)agent.getBehaviour(name));
-        }
-        
+
+       
         /// <summary>
         /// if its status is "held", update the CombatInfoClass to show who's holding it
         /// otherwise, set that to None as it means no-one is holding it
         /// </summary>
         /// <param name="values">Dictionary containing the Flag details</param>
-        internal void ReceiveFlagDetails(Dictionary<string,string> values)
+        internal override void ReceiveFlagDetails(Dictionary<string,string> values)
         {
             // TODO: fix the mix of information in this method it should just contain relevant info
 
@@ -124,8 +124,8 @@ namespace Posh_sharp.POSHBot
             if (info.KeepFocusOnID != null && info.KeepFocusOnID.First != string.Empty)
                 if (values["Id"] == info.KeepFocusOnID.First)
                 {
-                    info.ExpireFocusId();
-                    info.ExpireFocusLocation();
+                    info.GetFocusId();
+                    info.GetFocusLocation();
                     getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
                 }
 
@@ -133,9 +133,9 @@ namespace Posh_sharp.POSHBot
 
         internal void ReceiveDeathDetails(Dictionary<string,string> value)
         {
-            info.ExpireDamageInfo();
-            info.ExpireFocusId();
-            info.ExpireFocusLocation();
+            info.DamageDetails = null;
+            info.KeepFocusOnID = null;
+            info.KeepFocusOnLocation = null;
             getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
         }
 
@@ -217,10 +217,7 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("IncomingProjectile")]
         public bool IncomingProjectile()
         {
-            if (info.HasProjectileDetailsExpired())
-                info.ExpireProjectileInfo();
-
-            if (info.ProjectileDetails is Projectile)
+            if (info.GetProjectileDetails() is Projectile)
             {
                 Console.Out.WriteLine("incoming-projectile returning 1");
                 return true;
@@ -232,25 +229,9 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("TakenDamageFromSpecificPlayer")]
         public bool TakenDamageFromSpecificPlayer()
         {
-            // expire Damage info
-            if (info.DamageDetails is Damage && info.HasDamageInfoExpired())
-                info.ExpireDamageInfo();
-            
-            // expire focus id info 
-            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
-            {
-                info.ExpireFocusId();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
+            StopShooting();
 
-            // expire focus location info
-            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired() )
-            {
-                info.ExpireFocusLocation();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
-
-            if (info.DamageDetails is Damage && info.DamageDetails.AttackerID != string.Empty)
+            if (info.GetDamageDetails() is Damage && info.DamageDetails.AttackerID != string.Empty)
             {
                 Console.Out.WriteLine(string.Format("Taken damage from specific player '{0}'; returning true ",info.DamageDetails.AttackerID));
                 return true;
@@ -267,39 +248,12 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("TakenDamage")]
         public bool TakenDamage()
         {
-            if (info.DamageDetails is Damage)
-            {
-                if (info.HasDamageInfoExpired())
-                {
-                    info.ExpireDamageInfo();
-                    return false;
-                }
+            if (info.GetDamageDetails() is Damage)
                 return true;
-            }
+            
             return false;
         }
 
-        /// <summary>
-        /// At present just test against KeepFocusOnID.  However, that doesn't 100% guarantee that we've started shooting,
-        /// just that we know who we ought to shoot.  For now, however, I will use this check.
-        /// </summary>
-        /// <returns>returns 1 if we're already responding to the most recent attack</returns>
-        [ExecutableSense("IsRespondingToAttack")]
-        public bool IsRespondingToAttack()
-        {
-            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
-            {
-                info.ExpireFocusId();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
-
-            if (info.KeepFocusOnID is Tuple<string,long>)
-                return true;
-
-            return false;
-        }
-
-        
         /*
          * 
          * ACTIONS 
@@ -322,7 +276,7 @@ namespace Posh_sharp.POSHBot
             return false;
         }
 
-        [ExecutableAction("ShootEnemyCarryingOurFlag")]
+        [ExecutableAction("RunToEnemyCarryingOurFlag")]
         public bool RunToEnemyCarryingOurFlag()
         {
             Console.Out.WriteLine(" in ShootEnemyCarryingOurFlag");
@@ -346,23 +300,9 @@ namespace Posh_sharp.POSHBot
         [ExecutableAction("FaceAttacker")]
         public bool FaceAttacker()
         {
-            
+            StopShooting();
 
-            //expire focus id info
-            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
-            {
-                info.ExpireFocusId();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
-
-            //expire focus location info
-            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired())
-            {
-                info.ExpireFocusLocation();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
-
-            if (info.KeepFocusOnID  == null && info.KeepFocusOnLocation == null)
+            if (info.GetFocusId() == null && info.GetFocusLocation() == null)
                 return false;
             if (info.KeepFocusOnID == null)
                 getBot().SendMessage("TURNTO", new Dictionary<string,string>()
@@ -390,10 +330,7 @@ namespace Posh_sharp.POSHBot
             if (getBot().viewPlayers.Count == 0 || getBot().info.Count == 0)
                 return false;
 
-            // expire damage info if mecessary FA
-            if (info.DamageDetails != null && info.HasDamageInfoExpired())
-                info.ExpireDamageInfo();
-            if (info.DamageDetails is Damage && info.DamageDetails.AttackerID != "")
+            if (info.GetDamageDetails() is Damage && info.DamageDetails.AttackerID != "")
                 if ( getBot().viewPlayers.ContainsKey(info.DamageDetails.AttackerID) )
                 {
                     // set variables so that other commands will keep him in view
@@ -413,24 +350,13 @@ namespace Posh_sharp.POSHBot
         public bool ShootAttacker()
         {
             Console.Out.WriteLine(" in ShootAttacker");
-            //expire focus id info
-            if (info.KeepFocusOnID is Tuple<string,long> && info.HasFocusIdExpired())
-            {
-                info.ExpireFocusId();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
 
-            //expire focus location info
-            if (info.KeepFocusOnLocation is Tuple<Vector3,long> && info.HasFocusLocationExpired())
-            {
-                info.ExpireFocusLocation();
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string,string>());
-            }
+            StopShooting();
 
-            if (info.KeepFocusOnLocation == null)
+            if (info.GetFocusLocation() == null)
                 return false;
                         
-            if (info.KeepFocusOnID == null)
+            if (info.GetFocusId() == null)
                 getBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
                     {
                         {"Location",info.KeepFocusOnLocation.First.ToString()}

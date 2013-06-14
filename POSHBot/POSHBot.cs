@@ -44,7 +44,7 @@ namespace Posh_sharp.POSHBot
     /// To change connection IP, port and the bot's name, use the attributes
     /// Bot.ip, Bot.port and Bot.botname.
     /// </summary>
-    public class POSHBot : Behaviour
+    public class POSHBot : UTBehaviour
     {
         Regex firstIntMatcher;
         Regex middleIntMatcher;
@@ -117,7 +117,7 @@ namespace Posh_sharp.POSHBot
         }
 
         public POSHBot(AgentBase agent, Dictionary<string,object> attributes)
-            : base(agent, new string[] {}, new string[] {},attributes)
+            : base(agent, new string[] {}, new string[] {})
         {
             middleIntMatcher = new Regex(",(.*?),");
             firstIntMatcher = new Regex("(.*?),");
@@ -380,7 +380,7 @@ namespace Posh_sharp.POSHBot
                 killConnection = false;
             }
 
-            // This loop waits for the first NFO message
+            // This loop waits for the initialisation messages
             while (!killConnection && !this.connectedToGame)
             {
                 string dataIn = ReadDataInput(reader);
@@ -476,16 +476,16 @@ namespace Posh_sharp.POSHBot
                     ((Movement)agent.getBehaviour("Movement")).ReceiveCheckReachDetails(result.Second);
                 else if (result.First == "PRJ")
                     // incoming projectile
-                    ((Combat)agent.getBehaviour("Combat")).ReceiveProjectileDetails(result.Second);
+                    getCombat().ReceiveProjectileDetails(result.Second);
                 else if (result.First == "DAM")
                     // incoming projectile
-                    ((Combat)agent.getBehaviour("Combat")).ReceiveDamageDetails(result.Second);
+                    getCombat().ReceiveDamageDetails(result.Second);
                 else if (result.First == "KIL")
                     // incoming projectile
-                    ((Combat)agent.getBehaviour("Combat")).ReceiveKillDetails(result.Second);
+                    getCombat().ReceiveKillDetails(result.Second);
                 else if (result.First == "DIE")
                     // incoming projectile
-                    ((Combat)agent.getBehaviour("Combat")).ReceiveDeathDetails(result.Second);
+                    getCombat().ReceiveDeathDetails(result.Second);
             }
 
             log.Info("Closing Connection and Cleaning Up...");
@@ -590,7 +590,7 @@ namespace Posh_sharp.POSHBot
                             Console.WriteLine(string.Format("{0} = {1}",elem.Key,elem.Value));
                     ((Movement)agent.getBehaviour("Movement")).ReceiveFlagDetails(message.Second);
                     // inform the combat behaviour as well
-                    ((Combat)agent.getBehaviour("Combat")).ReceiveFlagDetails(message.Second);
+                    getCombat().ReceiveFlagDetails(message.Second);
                     break; 
                 default:
                     break;
@@ -633,7 +633,7 @@ namespace Posh_sharp.POSHBot
             return 0;
         }
 
-        internal bool Move()
+        internal bool Inch()
         {
             SendMessage("INCH",new Dictionary<string,string>());
             return true;

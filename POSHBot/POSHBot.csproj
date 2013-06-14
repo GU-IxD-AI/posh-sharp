@@ -42,7 +42,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Andy.cs" />
     <Compile Include="POSHBot.cs" />
     <Compile Include="Combat.cs" />
     <Compile Include="Movement.cs" />
@@ -53,6 +52,7 @@
     <Compile Include="util\NavPoint.cs" />
     <Compile Include="util\PositionsInfo.cs" />
     <Compile Include="util\Projectile.cs" />
+    <Compile Include="util\UTBehaviour.cs" />
     <Compile Include="util\UTPlayer.cs" />
     <Compile Include="util\Vector3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -70,6 +70,7 @@
     </Content>
     <None Include="plans\defendbot.lap" />
     <None Include="plans\oldPOSH-attackbot.lap" />
+    <None Include="plans\POSHBot.lap" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -32,80 +32,60 @@ namespace Posh_sharp.POSHBot.util
 
         /// <summary>
         /// Checks the timestamp against current time less lifetime of damagedetails FA
+        /// If the details expired null is returned.
         /// </summary>
         /// <param name="lsec"></param>
-        public bool HasDamageInfoExpired(int lsec = 5)
+        /// <returns>damage</returns>
+        public Damage GetDamageDetails(int lsec = 5)
         {
             if (DamageDetails != null && DamageDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsec )
-                return true;
-            return false;
-        }
+                return DamageDetails;
 
-        /// <summary>
-        /// not the usual sort of action, but ensures that details about e.g. damage taken doesn't reside forever and 
-        /// inform decisions too far into the future
-        /// </summary>
-        public bool ExpireDamageInfo()
-        {
             DamageDetails = null;
-            return true;
+            return null;
         }
 
         /// <summary>
         /// Checks the timestamp against current time less lifetime of focus_id FA
+        /// If the focus ID expired null is returned.
+        /// 
         /// </summary>
         /// <param name="lsec"></param>
         /// <returns></returns>
-        public bool HasFocusIdExpired(int lsec = 15)
+        public Tuple<string,long> GetFocusId(int lsec = 15)
         {
             if (KeepFocusOnID is Tuple<string,long> && KeepFocusOnID.First != string.Empty )
                 if (KeepFocusOnID.Second < TimerBase.CurrentTimeStamp() - lsec)
-                    return true;
-            return false;
+                    return KeepFocusOnID;
 
-        }
-
-        /// <summary>
-        /// Split expire_focus_info in to two methods for better accuracy FA
-        /// </summary>
-        /// <param name="lsec"></param>
-        public void ExpireFocusId(int lsec = 15)
-        {
             KeepFocusOnID = null;
+            return null;
+
         }
 
         /// <summary>
         /// Checks the timestamp against current time less lifetime of focus_id FA
+        /// If the focus location expired null is returned.
         /// </summary>
         /// <param name="lsec"></param>
         /// <returns></returns>
-        public bool HasFocusLocationExpired(int lsec = 15)
+        public Tuple<Vector3,long> GetFocusLocation(int lsec = 15)
         {
             if (KeepFocusOnLocation is Tuple<Vector3,long> && KeepFocusOnLocation.First is Vector3 )
                 if (KeepFocusOnLocation.Second < TimerBase.CurrentTimeStamp() - lsec)
-                    return true;
-            return false;
-        }
+                    return KeepFocusOnLocation;
 
-        /// <summary>
-        /// Split expire_focus_info in to two methods for better accuracy FA
-        /// </summary>
-        public void ExpireFocusLocation()
-        {
             KeepFocusOnLocation = null;
+            return null;
         }
 
-        public bool HasProjectileDetailsExpired(int lsecs = 2)
+        public Projectile GetProjectileDetails(int lsecs = 2)
         {
             if (ProjectileDetails != null && ProjectileDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsecs)
-                return true;
-            return false;
-        }
+                return ProjectileDetails;
 
-        public void ExpireProjectileInfo()
-        {
             ProjectileDetails = null;
+            return null;
         }
-
     }
 }
