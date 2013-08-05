@@ -111,7 +111,10 @@ namespace Posh_sharp.POSHBot.util
             this.NGP = new List<Neighbor>();
         }
 
-        public NavPoint(string id, int owner, Vector3 location, Dictionary<int,NavPoint> paths, string type = "") : this()
+		public NavPoint(string id, int owner, Vector3 location, Dictionary<int,NavPoint> paths) : this(id, owner, location, paths, "")
+		{}
+
+        public NavPoint(string id, int owner, Vector3 location, Dictionary<int,NavPoint> paths, string type) : this()
         {
             this.Id = id;
             this.Type = type;
@@ -120,12 +123,12 @@ namespace Posh_sharp.POSHBot.util
             this.Paths = paths;
         }
 
-        public float Distance2DFrom(NavPoint target, Vector3.Orientation orientation = Vector3.Orientation.XY)
+        public float Distance2DFrom(NavPoint target, Vector3.Orientation orientation)
         {
             return Location.Distance2DFrom(target.Location, orientation);
         }
 
-        public float Distance2DFrom(Vector3 target, Vector3.Orientation orientation = Vector3.Orientation.XY)
+        public float Distance2DFrom(Vector3 target, Vector3.Orientation orientation)
         {
             return Location.Distance2DFrom(target, orientation);
         }

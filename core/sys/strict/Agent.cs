@@ -24,7 +24,11 @@ namespace POSH_sharp.sys.strict
 
         protected internal DriveCollection dc;
 
-        public Agent(string library, string plan, Dictionary<Tuple<string,string>,object> attributes, World world = null)
+		public Agent(string library, string plan, Dictionary<Tuple<string,string>,object> attributes)
+			: this(library,plan,attributes,null)
+		{}
+
+        public Agent(string library, string plan, Dictionary<Tuple<string,string>,object> attributes, World world)
             : base(library,plan,attributes,world)
         {
             
@@ -73,6 +77,11 @@ namespace POSH_sharp.sys.strict
             timer.SetLoopFreq(freq);
         }
 
+
+		public override bool  reset()
+		{
+			return reset (300);
+		}
         /// <summary>
         /// Checks if the behaviours are ready and resets the agent's timer.
         /// 
@@ -84,7 +93,7 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="waitTime">Timout waiting for behaviours (see L{checkError()}).</param>
         /// <returns>If the reset was successful.</returns>
-        public override bool  reset(int waitTime = 300)
+        public override bool  reset(int waitTime)
         {
  	         if (!base.reset())
                  return false;

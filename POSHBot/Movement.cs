@@ -134,14 +134,17 @@ namespace Posh_sharp.POSHBot
             posInfo.ourFlagInfo.Clear();
             posInfo.enemyFlagInfo.Clear();
         }
-
+		internal void SendMoveToLocation(Vector3 location)
+		{ 
+			SendMoveToLocation (location, true);
+		}
         /// <summary>
         /// if the combatinfo class specifies that we need to remain focused on a player, send a relevant strafe command
         /// to move to the provided location.  Otherwise, a runto
         /// </summary>
         /// <param name="?"></param>
         /// <param name="performPrevCheck"></param>
-        internal void SendMoveToLocation(Vector3 location, bool performPrevCheck = true)
+        internal void SendMoveToLocation(Vector3 location, bool performPrevCheck)
         {
             // IMPORTANT-TODO: completely remodel this method as it uses stuff from a different behaviour it should not use.
             Tuple<string, Dictionary<string, string>> message;
@@ -195,7 +198,7 @@ namespace Posh_sharp.POSHBot
             if (location.Count == 0)
                 // even though we failed, we return 1 so that it doesn't tail the list
                 return true;
-            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().info["Location"])) > distanceTolerance)
+            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().info["Location"]),Vector3.Orientation.XY) > distanceTolerance)
             {
                 Console.Out.WriteLine("DistanceTolerance check passed");
                 Console.Out.WriteLine("About to send MOVE to");
@@ -311,7 +314,7 @@ namespace Posh_sharp.POSHBot
             else
                 // if we don't know where we are, treat it as (0,0,0) 
                 // as that will just mean we go to the nav point even if we're close by
-                location = new Vector3();
+                location = Vector3.NullVector();
 
             Console.Out.WriteLine(location.ToString());
 
@@ -515,7 +518,7 @@ namespace Posh_sharp.POSHBot
             return Rotate(0);
         }
 
-        protected bool Rotate(int angle = 0)
+        protected bool Rotate(int angle)
         {
             // print "Rotate ..."
             if (angle != 0)

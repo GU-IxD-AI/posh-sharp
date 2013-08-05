@@ -258,7 +258,7 @@ namespace POSH_sharp.executing
         /// <param name="worldArgs"></param>
         /// <param name="agentsInit"></param>
         /// <param name="?"></param>
-        protected Tuple<World, bool> InitWorld(string worldArgs, string assembly, List<Tuple<string, object>> agentsInit, bool verbose, Type world = null)
+        protected Tuple<World, bool> InitWorld(string worldArgs, string assembly, List<Tuple<string, object>> agentsInit, bool verbose, Type world)
         {
             if (verbose)
                 Console.Out.WriteLine("- initialising world");
@@ -422,7 +422,7 @@ namespace POSH_sharp.executing
             //    worldFile = application.control.defaultWorldScript(library);
             try
             {
-                setting = application.InitWorld(worldArgs, assembly,agentsInit, verbose);
+                setting = application.InitWorld(worldArgs, assembly,agentsInit, verbose,null);
             }
             catch (Exception e)
             {

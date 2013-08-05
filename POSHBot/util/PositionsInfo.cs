@@ -47,7 +47,12 @@ namespace Posh_sharp.POSHBot.util
             TooCloseForPath = 0L;
         }
 
-        public bool HasEnemyFlagInfoExpired(int lsecs = 10)
+		public bool HasEnemyFlagInfoExpired()
+		{
+			return HasEnemyFlagInfoExpired (10);
+		}
+
+        public bool HasEnemyFlagInfoExpired(int lsecs)
         {
             if (enemyFlagInfo.Count > 0 && enemyFlagInfo.ContainsKey("Reachable"))
                 if (long.Parse(enemyFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
@@ -64,7 +69,12 @@ namespace Posh_sharp.POSHBot.util
             enemyFlagInfo["Reachable"] = false.ToString();
         }
 
-        public bool HasOurFlagInfoExpired(int lsecs = 10)
+		public bool HasOurFlagInfoExpired()
+		{
+			return HasOurFlagInfoExpired (10);
+		}
+
+        public bool HasOurFlagInfoExpired(int lsecs)
         {
             if ( ourFlagInfo.Count > 0 && ourFlagInfo.ContainsKey("Reachable") )
                 if (long.Parse(ourFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
@@ -81,7 +91,12 @@ namespace Posh_sharp.POSHBot.util
             ourFlagInfo["Reachable"] = false.ToString();
         }
 
-        public bool HasTooCloseForPathExpired(int lsecs = 10)
+		public bool HasTooCloseForPathExpired()
+		{
+			return HasTooCloseForPathExpired (10);
+		}
+
+        public bool HasTooCloseForPathExpired(int lsecs)
         {
             if ( TooCloseForPath < TimerBase.CurrentTimeStamp() - lsecs )
                 return true;

@@ -30,13 +30,18 @@ namespace Posh_sharp.POSHBot.util
             KeepFocusOnLocation = null;
         }
 
+		public Damage GetDamageDetails()
+		{
+			return GetDamageDetails (5);
+		}
+
         /// <summary>
         /// Checks the timestamp against current time less lifetime of damagedetails FA
         /// If the details expired null is returned.
         /// </summary>
         /// <param name="lsec"></param>
         /// <returns>damage</returns>
-        public Damage GetDamageDetails(int lsec = 5)
+        public Damage GetDamageDetails(int lsec)
         {
             if (DamageDetails != null && DamageDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsec )
                 return DamageDetails;
@@ -45,6 +50,11 @@ namespace Posh_sharp.POSHBot.util
             return null;
         }
 
+		public Tuple<string,long> GetFocusId()
+		{
+			return GetFocusId (15);
+		}
+
         /// <summary>
         /// Checks the timestamp against current time less lifetime of focus_id FA
         /// If the focus ID expired null is returned.
@@ -52,7 +62,7 @@ namespace Posh_sharp.POSHBot.util
         /// </summary>
         /// <param name="lsec"></param>
         /// <returns></returns>
-        public Tuple<string,long> GetFocusId(int lsec = 15)
+        public Tuple<string,long> GetFocusId(int lsec)
         {
             if (KeepFocusOnID is Tuple<string,long> && KeepFocusOnID.First != string.Empty )
                 if (KeepFocusOnID.Second < TimerBase.CurrentTimeStamp() - lsec)
@@ -62,14 +72,17 @@ namespace Posh_sharp.POSHBot.util
             return null;
 
         }
-
+		public Tuple<Vector3,long> GetFocusLocation()
+		{
+			return GetFocusLocation (15);
+		}
         /// <summary>
         /// Checks the timestamp against current time less lifetime of focus_id FA
         /// If the focus location expired null is returned.
         /// </summary>
         /// <param name="lsec"></param>
         /// <returns></returns>
-        public Tuple<Vector3,long> GetFocusLocation(int lsec = 15)
+        public Tuple<Vector3,long> GetFocusLocation(int lsec)
         {
             if (KeepFocusOnLocation is Tuple<Vector3,long> && KeepFocusOnLocation.First is Vector3 )
                 if (KeepFocusOnLocation.Second < TimerBase.CurrentTimeStamp() - lsec)
@@ -78,8 +91,12 @@ namespace Posh_sharp.POSHBot.util
             KeepFocusOnLocation = null;
             return null;
         }
+		public Projectile GetProjectileDetails()
+		{
+			return GetProjectileDetails (2);
+		}
 
-        public Projectile GetProjectileDetails(int lsecs = 2)
+        public Projectile GetProjectileDetails(int lsecs)
         {
             if (ProjectileDetails != null && ProjectileDetails.TimeStamp < TimerBase.CurrentTimeStamp() - lsecs)
                 return ProjectileDetails;

@@ -23,6 +23,10 @@ namespace POSH_sharp.sys.strict
         private object value;
         string predicate;
 
+		public POSHSense(Agent agent, string senseName)
+			:this(agent, senseName, null, null)
+		{}
+
         /// <summary>
         /// Picks the given sense or sense-act from the given agent.
         ///
@@ -41,7 +45,7 @@ namespace POSH_sharp.sys.strict
         /// then the sense has to evaluate to True.</param>
         /// <param name="predicate">"==", "!=", "<", ">", "<=", ">=". If null is
         ///    given, then "==" is assumed.</param>
-        public POSHSense(Agent agent, string senseName, string value = null, string predicate = null)
+        public POSHSense(Agent agent, string senseName, string value, string predicate)
             :base(string.Format("Sense.{0}",senseName),agent)
         {
             behaviourDict = agent.getBehaviourDict();

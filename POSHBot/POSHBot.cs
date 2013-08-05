@@ -639,6 +639,10 @@ namespace Posh_sharp.POSHBot
             return true;
         }
 
+		internal bool Turning()
+		{
+			return Turning (386);
+		}
         /// <summary>
         /// compares the most recent to the least recent rotationHist
         /// entry. If there is a descrepancy beyond the error fudge,
@@ -646,7 +650,7 @@ namespace Posh_sharp.POSHBot
         /// </summary>
         /// <param name="fudge">standard 386: in UT units roughly 2 degrees</param>
         /// <returns></returns>
-        internal bool Turning(int fudge = 386)
+        internal bool Turning(int fudge)
         {
             if (this.rotationHist.Count > 0)
                 if (Math.Abs( rotationHist[0] - rotationHist[rotationHist.Count-1] ) > fudge )
@@ -667,12 +671,16 @@ namespace Posh_sharp.POSHBot
             return false;
         }
 
+		internal bool Stuck()
+		{
+			return Stuck (0.0f);
+		}
         /// <summary>
         /// if there is a period of not moving return true
         /// </summary>
         /// <param name="fudge">standard 0.0f</param>
         /// <returns></returns>
-        internal bool Stuck(float fudge = 0.0f)
+        internal bool Stuck(float fudge)
         {
             foreach (float v in this.velocityHist)
                 if (v > fudge)
@@ -681,13 +689,17 @@ namespace Posh_sharp.POSHBot
             return true;
         }
 
+		internal bool WasHit()
+		{
+			return WasHit (2, 0);
+		}
         /// <summary>
         /// Was the bot hit in the last lsec seconds
         /// </summary>
         /// <param name="lsec">how many secs look back</param>
         /// <param name="isec">number of seconds to inhibit WasHit</param>
         /// <returns></returns>
-        internal bool WasHit(int lsec = 2, int isec = 0)
+        internal bool WasHit(int lsec, int isec)
         {
             int lastEvents=0;
             long now = TimerBase.CurrentTimeStamp();

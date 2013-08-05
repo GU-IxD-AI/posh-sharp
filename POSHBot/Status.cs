@@ -20,9 +20,9 @@ namespace Posh_sharp.POSHBot
                             "AmmoAmount", "ArmedAndAmmo","Fail","Succeed"})
         {}
 
-        private POSHBot getBot(string name="POSHBot")
+        private POSHBot getBot()
         {
-            return ((POSHBot)agent.getBehaviour(name));
+			return ((POSHBot)agent.getBehaviour("POSHBot"));
         }
 
         /*

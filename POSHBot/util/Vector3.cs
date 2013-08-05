@@ -19,7 +19,7 @@ namespace Posh_sharp.POSHBot.util
         {
             string[] locList = location.Split(',');
             if (locList.Length != 3)
-                return new Vector3();
+                return Vector3.NullVector();
 
             return new Vector3(float.Parse(locList[0]), float.Parse(locList[1]), float.Parse(locList[2]));
         }
@@ -29,14 +29,14 @@ namespace Posh_sharp.POSHBot.util
             return new Vector3(0,0,0);
         }
 
-        public Vector3(float x = 0, float y = 0, float z = 0)
+        public Vector3(float x, float y, float z)
         {
             X = x;
             Y = y;
             Z = z;
         }
 
-        public float DistanceFrom(Vector3 origin = null)
+        public float DistanceFrom(Vector3 origin)
         {
             if (origin == null)
                 return (float)Math.Sqrt(Math.Pow(X, 2) + Math.Pow(Y, 2) + Math.Pow(Z, 2));
@@ -44,7 +44,7 @@ namespace Posh_sharp.POSHBot.util
                 return (float)Math.Sqrt(Math.Pow(X-origin.X, 2) + Math.Pow(Y-origin.Y, 2) + Math.Pow(Z-origin.Z, 2));
         }
 
-        public float Distance2DFrom(Vector3 vector,Orientation orientation = Orientation.XY)
+        public float Distance2DFrom(Vector3 vector,Orientation orientation)
         {
             switch (orientation)
             {
@@ -74,7 +74,7 @@ namespace Posh_sharp.POSHBot.util
 
         public float Norm()
         {
-            return DistanceFrom();
+            return DistanceFrom(null);
         }
 
         public override string ToString()

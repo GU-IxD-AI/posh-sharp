@@ -89,7 +89,7 @@ namespace POSH_sharp.sys.parse
         /// Initialises the lexer with the given input string.
         /// </summary>
         /// <param name="inputString">An input string.</param>
-        public LAPLexer(string inputString = null)
+        public LAPLexer(string inputString)
         {
             this.input = "";
             lineNo = 1;
