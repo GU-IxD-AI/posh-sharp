@@ -25,7 +25,7 @@ namespace Posh_sharp.POSHBot.util
         public static Dictionary<int, Vector3> ConvertToPath(Dictionary<string, string> rawNP)
         {
             // remove the ID key to leave just numbers
-            rawNP.Remove("ID");
+            rawNP.Remove("Id");
             Dictionary<int,Vector3> path = new Dictionary<int,Vector3>();
             // debug
             if (rawNP.ContainsKey("Reachable"))
@@ -70,7 +70,7 @@ namespace Posh_sharp.POSHBot.util
             foreach (string key in sortedList)
             {
                 string locString = dictRawNP[key];
-                switch (locString)
+                switch (key)
                 {
                     case "Id":
                         location.Id = locString.Trim();

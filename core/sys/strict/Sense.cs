@@ -58,6 +58,25 @@ namespace POSH_sharp.sys.strict
             log.Debug("Created");
         }
 
+        private bool compare<T>(string predicate, T operand1, T operand2) where T : IComparable
+        {
+            //TODO: this issue of equals has to be addressed to fix it that there is only one comparator for EQ
+            switch (predicate)
+            {
+                case "==":
+                case "=": return operand1.CompareTo(operand2) == 0;
+                case "!=": return operand1.CompareTo(operand2) != 0;
+                case "<=": return operand1.CompareTo(operand2) <= 0;
+                case "<": return operand1.CompareTo(operand2) < 0;
+                case ">": return operand1.CompareTo(operand2) > 0;
+                case ">=": return operand1.CompareTo(operand2) >= 0;
+                default: return false;
+
+            }
+              
+        }
+
+        
         /// <summary>
         /// Activates the sense and returns its result.
         /// </summary>
@@ -65,43 +84,37 @@ namespace POSH_sharp.sys.strict
         public bool fire()
         {
             object result;
+            bool checkBool;
+            int checkInt;
+            float checkFloat;
+            long checkLong;
+
             log.Debug("Firing");
 
             result = sense.Second.ExecuteSense(sense.First);
 
-
-            if (value == null)
-                return (bool) result;
-            else if (predicate.Trim() == "==")
-                return result == value;
-            else if (predicate.Trim() == "!=")
-                return result != value;
-            else if (predicate.Trim() == "<=")
+            switch (result.GetType().Name)
             {
-                if (result.GetType() == typeof(long))
-                    return (long)result <= (long)value;
-                return (float)result <= (float)value;
+                case "Boolean":
+                    if (value == null)
+                        return (bool) result;
+                    if (bool.TryParse(value.ToString(), out checkBool))
+                        return compare<bool>(predicate.Trim(), (bool)result,checkBool);
+                    if (int.TryParse(value.ToString(), out checkInt))
+                        return compare<int>(predicate.Trim(),(((bool)result) ? 1 : 0), checkInt);
+                    break;
+                case "Float":
+                    if (float.TryParse(value.ToString(), out checkFloat))
+                        return compare<float>(predicate.Trim(),(float)result,checkFloat);
+                    break;
+                case "Long":
+                    if (long.TryParse(value.ToString(), out checkLong))
+                        return compare<long>(predicate.Trim(),(long)result,checkLong);
+                    break;
+                default:
+                    break;
             }
-            else if (predicate.Trim() == ">=")
-            {
-                if (result.GetType() == typeof(long))
-                    return (long)result >= (long)value;
-                return (float)result <= (float)value;
-            }
-            else if (predicate.Trim() == "<")
-            {
-                if (result.GetType() == typeof(long))
-                    return (long)result < long.Parse(value.ToString());
-                return (float)result <= (float)value;
-            }
-            else if (predicate.Trim() == ">")
-            {
-                if (result.GetType() == typeof(long))
-                    return (long)result > long.Parse(value.ToString());
-                return (float)result <= (float)value;
-            }
-            else
-                return (bool) result;
+            return false;
         }
 
         

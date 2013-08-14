@@ -150,7 +150,8 @@ namespace POSH_sharp.sys.strict
         /// </param>
         public override void SetLoopFreq(long loopFreq)
         {
-            throw new NotImplementedException();
+            //TODO: this is something I should have a look at later on 
+			//throw new NotImplementedException();
         }
     }
 

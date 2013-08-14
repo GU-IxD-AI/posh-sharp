@@ -3,22 +3,16 @@
 ; lost the next time the tool is used.
 ; -------------------------------------------------------------
 (
-(documentation "Your Title" "Your Name" "Your file comments")
 (AP AP-inch (seconds 1.0) (
-	walk
+	idle
 ))
 (AP AP-moveing (minutes 1.0) (
 	moveto_navpoint
 ))
-(AP attacking (seconds 1.0) (
-	set_attacker 
-	face_attacker 
-	shoot_attacker
-))
-(C wander-map (seconds 20.0) (goal ((focusing_task 1.0 =)))
+(C wander-map (seconds 2.0) (goal ((focusing_task 1.0 =)))
 	(elements
 		(	(CE-moveto-navpoint (trigger ((selected_target 1.0 =) (reached_target 0.0 =))) moveto-selected-nav)	)
-		(	(CE-find-nxt-waypoint (trigger ((close_navpoint 1.0 =))) select_navpoint 1)	)
+		(	(CE-find-nxt-waypoint (trigger ((close_navpoint 1.0 =))) select_navpoint )	)
 	)
 )
 (C get-enemy-flag (seconds 30.0) (goal ((have_enemy_flag 1.0 =)))
@@ -27,22 +21,19 @@
 		(	(CE-select-enemy-flag (trigger ((have_enemy_flag 1.0 !=))) select_enemy_flag)	)
 	)
 )
-(C retrace-back (minutes 1.0) (goal ((at_own_base 1.0 =)))
+(C retrace-back (seconds 5.0) (goal ((at_own_base 1.0 =)))
 	(elements
 		(	(CE-retrace-navpoint (trigger ((selected_target 1.0 =) (reached_target 0.0 =))) moveto-selected-nav)	)
 		(	(CE-retrace-home (trigger ((close_navpoint 1.0 =))) retrace_navpoint)	)
 	)
 )
-(C moveto-selected-nav (seconds 1.0) (goal ((reached_target 1.0 =)))
+(C moveto-selected-nav (seconds 0.5) (goal ((reached_target 1.0 =)))
 	(elements
 		(	(CE-moveto-navpoint (trigger ((close_navpoint 1.0 =) (is_walking 1.0 !=) (selected_navpoint_reachable 1.0 =))) moveto_navpoint)	)
 	)
 )
-(DC life (goal ((game_ended 1.0 =)))
+(SRDC life (goal ((game_ended 1.0 =)))
 	(drives
-		(
-
-		(attack-enemy (trigger ((see_enemy 1.0 =) (own_health_level 50.0 >) (armed_and_ammo 1.0 =))) attacking(seconds 1.0)))
 		(
 
 		(return-enemy-flag (trigger ((have_enemy_flag 1.0 =))) retrace-back(seconds 0.3)))
@@ -54,7 +45,7 @@
 		(wander_around (trigger ((focusing_task 1.0 !=))) wander-map(seconds 0.3)))
 		(
 
-		(inch (trigger ((succeed))) AP-inch(seconds 0.2)))
+		(inch (trigger ((succeed))) AP-inch(seconds 0.1)))
 
 	)
 )

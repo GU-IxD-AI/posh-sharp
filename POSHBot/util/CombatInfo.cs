@@ -13,8 +13,9 @@ namespace Posh_sharp.POSHBot.util
         /// the ID of the player holding our flag
         /// </summary>
         internal string HoldingOurFlag;
+        internal string HoldingEnemyFlag;
         internal UTPlayer HoldingOurFlagPlayerInfo;
-        
+        internal UTPlayer HoldingEnemyFlagPlayerInfo;
         internal Projectile ProjectileDetails;
         internal Damage DamageDetails;
         internal Tuple<string,long> KeepFocusOnID;
@@ -23,7 +24,9 @@ namespace Posh_sharp.POSHBot.util
         public CombatInfo()
         {
             HoldingOurFlag = null;
+            HoldingEnemyFlag = null;
             HoldingOurFlagPlayerInfo = null;
+            HoldingEnemyFlagPlayerInfo = null;
             ProjectileDetails = null;
             DamageDetails = null;
             KeepFocusOnID = null;

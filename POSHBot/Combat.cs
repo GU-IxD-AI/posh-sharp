@@ -12,8 +12,6 @@ namespace Posh_sharp.POSHBot
 {
     public class Combat : UTBehaviour
     {
-        private string [] senses;
-        private string [] actions;
         internal CombatInfo info;
 
         public Combat(AgentBase agent)
@@ -38,9 +36,9 @@ namespace Posh_sharp.POSHBot
         private void FindEnemyInView()
         {
             // work through who we can see, looking for an enemy
-            string ourTeam = getBot().info["Team"];
+            string ourTeam = GetBot().info["Team"];
             Console.Out.WriteLine("Our Team: "+ourTeam);
-            foreach(UTPlayer player in getBot().viewPlayers.Values)
+            foreach(UTPlayer player in GetBot().viewPlayers.Values)
             {
                 if (player.Team != ourTeam)
                 {
@@ -56,7 +54,7 @@ namespace Posh_sharp.POSHBot
         {
             if (info.GetFocusId() == null || info.GetFocusLocation() == null)
             {
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string, string>());
+                GetBot().SendMessage("STOPSHOOT", new Dictionary<string, string>());
             }
         }
 
@@ -69,14 +67,13 @@ namespace Posh_sharp.POSHBot
         internal override void ReceiveFlagDetails(Dictionary<string,string> values)
         {
             // TODO: fix the mix of information in this method it should just contain relevant info
-
-            Console.Out.WriteLine("in receiveFlagDetails");
-            Console.Out.WriteLine(values.ToArray().ToString());
-
-            if ( getBot().info == null ||  getBot().info.Count < 1 )
+           // if (_debug_)
+           //     Console.Out.WriteLine("in receiveFlagDetails");
+            
+            if ( GetBot().info == null ||  GetBot().info.Count < 1 )
                 return;
             // set flag stuff
-            if ( values["Team"] == getBot().info["Team"] )
+            if (values["Team"] == GetBot().info["Team"])
                 if (values["State"].ToLower() == "held")
                     info.HoldingOurFlag = values["Holder"];
                 else
@@ -84,19 +81,33 @@ namespace Posh_sharp.POSHBot
                     info.HoldingOurFlag = string.Empty;
                     info.HoldingOurFlagPlayerInfo = null;
                 }
+            else
+            {
+                if (values["State"].ToLower() == "held")
+                {
+                    if (GetBot().viewPlayers.ContainsKey(values["Holder"]))
+                        info.HoldingEnemyFlagPlayerInfo = GetBot().viewPlayers["Holder"];
+                    info.HoldingEnemyFlag = values["Holder"];
+                }
+                else
+                {
+                    info.HoldingEnemyFlag = string.Empty;
+                    info.HoldingEnemyFlagPlayerInfo = null;
+                }
+            }
         }
 
         internal void ReceiveProjectileDetails(Dictionary<string,string> values)
         {
-            Console.Out.WriteLine("received details of incoming projectile!");
-            Console.Out.WriteLine(values.ToString());
+            if (_debug_)
+                Console.Out.WriteLine("received details of incoming projectile!");
             info.ProjectileDetails = new Projectile(values);
         }
 
         internal void ReceiveDamageDetails(Dictionary<string,string> values)
         {
-            Console.Out.WriteLine("received details of damage!");
-            Console.Out.WriteLine(values.ToString());
+            if (_debug_)
+                Console.Out.WriteLine("received details of damage!");
             info.DamageDetails = new Damage(values);
         }
 
@@ -107,18 +118,16 @@ namespace Posh_sharp.POSHBot
         /// <param name="values"></param>
         internal void ReceiveKillDetails(Dictionary<string,string> values)
         {
-            Console.Out.WriteLine("received details of a kill!");
-            Console.Out.WriteLine(values.ToString());
-            Console.Out.WriteLine("-----");
-            Console.Out.WriteLine(info.HoldingOurFlag);
-
+            if (_debug_)
+                Console.Out.WriteLine("received details of a kill!");
+            
             info.ProjectileDetails = new Projectile(values);
 
             if (values["Id"] == info.HoldingOurFlag)
             {
                 info.HoldingOurFlag = string.Empty;
                 info.HoldingOurFlagPlayerInfo = null;
-                getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+                GetBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
             }
 
             if (info.KeepFocusOnID != null && info.KeepFocusOnID.First != string.Empty)
@@ -126,7 +135,7 @@ namespace Posh_sharp.POSHBot
                 {
                     info.GetFocusId();
                     info.GetFocusLocation();
-                    getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+                    GetBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
                 }
 
         }
@@ -136,7 +145,7 @@ namespace Posh_sharp.POSHBot
             info.DamageDetails = null;
             info.KeepFocusOnID = null;
             info.KeepFocusOnLocation = null;
-            getBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
+            GetBot().SendMessage("STOPSHOOT",new Dictionary<string,string>());
         }
 
         /*
@@ -150,19 +159,19 @@ namespace Posh_sharp.POSHBot
         public bool SeeEnemyWithOurFlag()
         {
             // print "in see_enemy_with_our_flag sense"
-            if (getBot().viewPlayers.Count == 0)
+            if (GetBot().viewPlayers.Count == 0)
             {
                 Console.Out.WriteLine("  no players visible");
                 return false;
             }
             
             // check through every player we can see to check whether they're the one holding our flag
-            foreach (string playerId in getBot().viewPlayers.Keys)
+            foreach (string playerId in GetBot().viewPlayers.Keys)
             {
                 if (playerId == info.HoldingOurFlag)
                 {
                     Console.Out.WriteLine("  can see the player holding our flag");
-                    info.HoldingOurFlagPlayerInfo = getBot().viewPlayers[playerId];
+                    info.HoldingOurFlagPlayerInfo = GetBot().viewPlayers[playerId];
                     return true;
                 }
             }
@@ -175,18 +184,18 @@ namespace Posh_sharp.POSHBot
         public bool OurFlagOnGround()
         {
             // TODO: mixed parts of Movement again into different behaviour, needs to be cleaned later
-            if ( getMovement().posInfo.HasOurFlagInfoExpired() )
-                getMovement().posInfo.ExpireOurFlagInfo();
+            if ( GetMovement().info.HasOurFlagInfoExpired() )
+                GetMovement().info.ExpireOurFlagInfo();
 
-            if (getMovement().posInfo.ourFlagInfo.Count == 0)
+            if (GetMovement().info.ourFlagInfo.Count == 0)
                 return false;
             else
             {
                 // in case the flag was returned but we didn't actually see it happen
-                if (!getBot().gameinfo.ContainsKey("EnemyHasFlag"))
-                    getMovement().posInfo.ourFlagInfo["State"] = "home";
+                if (!GetBot().gameinfo.ContainsKey("EnemyHasFlag"))
+                    GetMovement().info.ourFlagInfo["State"] = "home";
 
-                if (getMovement().posInfo.ourFlagInfo["State"].ToLower() == "dropped")
+                if (GetMovement().info.ourFlagInfo["State"].ToLower() == "dropped")
                 {
                     Console.Out.WriteLine("our flag is dropped!");
                     return true;
@@ -199,16 +208,16 @@ namespace Posh_sharp.POSHBot
         public bool EnemyFlagOnGround()
         {
             // TODO: remove interdependance on Movement
-            if (getMovement().posInfo.HasEnemyFlagInfoExpired())
-                getMovement().posInfo.ExpireEnemyFlagInfo();
+            if (GetMovement().info.HasEnemyFlagInfoExpired())
+                GetMovement().info.ExpireEnemyFlagInfo();
             /*
              *  Made simpler FA
                 By adding self.agent.Movement.PosInfo.EnemyFlagInfo["Reachable"] == "True" it has semi fixed the problem of the bot
                 standing still after it has picked up the flag off the ground and dropped it off at base.
                 This is because Reachable set to 0 on expiry of EnemyFlagInfo FA.
             */
-            if (getMovement().posInfo.enemyFlagInfo.Count > 0 && getMovement().posInfo.enemyFlagInfo["State"].ToLower() == "dropped"
-                && getMovement().posInfo.enemyFlagInfo["Reachable"] == "True")
+            if (GetMovement().info.enemyFlagInfo.Count > 0 && GetMovement().info.enemyFlagInfo["State"].ToLower() == "dropped"
+                && GetMovement().info.enemyFlagInfo["Reachable"] == "True")
                 return true;
 
             return false;
@@ -266,7 +275,7 @@ namespace Posh_sharp.POSHBot
             Console.Out.WriteLine(" in EnemyCarryingOurFlag");
             if (info.HoldingOurFlag != string.Empty && info.HoldingOurFlagPlayerInfo is UTPlayer)
             {
-                getBot().SendMessage("SHOOT", new Dictionary<string,string>()
+                GetBot().SendMessage("SHOOT", new Dictionary<string,string>()
                     {
                         {"Target", info.HoldingOurFlag},
                         {"Location", info.HoldingOurFlagPlayerInfo.Location.ToString()}
@@ -283,7 +292,7 @@ namespace Posh_sharp.POSHBot
             if (info.HoldingOurFlag != string.Empty && info.HoldingOurFlagPlayerInfo is UTPlayer)
             {
                 Console.Out.WriteLine("in ShootEnemyCarryingOurFlag: a Player is holding our Flag");
-                getBot().SendIfNotPreviousMessage("RUNTO", new Dictionary<string,string>()
+                GetBot().SendIfNotPreviousMessage("RUNTO", new Dictionary<string,string>()
                     {
                         {"Location",info.HoldingOurFlagPlayerInfo.Location.ToString()},
                     });
@@ -305,12 +314,12 @@ namespace Posh_sharp.POSHBot
             if (info.GetFocusId() == null && info.GetFocusLocation() == null)
                 return false;
             if (info.KeepFocusOnID == null)
-                getBot().SendMessage("TURNTO", new Dictionary<string,string>()
+                GetBot().SendMessage("TURNTO", new Dictionary<string,string>()
                     {
                     {"Location",info.KeepFocusOnLocation.First.ToString()}
                     });
             else 
-                getBot().SendMessage("TURNTO", new Dictionary<string,string>()
+                GetBot().SendMessage("TURNTO", new Dictionary<string,string>()
                     {
                     {"Target",info.KeepFocusOnID.First.ToString()}
                     });
@@ -327,16 +336,16 @@ namespace Posh_sharp.POSHBot
         {
             Console.Out.WriteLine(" in SetAttacker");
 
-            if (getBot().viewPlayers.Count == 0 || getBot().info.Count == 0)
+            if (GetBot().viewPlayers.Count == 0 || GetBot().info.Count == 0)
                 return false;
 
             if (info.GetDamageDetails() is Damage && info.DamageDetails.AttackerID != "")
-                if ( getBot().viewPlayers.ContainsKey(info.DamageDetails.AttackerID) )
+                if ( GetBot().viewPlayers.ContainsKey(info.DamageDetails.AttackerID) )
                 {
                     // set variables so that other commands will keep him in view
                     // Turned KeepFocusOnID into a tuple with the current_time as a timestamp FA
                     info.KeepFocusOnID = new Tuple<string,long>(info.DamageDetails.AttackerID,TimerBase.CurrentTimeStamp());
-                    info.KeepFocusOnLocation = new Tuple<Vector3,long>(getBot().viewPlayers[info.DamageDetails.AttackerID].Location,TimerBase.CurrentTimeStamp());
+                    info.KeepFocusOnLocation = new Tuple<Vector3,long>(GetBot().viewPlayers[info.DamageDetails.AttackerID].Location,TimerBase.CurrentTimeStamp());
                 }
                 else
                     FindEnemyInView();
@@ -357,12 +366,12 @@ namespace Posh_sharp.POSHBot
                 return false;
                         
             if (info.GetFocusId() == null)
-                getBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
+                GetBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
                     {
                         {"Location",info.KeepFocusOnLocation.First.ToString()}
                     });
             else
-                getBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
+                GetBot().SendIfNotPreviousMessage("SHOOT",new Dictionary<string,string>()
                     {
                         {"Target",info.KeepFocusOnID.First},
                         {"Location",info.KeepFocusOnLocation.First.ToString()}

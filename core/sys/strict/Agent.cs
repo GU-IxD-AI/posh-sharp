@@ -95,7 +95,7 @@ namespace POSH_sharp.sys.strict
         /// <returns>If the reset was successful.</returns>
         public override bool  reset(int waitTime)
         {
- 	         if (!base.reset())
+ 	         if (!base.reset(waitTime))
                  return false;
             timer.Reset();
             return true;

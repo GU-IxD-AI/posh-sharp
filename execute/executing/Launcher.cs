@@ -293,7 +293,7 @@ namespace POSH_sharp.executing
             
             // check if the agent init file exists
             if (!control.checkAgentInitFile(agentsInitFile)) 
-                throw new UsageException(string.Format("cannot find specified agent init file in directory '{0}' which should contain the agent init file '{2}'", 
+                throw new UsageException(string.Format("cannot find specified agent init file in directory '{0}' which should contain the agent init file '{1}'", 
                         control.config["InitPath"], agentsInitFile));
                 
             if (verbose)

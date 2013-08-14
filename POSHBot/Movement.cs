@@ -11,7 +11,7 @@ namespace Posh_sharp.POSHBot
 {
     public class Movement : UTBehaviour
     {
-        internal PositionsInfo posInfo;
+        internal PositionsInfo info;
         string pathHomeId;
         string reachPathHomeId;
         string pathToEnemyBaseId;
@@ -19,13 +19,13 @@ namespace Posh_sharp.POSHBot
 
         public Movement(AgentBase agent)
             : base(agent,
-            new string[] { "MoveToNavpoint","StopBot", "Idleing", "WalkToNavPoint", "Rotate","BigRotate" },
-            new string[] {"CloseNavpoint","AtEnemyBase", "AtOwnBase", "KnowEnemyBasePos",
+            new string[] { "moveto_navpoint","StopBot", "idle", "WalkToNavPoint", "Rotate","BigRotate" },
+            new string[] { "at_enemy_base", "at_own_base", "KnowEnemyBasePos",
                             "KnowOwnBasePos", "ReachableNavPoint",
-                            "EnemyFlagReachable", "OurFlagReachable",
-                            "SeeEnemy","IsRotating", "IsWalking", "IsStuck" })
+                            "enemy_flag_reachable", "OurFlagReachable",
+                            "SeeEnemy","IsRotating", "is_walking", "IsStuck" })
         {
-            this.posInfo = new PositionsInfo();
+            this.info = new PositionsInfo();
             pathHomeId = "PathHome";
             reachPathHomeId = "ReachPathHome";
             pathToEnemyBaseId = "PathThere";
@@ -50,30 +50,28 @@ namespace Posh_sharp.POSHBot
         {
             // TODO: fix the mix of information in this method it should just contain relevant info
 
-            Console.Out.WriteLine("in receiveFlagDetails");
-            Console.Out.WriteLine(values.ToArray().ToString());
-
-            if (getBot().info == null || getBot().info.Count < 1)
+            
+            if (GetBot().info == null || GetBot().info.Count < 1)
                 return;
             // set flag stuff
-            if (values["Team"] == getBot().info["Team"])
+            if (values["Team"] == GetBot().info["Team"])
             {
-                if (posInfo.ourFlagInfo != null && posInfo.ourFlagInfo.ContainsKey("Location"))
+                if (info.ourFlagInfo != null && info.ourFlagInfo.ContainsKey("Location"))
                     return;
-                posInfo.ourFlagInfo = values;
+                info.ourFlagInfo = values;
             }
             else
             {
-                if (posInfo.enemyFlagInfo != null && posInfo.enemyFlagInfo.ContainsKey("Location"))
+                if (info.enemyFlagInfo != null && info.enemyFlagInfo.ContainsKey("Location"))
                     return;
-                posInfo.enemyFlagInfo = values;
+                info.enemyFlagInfo = values;
             }
 
             if (values["State"] == "home")
-                if (values["Team"] == getBot().info["Team"])
-                    posInfo.ownBasePos = NavPoint.ConvertToNavPoint(values);
+                if (values["Team"] == GetBot().info["Team"])
+                    info.ownBasePos = NavPoint.ConvertToNavPoint(values);
                 else
-                    posInfo.enemyBasePos = NavPoint.ConvertToNavPoint(values);
+                    info.enemyBasePos = NavPoint.ConvertToNavPoint(values);
         }
 
         /// <summary>
@@ -84,19 +82,19 @@ namespace Posh_sharp.POSHBot
         /// <param name="valuesDict"></param>
         internal void ReceivePathDetails(Dictionary<string, string> valuesDict)
         {
-            if (!valuesDict.ContainsKey("ID"))
+            if (!valuesDict.ContainsKey("Id"))
                 return;
-            if (valuesDict["ID"] == pathHomeId)
-                posInfo.pathHome = NavPoint.ConvertToPath(valuesDict);
-            else if (valuesDict["ID"] == pathToEnemyBaseId)
-                posInfo.pathToEnemyBase = NavPoint.ConvertToPath(valuesDict);
+            if (valuesDict["Id"] == pathHomeId)
+                info.pathHome = NavPoint.ConvertToPath(valuesDict);
+            else if (valuesDict["Id"] == pathToEnemyBaseId)
+                info.pathToEnemyBase = NavPoint.ConvertToPath(valuesDict);
 
             // if there's no 0 key we're being given an empty path, so set TooCloseForPath to the current time
             // so that we can check how old the information is later on
             if (!valuesDict.ContainsKey("0"))
-                posInfo.TooCloseForPath = TimerBase.CurrentTimeStamp();
+                info.TooCloseForPath = TimerBase.CurrentTimeStamp();
             else
-                posInfo.TooCloseForPath = 0L;
+                info.TooCloseForPath = 0L;
         }
 
         /// <summary>
@@ -104,21 +102,21 @@ namespace Posh_sharp.POSHBot
         /// if the thing has the right ID, then clear the relevant path if it's not reachable
         /// </summary>
         /// <param name="valuesDict"></param>
-        internal void ReceiveCheckReachDetails(Dictionary<string, string> valuesDict)
+        override internal void ReceiveCheckReachDetails(Dictionary<string, string> valuesDict)
         {
             Console.Out.WriteLine("in receive_rch_details");
 
-            if (!valuesDict.ContainsKey("ID"))
+            if (!valuesDict.ContainsKey("Id"))
                 return;
 
-            if (valuesDict["ID"] == reachPathHomeId && valuesDict["Reachable"] == "False")
+            if (valuesDict["Id"] == reachPathHomeId && valuesDict["Reachable"] == "False")
             {
-                posInfo.pathHome.Clear();
+                info.pathHome.Clear();
                 Console.Out.WriteLine("Cleared PathHome");
             }
-            else if (valuesDict["ID"] == reachPathToEnemyBaseID && valuesDict["Reachable"] == "False")
+            else if (valuesDict["Id"] == reachPathToEnemyBaseID && valuesDict["Reachable"] == "False")
             {
-                posInfo.pathToEnemyBase.Clear();
+                info.pathToEnemyBase.Clear();
                 Console.Out.WriteLine("Cleared PathToEnemyBase");
             }
         }
@@ -128,11 +126,11 @@ namespace Posh_sharp.POSHBot
         /// </summary>
         internal void ReceiveDeathDetails()
         {
-            posInfo.pathHome.Clear();
-            posInfo.pathToEnemyBase.Clear();
-            posInfo.visitedNavPoints.Clear();
-            posInfo.ourFlagInfo.Clear();
-            posInfo.enemyFlagInfo.Clear();
+            info.pathHome.Clear();
+            info.pathToEnemyBase.Clear();
+            info.visitedNavPoints.Clear();
+            info.ourFlagInfo.Clear();
+            info.enemyFlagInfo.Clear();
         }
 		internal void SendMoveToLocation(Vector3 location)
 		{ 
@@ -150,18 +148,18 @@ namespace Posh_sharp.POSHBot
             Tuple<string, Dictionary<string, string>> message;
             // expire focus id info if necessary FA
             
-            if (getCombat().info.GetFocusId() is Tuple<string, long>)
+            if (GetCombat().info.GetFocusId() is Tuple<string, long>)
             {
                 message = new Tuple<string, Dictionary<string, string>>("MOVE",
                     new Dictionary<string, string>() 
                 {
                     {"FirstLocation", location.ToString()},
-                    {"FocusTarget", getCombat().info.KeepFocusOnID.ToString()}
+                    {"FocusTarget", GetCombat().info.KeepFocusOnID.ToString()}
                 });
             }
             else
             {
-                getBot().SendMessage("STOPSHOOT", new Dictionary<string, string>());
+                GetBot().SendMessage("STOPSHOOT", new Dictionary<string, string>());
                 message = new Tuple<string, Dictionary<string, string>>("MOVE",
                     new Dictionary<string, string>() 
                 {
@@ -169,9 +167,9 @@ namespace Posh_sharp.POSHBot
                 });
             }
             if (performPrevCheck)
-                getBot().SendIfNotPreviousMessage(message.First, message.Second);
+                GetBot().SendIfNotPreviousMessage(message.First, message.Second);
             else
-                getBot().SendMessage(message.First, message.Second);
+                GetBot().SendMessage(message.First, message.Second);
 
         }
 
@@ -180,10 +178,10 @@ namespace Posh_sharp.POSHBot
             if (_debug_)
                 Console.Out.WriteLine("in SendGetPath");
 
-            getBot().SendIfNotPreviousMessage("GETPATH", new Dictionary<string, string>() 
+            GetBot().SendIfNotPreviousMessage("GETPATH", new Dictionary<string, string>() 
                 {
                     // the ID allows us to match requests with answers
-                    {"Location", posInfo.ownBasePos.Location.ToString()}, {"Id", pathHomeId}
+                    {"Location", info.ownBasePos.Location.ToString()}, {"Id", pathHomeId}
                 });
         }
         /// <summary>
@@ -198,13 +196,13 @@ namespace Posh_sharp.POSHBot
             if (location.Count == 0)
                 // even though we failed, we return 1 so that it doesn't tail the list
                 return true;
-            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(getBot().info["Location"]),Vector3.Orientation.XY) > distanceTolerance)
+            if (location[0].Distance2DFrom(Vector3.ConvertToVector3(GetBot().info["Location"]),Vector3.Orientation.XY) > distanceTolerance)
             {
                 Console.Out.WriteLine("DistanceTolerance check passed");
                 Console.Out.WriteLine("About to send MOVE to");
                 Console.Out.WriteLine(location[0].ToString());
                 Console.Out.WriteLine("Current location");
-                Console.Out.WriteLine(getBot().info["Location"]);
+                Console.Out.WriteLine(GetBot().info["Location"]);
 
                 SendMoveToLocation(location[0], false);
                 return true;
@@ -220,9 +218,9 @@ namespace Posh_sharp.POSHBot
 
         private bool atTargetLocation(NavPoint target, int distanceTolerance)
         {
-            if (!getBot().info.ContainsKey("Location"))
+            if (!GetBot().info.ContainsKey("Location"))
                 return false;
-            Vector3 location = Vector3.ConvertToVector3(getBot().info["Location"]);
+            Vector3 location = Vector3.ConvertToVector3(GetBot().info["Location"]);
 
             if (target == null)
                 return false;
@@ -239,16 +237,17 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("IsRotating")]
         public bool IsRotating()
         {
-            // print "IsRotating!"
-            return getBot().Turning();
+            if (_debug_)
+                Console.Out.WriteLine("in IsRotating");
+            return GetBot().Turning();
         }
 
-        [ExecutableSense("IsWalking")]
-        public bool IsWalking()
+        [ExecutableSense("is_walking")]
+        public bool is_walking()
         {
-            // print "IsWalking"
-
-            return getBot().Moving();
+            if (_debug_)
+                Console.Out.WriteLine("in is_walking");
+            return GetBot().Moving();
         }
 
         [ExecutableSense("IsStuck")]
@@ -256,26 +255,30 @@ namespace Posh_sharp.POSHBot
         {
             // print "Stuck"
 
-            return getBot().Stuck();
+            return GetBot().Stuck();
         }
 
         /// <summary>
         /// returns 1 if we're near enough to enemy base
         /// </summary>
-        [ExecutableSense("AtEnemyBase")]
-        public bool AtEnemyBase()
+        [ExecutableSense("at_enemy_base")]
+		public bool at_enemy_base()
         {
-            return atTargetLocation(posInfo.enemyBasePos, 100);
+            if (_debug_)
+                Console.Out.WriteLine("in at_enemy_base");
+            return atTargetLocation(info.enemyBasePos, 100);
         }
 
         /// <summary>
         /// returns 1 if we're near enough to our own base
         /// </summary>
         /// <returns></returns>
-        [ExecutableSense("AtOwnBase")]
-        public bool AtOwnBase()
+		[ExecutableSense("at_own_base")]
+		public bool at_own_base()
         {
-            return atTargetLocation(posInfo.ownBasePos, 10);
+            if (_debug_)
+                Console.Out.WriteLine("in at_own_base");
+            return atTargetLocation(info.ownBasePos, 10);
         }
 
         /// <summary>
@@ -285,7 +288,7 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("KnowEnemyBasePos")]
         public bool KnowEnemyBasePos()
         {
-            return (posInfo.enemyBasePos != null) ? true : false;
+            return (info.enemyBasePos != null) ? true : false;
         }
 
         /// <summary>
@@ -295,7 +298,7 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("KnowOwnBasePos")]
         public bool KnowOwnBasePos()
         {
-            return (posInfo.ownBasePos != null) ? true : false;
+            return (info.ownBasePos != null) ? true : false;
         }
 
         /// <summary>
@@ -309,8 +312,8 @@ namespace Posh_sharp.POSHBot
             NavPoint navPoint;
             int distanceTolerance = 30; // how near we must be to be thought of as at the nav point
 
-            if (getBot().info.ContainsKey("Location"))
-                location = Vector3.ConvertToVector3(getBot().info["Location"]);
+            if (GetBot().info.ContainsKey("Location"))
+                location = Vector3.ConvertToVector3(GetBot().info["Location"]);
             else
                 // if we don't know where we are, treat it as (0,0,0) 
                 // as that will just mean we go to the nav point even if we're close by
@@ -320,19 +323,19 @@ namespace Posh_sharp.POSHBot
 
             // is there already a navpoint we're aiming for?
 
-            if (posInfo.chosenNavPoint != null)
+            if (info.chosenNavPoint != null)
             {
-                navPoint = posInfo.chosenNavPoint;
+                navPoint = info.chosenNavPoint;
                 if (navPoint.DistanceFrom(location) > distanceTolerance)
                     return true;
                 else
                 {
-                    posInfo.visitedNavPoints.Add(navPoint.Id);
-                    posInfo.chosenNavPoint = null;
+                    info.visitedNavPoints.Add(navPoint.Id);
+                    info.chosenNavPoint = null;
                 }
             }
             // now look at the list of navpoints the bot can see
-            if (getBot().navPoints == null || getBot().navPoints.Count() < 1)
+            if (GetBot().navPoints == null || GetBot().navPoints.Count() < 1)
             {
                 Console.Out.WriteLine("  no nav points");
                 return false;
@@ -341,7 +344,7 @@ namespace Posh_sharp.POSHBot
             {
                 // nav_points is a list of tuples.  Each tuple contains an ID and a dictionary of attributes as defined in the API
                 // Search for reachable nav points
-                List<NavPoint> possibleNPs = new List<NavPoint>(GetReachableNavPoints(getBot().navPoints.Values.ToArray(), distanceTolerance, location));
+                List<NavPoint> possibleNPs = new List<NavPoint>(GetReachableNavPoints(GetBot().navPoints.Values.ToArray(), distanceTolerance, location));
 
                 // now work through this list of NavPoints until we find once that we haven't been to
                 // or the one we've been to least often
@@ -352,7 +355,7 @@ namespace Posh_sharp.POSHBot
                 }
                 else
                 {
-                    posInfo.chosenNavPoint = GetLeastOftenVisitedNavPoint(possibleNPs);
+                    info.chosenNavPoint = GetLeastOftenVisitedNavPoint(possibleNPs);
                     Console.Out.WriteLine("    Possible NP, returning 1");
                     return true;
                 }
@@ -369,12 +372,12 @@ namespace Posh_sharp.POSHBot
 
             // FIX: corrected mistake in the original implementation which should have faulted the code
 
-            int currentMin = posInfo.visitedNavPoints.Count(g => g == navPoints[0].Id);
+            int currentMin = info.visitedNavPoints.Count(g => g == navPoints[0].Id);
             NavPoint currentMinNP = navPoints[0];
 
             foreach (NavPoint point in navPoints)
             {
-                int currentCount = posInfo.visitedNavPoints.Count(g => g == point.Id);
+                int currentCount = info.visitedNavPoints.Count(g => g == point.Id);
                 if (currentCount < currentMin)
                 {
                     currentMin = currentCount;
@@ -400,22 +403,22 @@ namespace Posh_sharp.POSHBot
         /// 
         /// </summary>
         /// <returns>returns 1 if the enemy flag is specified as reachable</returns>
-        [ExecutableSense("EnemyFlagReachable")]
-        public bool EnemyFlagReachable()
+        [ExecutableSense("enemy_flag_reachable")]
+		public bool enemy_flag_reachable()
         {
-            if (this.posInfo.HasEnemyFlagInfoExpired())
-                posInfo.ExpireEnemyFlagInfo();
+            if (this.info.HasEnemyFlagInfoExpired())
+                info.ExpireEnemyFlagInfo();
 
             // debug
             if (_debug_)
             {
                 Console.Out.WriteLine("in EnemyFlagReachable");
-                if (posInfo.enemyFlagInfo.Count() > 0)
-                    Console.Out.WriteLine(posInfo.enemyFlagInfo.ToString());
+                if (info.enemyFlagInfo.Count() > 0)
+                    Console.Out.WriteLine(info.enemyFlagInfo.ToString());
             }
 
             // Made simpler FA
-            if (posInfo.enemyFlagInfo.Count() > 0 && bool.Parse(posInfo.enemyFlagInfo["Reachable"]) == true)
+            if (info.enemyFlagInfo.Count () > 0 && bool.Parse (info.enemyFlagInfo ["Reachable"]))
                 return true;
 
             return false;
@@ -426,22 +429,22 @@ namespace Posh_sharp.POSHBot
         /// 
         /// </summary>
         /// <returns>returns 1 if our flag is specified as reachable</returns>
-        [ExecutableSense("OurFlagReachable")]
-        public bool OurFlagReachable()
+		[ExecutableSense("our_flag_reachable")]
+		public bool our_flag_reachable()
         {
-            if (this.posInfo.HasOurFlagInfoExpired())
-                posInfo.ExpireOurFlagInfo();
+            if (this.info.HasOurFlagInfoExpired())
+                info.ExpireOurFlagInfo();
 
             // debug
             if (_debug_)
             {
                 Console.Out.WriteLine("in OurFlagReachable");
-                if (posInfo.ourFlagInfo.Count() > 0)
-                    Console.Out.WriteLine(posInfo.ourFlagInfo.ToString());
+                if (info.ourFlagInfo.Count() > 0)
+                    Console.Out.WriteLine(info.ourFlagInfo.ToString());
             }
 
             // Made simpler FA
-            if (posInfo.ourFlagInfo.Count() > 0 && bool.Parse(posInfo.ourFlagInfo["Reachable"]) == true)
+            if (info.ourFlagInfo.Count () > 0 && bool.Parse (info.ourFlagInfo ["Reachable"]))
                 return true;
 
             return false;
@@ -451,12 +454,12 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("SeeEnemy")]
         public bool SeeEnemy()
         {
-            if (getBot().viewPlayers.Count == 0 || getBot().info.Count == 0)
+            if (GetBot().viewPlayers.Count == 0 || GetBot().info.Count == 0)
                 return false;
 
             // work through, looking for an enemy
-            string ourTeam = getBot().info["Team"];
-            UTPlayer[] players = getBot().viewPlayers.Values.ToArray();
+            string ourTeam = GetBot().info["Team"];
+            UTPlayer[] players = GetBot().viewPlayers.Values.ToArray();
             foreach (UTPlayer currentPlayer in players)
                 if (currentPlayer.Team != ourTeam)
                 {
@@ -474,12 +477,19 @@ namespace Posh_sharp.POSHBot
         /// ACTIONS
         /// 
 
-        [ExecutableAction("MoveToNavpoint",1f)]
-        public bool MoveToNavpoint()
+        [ExecutableAction("moveto_navpoint",1f)]
+		public bool moveto_navpoint()
         {
-            throw new NotImplementedException();
+			if (_debug_)
+				Console.Out.Write("moveto_navpoint:");
+			if (GetNavigator ().selected_target ()) 
+			{
+				SendMoveToLocation (GetNavigator ().GetSelectedNavpoint ().Location);
+				GetNavigator ().MovedToNavpoint ( GetNavigator ().GetSelectedNavpoint ());
+				return true;
+			}
 
-            
+			return false;
         }
 
         /// <summary>
@@ -489,8 +499,8 @@ namespace Posh_sharp.POSHBot
         [ExecutableAction("StopBot")]
         public bool StopBot()
         {
-            // print "Stopping Bot"
-            getBot().SendMessage("STOP", new Dictionary<string, string>());
+            // print "StGetBot Bot"
+            GetBot().SendMessage("STOP", new Dictionary<string, string>());
 
             return true;
         }
@@ -499,12 +509,11 @@ namespace Posh_sharp.POSHBot
         /// Idleing
         /// </summary>
         /// <returns></returns>
-        [ExecutableAction("Idleing")]
-        public bool Idleing()
+        [ExecutableAction("idle")]
+        public bool idle()
         {
-            // print "Idleing ..."
-
-            return getBot().Inch();
+            // print "Idleing ..GetBot            
+			return GetBot().Inch();
         }
 
         /// <summary>
@@ -522,13 +531,13 @@ namespace Posh_sharp.POSHBot
         {
             // print "Rotate ..."
             if (angle != 0)
-                getBot().Turn(angle);
+                GetBot().Turn(angle);
             else if (new Random().Next(2) == 0)
-                // turn left
-                getBot().Turn(90);
+                // tuGetBott
+                GetBot().Turn(90);
             else
-                // turn right
-                getBot().Turn(-90);
+                // turGetBott
+                GetBot().Turn(-90);
 
 
             return true;
@@ -555,7 +564,7 @@ namespace Posh_sharp.POSHBot
         {
             if (_debug_)
                 Console.Out.WriteLine("in WalkToNavPoint");
-            SendMoveToLocation(posInfo.chosenNavPoint.Location);
+            SendMoveToLocation(info.chosenNavPoint.Location);
 
             return true;
         }

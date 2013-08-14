@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using POSH_sharp.sys;
 using POSH_sharp.sys.annotations;
+using Posh_sharp.POSHBot.util;
 
 namespace Posh_sharp.POSHBot
 {
@@ -11,41 +12,79 @@ namespace Posh_sharp.POSHBot
     /// The status behaviour has primitives for stuff to do with finding out
     /// the bot's state (e.g. amount of health).
     /// </summary>
-    public class Status : Behaviour
+    public class Status : UTBehaviour
     {
-        public Status(AgentBase agent) : base(agent,
+
+		public Status(AgentBase agent) : base(agent,
                         new string[] {},
-                        new string[] {"HaveEnemyFlag",
-                            "OwnHealthLevel", "AreArmed",
-                            "AmmoAmount", "ArmedAndAmmo","Fail","Succeed"})
+		new string[] {"fail","succeed","focusing_task","game_ended","have_enemy_flag"})
         {}
 
-        private POSHBot getBot()
-        {
-			return ((POSHBot)agent.getBehaviour("POSHBot"));
-        }
+		/*
+         * 
+         * Internal
+         * 
+         */
+
+		/*
+         * 
+         * ACTIONS
+         * 
+         */
+
+		// None at this point
+
 
         /*
          * 
          * SENSES
          * 
          */
-        [ExecutableSense("Fail")]
-        public bool Fail()
+        [ExecutableSense("fail")]
+        public bool fail()
         {
             return false;
         }
 
-        [ExecutableSense("Succeed")]
-        public bool Succeed()
+        [ExecutableSense("succeed")]
+        public bool succeed()
         {
             return true;
         }
-        [ExecutableSense("HaveEnemyFlag")]
-        public bool HaveEnemyFlag()
-        {
-            if (getBot().info.ContainsKey("HaveFlag"))
+
+		[ExecutableSense("game_ended")]
+		public bool game_ended()
+		{
+            if (_debug_)
+                Console.Out.WriteLine("in game_ended");
+			if (GetBot ().killConnection)
+				return true;
+			return false;
+		}
+
+
+
+		[ExecutableSense("focusing_task")]
+		public bool focusing_task()
+		{
+            if (_debug_)
+                Console.Out.WriteLine("in focusing_task");
+            if (have_enemy_flag())
                 return true;
+
+			return false;
+		}
+
+        [ExecutableSense("have_enemy_flag")]
+		public bool have_enemy_flag()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in have_enemy_flag");
+
+            if (GetCombat().info.HoldingEnemyFlag != null && GetCombat().info.HoldingEnemyFlag == GetBot().info["BotId"])
+            {
+                return true;
+            }
 
             return false;
         }
@@ -53,21 +92,21 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("OwnHealthLevel")]
         public string OwnHealthLevel()
         {
-            return getBot().info["Health"];
+            return GetBot().info["Health"];
         }
 
         [ExecutableSense("AreArmed")]
         public bool AreArmed()
         {
-            if (getBot().info.Count == 0)
+            if (GetBot().info.Count == 0)
                 return false;
 
-            if (getBot().info["Weapon"] == "None")
+            if (GetBot().info["Weapon"] == "None")
             {
                 Console.WriteLine("unarmed");
                 return false;
             }
-            Console.WriteLine("armed with "+getBot().info["Weapon"]);
+            Console.WriteLine("armed with "+GetBot().info["Weapon"]);
 
             return true;
         }
@@ -75,10 +114,10 @@ namespace Posh_sharp.POSHBot
         [ExecutableSense("AmmoAmount")]
         public int AmmoAmount()
         {
-            if (getBot().info.Count == 0)
+            if (GetBot().info.Count == 0)
                 return 0;
 
-            return int.Parse(getBot().info["CurrentAmmo"]);
+            return int.Parse(GetBot().info["CurrentAmmo"]);
         }
 
         [ExecutableSense("ArmedAndAmmo")]
@@ -87,12 +126,6 @@ namespace Posh_sharp.POSHBot
             return (AreArmed() && AmmoAmount() > 0) ? true : false;
         }
 
-        /*
-         * 
-         * ACTIONS
-         * 
-         */
-
-        // None at this point
+        
     }
 }

@@ -46,15 +46,22 @@ namespace Posh_sharp.POSHBot.util
 
         public float Distance2DFrom(Vector3 vector,Orientation orientation)
         {
+            float result = float.MaxValue;
+
             switch (orientation)
             {
                 case Orientation.XZ:
-                    return (float)Math.Sqrt(Math.Pow(X - vector.X, 2) + Math.Pow(Z - vector.Z, 2));
+                    result = (float)Math.Sqrt(Math.Pow(X - vector.X, 2) + Math.Pow(Z - vector.Z, 2));
+                    break;
                 case Orientation.YZ:
-                    return (float)Math.Sqrt(Math.Pow(Y - vector.Y, 2) + Math.Pow(Z - vector.Z, 2));
+                    result = (float)Math.Sqrt(Math.Pow(Y - vector.Y, 2) + Math.Pow(Z - vector.Z, 2));
+                    break;
                 default: //XY
-                    return (float)Math.Sqrt(Math.Pow(X - vector.X, 2) + Math.Pow(Y - vector.Y, 2));
+                    result = (float)Math.Sqrt(Math.Pow(X - vector.X, 2) + Math.Pow(Y - vector.Y, 2));
+                    break;
             }
+
+            return result;
         }
 
         public Vector3 Add(Vector3 vector)

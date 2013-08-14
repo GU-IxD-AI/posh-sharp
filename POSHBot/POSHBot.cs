@@ -70,6 +70,7 @@ namespace Posh_sharp.POSHBot
         protected internal List<InvItem> viewItems { get; private set; }
         protected internal Dictionary<string,NavPoint> navPoints;
         protected internal Dictionary<string, string> info { get; private set; }
+		protected internal bool killConnection { get; private set;}
 
         Dictionary<string,string> sGameinfo;
         Dictionary<string,UTPlayer> sViewPlayers;
@@ -103,7 +104,6 @@ namespace Posh_sharp.POSHBot
         /// </summary>
         long hitTimestamp;
         bool threadActive;
-        bool killConnection;
         List<int> rotationHist;
         List<float> velocityHist;
         bool connReady;
@@ -417,6 +417,7 @@ namespace Posh_sharp.POSHBot
                         break;
                     case "ENAV":
                         navPoints = sNavPoints;
+                        GetNavigator().SetNavPoints(navPoints);
                         SendMessage("INIT",new Dictionary<string,string> {{"Name",this.botName},{"Team",this.team.ToString()}});
                         this.connectedToGame = true;
                         break;
@@ -472,20 +473,21 @@ namespace Posh_sharp.POSHBot
                 else if ( pathStates.Contains(result.First) )
                     // pass the details to the movement behaviour
                     ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
-                else if (result.First == "RCH")
+                else if (result.First == "RCH") {
                     ((Movement)agent.getBehaviour("Movement")).ReceiveCheckReachDetails(result.Second);
-                else if (result.First == "PRJ")
+					((Navigator)agent.getBehaviour("Navigator")).ReceiveCheckReachDetails(result.Second);
+				} else if (result.First == "PRJ")
                     // incoming projectile
-                    getCombat().ReceiveProjectileDetails(result.Second);
+                    GetCombat().ReceiveProjectileDetails(result.Second);
                 else if (result.First == "DAM")
                     // incoming projectile
-                    getCombat().ReceiveDamageDetails(result.Second);
+                    GetCombat().ReceiveDamageDetails(result.Second);
                 else if (result.First == "KIL")
                     // incoming projectile
-                    getCombat().ReceiveKillDetails(result.Second);
+                    GetCombat().ReceiveKillDetails(result.Second);
                 else if (result.First == "DIE")
                     // incoming projectile
-                    getCombat().ReceiveDeathDetails(result.Second);
+                    GetCombat().ReceiveDeathDetails(result.Second);
             }
 
             log.Info("Closing Connection and Cleaning Up...");
@@ -541,7 +543,7 @@ namespace Posh_sharp.POSHBot
         /// <param name="message">Tuples[command,valuesDictionary]</param>
         internal void ProcessSync(Tuple<string,Dictionary<string,string>> message)
         {
-
+            message.Second["timestamp"] = TimerBase.CurrentTimeStamp().ToString();
             switch (message.First){
                 case "SLF":
                     // info about bot's state
@@ -590,7 +592,7 @@ namespace Posh_sharp.POSHBot
                             Console.WriteLine(string.Format("{0} = {1}",elem.Key,elem.Value));
                     ((Movement)agent.getBehaviour("Movement")).ReceiveFlagDetails(message.Second);
                     // inform the combat behaviour as well
-                    getCombat().ReceiveFlagDetails(message.Second);
+                    GetCombat().ReceiveFlagDetails(message.Second);
                     break; 
                 default:
                     break;
@@ -635,7 +637,8 @@ namespace Posh_sharp.POSHBot
 
         internal bool Inch()
         {
-            SendMessage("INCH",new Dictionary<string,string>());
+            Thread.Sleep(100);
+            SendMessage("ACT", new Dictionary<string, string>() { {"Name", "Idle_Character02"} });
             return true;
         }
 
