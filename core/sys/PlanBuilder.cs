@@ -534,6 +534,15 @@ namespace POSH_sharp.sys
             return new POSHSense(agent,senseStruct.First,senseStruct.Second,senseStruct.Third);
         }
 
+		internal CopiableElement getTriggerable(Agent agent, string name)
+		{
+			return getTriggerable (agent, name, null, null);
+		}
+		internal CopiableElement getTriggerable(Agent agent, string name, Dictionary<string,Competence> competences)
+		{
+			return getTriggerable (agent, name, competences, null);
+		}
+
         /// <summary>
         /// Returns the action / competence / actionpattern with the given name.
         /// 
@@ -555,8 +564,8 @@ namespace POSH_sharp.sys
         /// <exception cref="NameException">
         ///     If actions and competences / action pattern have
         ///     the same name.</exception>
-        internal CopiableElement getTriggerable(Agent agent, string name, Dictionary<string,Competence> competences = null, 
-            Dictionary<string,ActionPattern> actionPatterns = null)
+        internal CopiableElement getTriggerable(Agent agent, string name, Dictionary<string,Competence> competences, 
+            Dictionary<string,ActionPattern> actionPatterns)
         {
             // creating an action would raise a NameError when looking up the
             // according behaviour in the behaviour dictionary. Hence, if no

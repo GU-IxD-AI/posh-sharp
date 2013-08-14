@@ -29,9 +29,9 @@ namespace POSH_sharp.sys
                 switch (type)
                 {
                     case PLANTYPE.DC:
-                        return typeof(scheduled.ScheduledAgent);
+                        return typeof(scheduled.Agent);
                     case PLANTYPE.RDC:
-                        return typeof(scheduled.ScheduledAgent);
+                        return typeof(scheduled.Agent);
                     case PLANTYPE.SDC:
                         return typeof(strict.Agent);
                     case PLANTYPE.SRDC:
@@ -63,7 +63,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="planFile"> Filename of the plan file</param>
         /// <returns>Type of plan, or '' if not recognised</returns>
-        public static PLANTYPE getPlanType(string planFile)
+        public static PLANTYPE getPlanType(Stream planFile)
         {
             try
             {
@@ -97,6 +97,10 @@ namespace POSH_sharp.sys
             return PLANTYPE.NONE;
         }
 
+		public static AgentBase[] createAgents(string assembly)
+		{
+			return createAgents (assembly,"",null,null);
+		}
         /// <summary>
         /// Returns a sequence of newly created agents using the given behaviour
         /// library.
@@ -119,7 +123,7 @@ namespace POSH_sharp.sys
         /// as returned by AgentInitParser.initAgentFile}</param>
         /// <param name="world">world object, given to agents at construction</param>
         /// <returns>List of Agents</returns>
-        public static AgentBase[] createAgents(string assembly, string plan = "", List<Tuple<string, object>> agentsInit = null, World world = null)
+        public static AgentBase[] createAgents(string assembly, string plan, List<Tuple<string, object>> agentsInit, World world)
         {
             // build initialisation structure
             if (agentsInit == null)
@@ -139,7 +143,7 @@ namespace POSH_sharp.sys
                 string agentPlan = pair.First;
                 Dictionary<Tuple<string, string>, object> agentAttributes = (Dictionary<Tuple<string, string>, object>) pair.Second;
                 // determine agent type from plan
-                PLANTYPE planType = getPlanType(WorldControl.GetControl().getPlanFile(assembly, agentPlan));
+                PLANTYPE planType = getPlanType(AssemblyControl.GetControl().GetPlanFile(assembly, agentPlan));
                 if (planType == PLANTYPE.NONE)
                     throw new KeyNotFoundException(string.Format("plan type of plan {0} not recognised", agentPlan));
                 Type agentType = AGENTTYPE.getType(planType);

@@ -9,15 +9,19 @@ namespace POSH_sharp.sys
     {
         private Latch latch;
 
-        public LatchedBehaviour(AgentBase agent, string[] actions, string[] senses, 
-            Dictionary<string, object> attributes = null, Behaviour caller = null)
-            : base(agent,actions,senses,attributes,caller)
-        {
-            
-        }
+		public LatchedBehaviour(AgentBase agent, string[] actions, string[] senses)
+			: this(agent,actions,senses,null,null)
+		{}
 
-        public void setLatch(int currentState, int lower, int increment, int decrement, int upper = Latch.NOTSET, 
-            int inter = Latch.NOTSET, bool mayInterrupt = false)
+        public LatchedBehaviour(AgentBase agent, string[] actions, string[] senses, 
+            Dictionary<string, object> attributes, Behaviour caller)
+            : base(agent,actions,senses,attributes,caller)
+        {}
+		public void setLatch(int currentState, int lower, int increment, int decrement)
+		{
+			setLatch (currentState, lower, increment, decrement, Latch.NOTSET, Latch.NOTSET, false);
+		}
+        public void setLatch(int currentState, int lower, int increment, int decrement, int upper, int inter, bool mayInterrupt)
         {
             latch = new Latch(currentState, lower, increment, decrement, upper, inter, mayInterrupt);
         }

@@ -30,6 +30,11 @@ namespace POSH_sharp.sys
         /// </summary>
         internal Dictionary<string, object> attributes {get; set; }
 
+		public LogBase(string logName) : this (logName, null, null, false)
+		{}
+		public LogBase(string logName, AgentBase agent) : this (logName, agent, null, false)
+		{}
+
         /// <summary>
         /// Initialises the logger.
         /// 
@@ -46,7 +51,7 @@ namespace POSH_sharp.sys
         /// <param name="logName">Name of the logging domain, "" if called
         /// for the agent.</param>
         /// <param name="defaultLevel">The default logging level.</param>
-        public LogBase(string logName, AgentBase agent=null, Level defaultLevel = null, bool debug = false)
+        public LogBase(string logName, AgentBase agent, Level defaultLevel, bool debug)
         { 
             // workaround for scheduled POSH, where not all plan elements are
             // initialised with an agent -> the given 'agent' attribute does
@@ -70,8 +75,11 @@ namespace POSH_sharp.sys
             if (defaultLevel != null)
                 ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel;
         }
-
-        protected void Init(string id, string logName = "")
+		protected void Init(string id)
+		{
+			Init (id, "");
+		}
+        protected void Init(string id, string logName)
         {
             if (id == null)
                 return;
@@ -144,7 +152,13 @@ namespace POSH_sharp.sys
         : base(text){
             streamer=text;
         }
-        void Write(byte[] text, int offset =-1, int length=-1){
+		void Write(byte[] text)
+		{
+			Write (text, -1, -1);
+		}
+
+        void Write(byte[] text, int offset, int length)
+		{
             if (offset >=0 && length >=0)
                 streamer.Write(text,offset,length);
             else

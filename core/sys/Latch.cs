@@ -29,7 +29,9 @@ namespace POSH_sharp.sys
 
         public const int NOTSET = -99999;
 
-        public Latch(int currentState,int lower, int increment, int decrement,int upper=NOTSET, int inter=NOTSET, bool mayInterrupt=false)
+		public Latch(int currentState,int lower, int increment, int decrement) : this (currentState, lower, increment, decrement, NOTSET, NOTSET, false)
+		{}
+        public Latch(int currentState,int lower, int increment, int decrement,int upper, int inter, bool mayInterrupt)
         {
             this.lower = lower;
             this.inter = inter;

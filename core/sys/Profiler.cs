@@ -26,7 +26,7 @@ namespace POSH_sharp.sys
     public class Profiler
     {
         public int LIMIT = 5001;
-        string directory = WorldControl.GetControl().getRootPath() + "/replication-scripts/data/";
+        string directory = AssemblyControl.GetControl().getRootPath() + "/replication-scripts/data/";
         string name;
         string secondName;
         string info;
@@ -113,7 +113,12 @@ namespace POSH_sharp.sys
             this.secondName = name;
         }
 
-        public void increaseTotalCalls(int numCalls = 1)
+		public void increaseTotalCalls()
+		{ 
+			increaseTotalCalls (1);
+		}
+
+        public void increaseTotalCalls(int numCalls)
         {
             totalCalls += numCalls;
 

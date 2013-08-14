@@ -30,6 +30,12 @@ namespace POSH_sharp.sys
         protected internal bool _loopPause;
         protected internal bool _execLoop;
 
+
+		public AgentBase(string library, string plan, Dictionary<Tuple<string,string>,object> attributes) 
+			: this(library, plan,attributes, null)
+		{
+		}
+
         /// <summary>
         /// Initialises the agent to use the given library and plan.
         /// 
@@ -53,11 +59,11 @@ namespace POSH_sharp.sys
         /// <param name="plan">The plan to use (without the '.lap' ending).</param>
         /// <param name="attributes">The attributes to be assigned to the behaviours</param>
         /// <param name="world"></param>
-        public AgentBase(string library, string plan, Dictionary<Tuple<string,string>,object> attributes, World world = null) 
+        public AgentBase(string library, string plan, Dictionary<Tuple<string,string>,object> attributes, World world) 
             : base("")
         {
             // get unique id for agent first, as constructor of LogBase accesses it
-            id = WorldControl.GetControl().uniqueAgendId();
+            id = AssemblyControl.GetControl().UniqueAgendId();
             this.Init(id);
             // store library for use when spawning new agents
             this.library = library;
@@ -89,7 +95,7 @@ namespace POSH_sharp.sys
             this.assignAttributes(attributes);
             
             // load the plan
-            loadPlan(WorldControl.GetControl().getPlanFile(library, plan));
+            loadPlan(AssemblyControl.GetControl().GetPlanFile(library, plan));
             // loop thread control
             _execLoop = false;
             _loopPause = false;
@@ -104,7 +110,7 @@ namespace POSH_sharp.sys
         {
             BehaviourDict dict = new BehaviourDict();
             log.Info("Scanning library for behaviours");
-            Dictionary<string,List<Type>> behaviourClasses = WorldControl.GetControl().getBehaviours(library,log);
+            Dictionary<string,List<Type>> behaviourClasses = AssemblyControl.GetControl().GetBehaviours(library,log);
             Type [] types=new Type[1] {typeof(AgentBase)};
             
             foreach (KeyValuePair<string,List<Type>> assembly in behaviourClasses)
@@ -239,6 +245,10 @@ namespace POSH_sharp.sys
                 behave.SetRNG(rng);
         }
 
+		public virtual bool reset()
+		{
+			return reset (300);
+		}
 
         /// <summary>
         /// Resets the agent. Should be called just before running the main loop.
@@ -254,7 +264,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="waitTime">Timout waiting for behaviours (see L{checkError()}).</param>
         /// <returns></returns>
-        public virtual bool reset(int waitTime = 300)
+        public virtual bool reset(int waitTime)
         {
             log.Debug("Resetting the behaviours");
             if (_bdict.getBehaviours().Length == 0)
@@ -279,6 +289,11 @@ namespace POSH_sharp.sys
         return true;
         }
 
+		public int checkError()
+		{
+			return checkError (0);
+		}
+
         /// <summary>
         /// Returns the number of behaviours that report an error.
         /// 
@@ -294,7 +309,7 @@ namespace POSH_sharp.sys
         /// <param name="waitTime">Number of 10ths of seconds to wait for behaviours
         /// to be ready.</param>
         /// <returns>Number of behaviours that are not ready.</returns>
-        public int checkError(int waitTime = 0)
+        public int checkError(int waitTime)
         {
             log.Debug("Waiting for behaviours ready");
             int error = countErrors();
@@ -342,6 +357,7 @@ namespace POSH_sharp.sys
             this._execLoop = true;
 
             myThread = new Thread(this.loopThreadWrapper);
+            myThread.Start();
             return true;
         }
 
@@ -431,7 +447,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="planFile"></param>
         /// <returns></returns>
-        public  virtual void loadPlan(string planFile)
+        public  virtual void loadPlan(Stream planFile)
         {
             throw new NotImplementedException("AgentBase._loadPlan() needs to be overridden");
         }

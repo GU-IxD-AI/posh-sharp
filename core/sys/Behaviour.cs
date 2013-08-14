@@ -39,6 +39,10 @@ namespace POSH_sharp.sys
             this.attributes = new Dictionary<string, object>();
         }
 
+		public Behaviour(AgentBase agent,string [] actions,string []senses) 
+			: this(agent,actions,senses,null, null)
+		{}
+
         /// <summary>
         /// Initialises behaviour with given actions and senses.
         /// 
@@ -54,7 +58,7 @@ namespace POSH_sharp.sys
         /// <param name="senses">The sense names to register.</param>
         /// <param name="attributes">List of attributes to initialise behaviour state.</param>
         /// <param name="caller"></param>
-        public Behaviour(AgentBase agent,string [] actions,string []senses,Dictionary<string,object> attributes=null,Behaviour caller=null) 
+        public Behaviour(AgentBase agent,string [] actions,string []senses,Dictionary<string,object> attributes,Behaviour caller) 
             : this(agent)
         {
             
@@ -121,7 +125,7 @@ namespace POSH_sharp.sys
         {
             object result = null;
 
-            System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(senseMethod);
+            System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(senseMethod, new Type[] { });
             if (methodInfo is System.Reflection.MethodInfo && methodInfo.IsPublic)
                 result = methodInfo.Invoke(this, new object[] { });
             return result;
