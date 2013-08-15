@@ -28,7 +28,7 @@ namespace POSH_sharp.sys
         /// <summary>
         /// Returns a list of available attributes.
         /// </summary>
-        internal Dictionary<string, object> attributes {get; set; }
+        protected internal Dictionary<string, object> attributes {get; set; }
 
 		public LogBase(string logName) : this (logName, null, null, false)
 		{}

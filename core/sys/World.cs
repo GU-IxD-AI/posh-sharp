@@ -25,6 +25,9 @@ namespace POSH_sharp.sys
         public List<Tuple<string, object>> agentsInit { get; private set; }
         public bool createsAgents { get; private set; }
 
+
+		public World(string library) : this (library, null, null)
+		{}
         /// <summary>
         /// The World class that is used to communicate with the world
         /// initialisation script.
@@ -39,7 +42,7 @@ namespace POSH_sharp.sys
         /// <param name="world_args">arguments to be given to the world initialisation script.</param>
         /// <param name="agentsInit">structure containing information to initialise the agents. as returned by
         /// L{POSH.agentinitparser.parse_agent_init_file}</param>
-        public World(string library, string worldArgs = null, List<Tuple<string, object>> agentsInit = null)
+        public World(string library, string worldArgs, List<Tuple<string, object>> agentsInit)
         {
             this.library = library;
             this.args = worldArgs;

@@ -163,6 +163,30 @@ namespace Posh_sharp.POSHBot
             connThread = null;
         }
 
+
+        private void ResetAttributes()
+        {
+            try
+            {
+                if (this.attributes.ContainsKey("botname"))
+                    this.botName = (string)this.attributes["botname"];
+                if (this.attributes.ContainsKey("team"))
+                    this.team = (int)this.attributes["team"];
+                if (this.attributes.ContainsKey("ip"))
+                    this.ip = IPAddress.Parse((string)this.attributes["ip"]);
+                if (this.attributes.ContainsKey("port"))
+                    this.port = (int)this.attributes["port"];
+            }
+            catch (Exception e)
+            { 
+                Console.Out.WriteLine("additional parameters from init file could not be applied");
+                if (_debug_)
+                    Console.Out.WriteLine(e);
+            }
+        
+        }
+
+
         /// <summary>
         /// Attempts connecting to the UT server.
         /// 
@@ -174,7 +198,7 @@ namespace Posh_sharp.POSHBot
             // disconnect
             if (threadActive)
             {
-                // TODO: ther eis no call for disconnect(); is this correct?
+                // TODO: there is no call for disconnect(); is this correct?
                 log.Debug("Currently connected, trying to disconnect");
                 // wait for 3 seconds to disconnection
                 int timeout = 0;
@@ -187,6 +211,7 @@ namespace Posh_sharp.POSHBot
             // connect only if not connected
             if (!threadActive)
             {
+                ResetAttributes();
                 Connect();
                 return true;
             }
@@ -395,8 +420,8 @@ namespace Posh_sharp.POSHBot
 
                 switch (result.First)
                 {
-                    case "HELLO_BOT":
-                        SendMessage("READY",new Dictionary<string,string>());
+				case "HELLO_BOT":
+					    SendMessage("READY",new Dictionary<string,string>());
                         break;
                     case "SNAV":
                         sNavPoints = new Dictionary<string,NavPoint>();

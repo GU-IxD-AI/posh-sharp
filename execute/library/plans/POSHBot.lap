@@ -45,7 +45,7 @@
 		(wander_around (trigger ((focusing_task 1.0 !=))) wander-map(seconds 0.3)))
 		(
 
-		(inch (trigger ((succeed))) AP-inch(seconds 0.1)))
+		(inch (trigger ((succeed))) AP-inch))
 
 	)
 )

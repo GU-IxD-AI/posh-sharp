@@ -22,6 +22,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="${SolutionDir}\copy_win.bat &quot;${TargetFile}&quot; &quot;${SolutionDir}\execute\library\${TargetName}&quot;" workingdir="${SolutionDir}" pauseExternalConsole="True" />
+        <Command type="AfterBuild" command="${SolutionDir}\copy_win.bat &quot;${TargetDir}\${ProjectName}.pdb&quot; &quot;${SolutionDir}\execute\bin\${ProjectConfigName}\library\${ProjectName}.pdb&quot;" workingdir="${SolutionDir}" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -75,7 +81,9 @@
     </Content>
     <None Include="plans\defendbot.lap" />
     <None Include="plans\oldPOSH-attackbot.lap" />
-    <None Include="plans\POSHBot.lap" />
+    <None Include="plans\POSHBot.lap">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

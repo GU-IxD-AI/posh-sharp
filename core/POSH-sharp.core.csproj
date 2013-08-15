@@ -21,15 +21,14 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\POSH-sharp-core.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -47,6 +46,7 @@
     <Compile Include="sys\annotations\ExecutableAction.cs" />
     <Compile Include="sys\BehaviourDict.cs" />
     <Compile Include="sys\AgentInitParser.cs" />
+    <Compile Include="sys\MobileControl.cs" />
     <Compile Include="sys\exceptions\AgentInitParseException.cs" />
     <Compile Include="sys\exceptions\AttributeException.cs" />
     <Compile Include="sys\exceptions\UsageException.cs" />
@@ -64,7 +64,25 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="sys\Behaviour.cs" />
-    <Compile Include="sys\scheduled\ScheduledAgent.cs" />
+    <Compile Include="sys\scheduled\Action.cs" />
+    <Compile Include="sys\scheduled\ActionPattern.cs" />
+    <Compile Include="sys\scheduled\Competence.cs" />
+    <Compile Include="sys\scheduled\CompetenceElement.cs" />
+    <Compile Include="sys\scheduled\CompetencePriorityElement.cs" />
+    <Compile Include="sys\scheduled\CopiableElement.cs" />
+    <Compile Include="sys\scheduled\DriveCollection.cs" />
+    <Compile Include="sys\scheduled\DriveElement.cs" />
+    <Compile Include="sys\scheduled\DrivePriorityElement.cs" />
+    <Compile Include="sys\scheduled\Element.cs" />
+    <Compile Include="sys\scheduled\ElementBase.cs" />
+    <Compile Include="sys\scheduled\ElementCollection.cs" />
+    <Compile Include="sys\scheduled\FireResult.cs" />
+    <Compile Include="sys\scheduled\Generic.cs" />
+    <Compile Include="sys\scheduled\PlanElement.cs" />
+    <Compile Include="sys\scheduled\Agent.cs" />
+    <Compile Include="sys\scheduled\Sense.cs" />
+    <Compile Include="sys\scheduled\Timer.cs" />
+    <Compile Include="sys\scheduled\Trigger.cs" />
     <Compile Include="sys\strict\ActionPattern.cs" />
     <Compile Include="sys\strict\Agent.cs" />
     <Compile Include="sys\strict\Action.cs" />
@@ -89,7 +107,7 @@
     <Compile Include="sys\strict\Trigger.cs" />
     <Compile Include="sys\World.cs" />
     <Compile Include="sys\Tuple.cs" />
-    <Compile Include="sys\WorldControl.cs" />
+    <Compile Include="sys\AssemblyControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="library\libs\log4net.dll" />
