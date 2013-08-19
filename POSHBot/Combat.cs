@@ -64,7 +64,7 @@ namespace Posh_sharp.POSHBot
         /// otherwise, set that to None as it means no-one is holding it
         /// </summary>
         /// <param name="values">Dictionary containing the Flag details</param>
-        internal override void ReceiveFlagDetails(Dictionary<string,string> values)
+        override internal void ReceiveFlagDetails(Dictionary<string,string> values)
         {
             // TODO: fix the mix of information in this method it should just contain relevant info
            // if (_debug_)
@@ -97,14 +97,14 @@ namespace Posh_sharp.POSHBot
             }
         }
 
-        internal void ReceiveProjectileDetails(Dictionary<string,string> values)
+        override internal void ReceiveProjectileDetails(Dictionary<string,string> values)
         {
             if (_debug_)
                 Console.Out.WriteLine("received details of incoming projectile!");
             info.ProjectileDetails = new Projectile(values);
         }
 
-        internal void ReceiveDamageDetails(Dictionary<string,string> values)
+        override internal void ReceiveDamageDetails(Dictionary<string,string> values)
         {
             if (_debug_)
                 Console.Out.WriteLine("received details of damage!");
@@ -116,7 +116,7 @@ namespace Posh_sharp.POSHBot
         /// remove any info about that player from CombatInfo
         /// </summary>
         /// <param name="values"></param>
-        internal void ReceiveKillDetails(Dictionary<string,string> values)
+        override internal void ReceiveKillDetails(Dictionary<string,string> values)
         {
             if (_debug_)
                 Console.Out.WriteLine("received details of a kill!");
@@ -140,7 +140,7 @@ namespace Posh_sharp.POSHBot
 
         }
 
-        internal void ReceiveDeathDetails(Dictionary<string,string> value)
+        override internal void ReceiveDeathDetails(Dictionary<string,string> value)
         {
             info.DamageDetails = null;
             info.KeepFocusOnID = null;

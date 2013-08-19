@@ -36,20 +36,45 @@ namespace Posh_sharp.POSHBot.util
 
         internal virtual void ReceiveFlagDetails(Dictionary<string,string> values)
         {
-            Console.Out.WriteLine("in receiveFlagDetails");
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveFlagDetails");
         }         
 
-        internal virtual void ReceivePathDetails(Dictionary<string,string> valuesDict){} 
+        internal virtual void ReceivePathDetails(Dictionary<string,string> valuesDict)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceivePathDetails");
+        } 
 
-        internal virtual void ReceiveCheckReachDetails(Dictionary<string,string> valuesDict){} 
+        internal virtual void ReceiveCheckReachDetails(Dictionary<string,string> valuesDict)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveCheckReachDetails");
+        } 
 
-        internal virtual void ReceiveProjectileDetails(Dictionary<string,string> values){} 
+        internal virtual void ReceiveProjectileDetails(Dictionary<string,string> values)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveProjectileDetails");
+        } 
 
-        internal virtual void ReceiveDamageDetails(Dictionary<string,string> values){} 
+        internal virtual void ReceiveDamageDetails(Dictionary<string,string> values)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveDamageDetails");
+        } 
 
-        internal virtual void ReceiveKillDetails(Dictionary<string,string> values){} 
+        internal virtual void ReceiveKillDetails(Dictionary<string,string> values)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveKillDetails");
+        } 
 
-        internal virtual void ReceiveDeathDetails(Dictionary<string,string> value){}
+        internal virtual void ReceiveDeathDetails(Dictionary<string,string> value)
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in ReceiveDeathDetails");
+        } 
 
     }
 }

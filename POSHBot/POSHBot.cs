@@ -495,24 +495,53 @@ namespace Posh_sharp.POSHBot
                 else if (result.First == "SEE")
                     // Update the player Position
                     this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
-                else if ( pathStates.Contains(result.First) )
+                else if (pathStates.Contains(result.First))
+                {
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceivePathDetails(result.Second);
                     // pass the details to the movement behaviour
-                    ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
-                else if (result.First == "RCH") {
-                    ((Movement)agent.getBehaviour("Movement")).ReceiveCheckReachDetails(result.Second);
-					((Navigator)agent.getBehaviour("Navigator")).ReceiveCheckReachDetails(result.Second);
-				} else if (result.First == "PRJ")
+                    // ((Movement)agent.getBehaviour("Movement")).ReceivePathDetails(result.Second);
+                }
+                else if (result.First == "RCH")
+                {
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceiveCheckReachDetails(result.Second);
+                    //((Navigator)agent.getBehaviour("Navigator")).ReceiveCheckReachDetails(result.Second);
+                }
+                else if (result.First == "PRJ")
+                {
                     // incoming projectile
-                    GetCombat().ReceiveProjectileDetails(result.Second);
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceiveProjectileDetails(result.Second);
+                    //GetCombat().ReceiveProjectileDetails(result.Second);
+                }
                 else if (result.First == "DAM")
+                {
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceiveDamageDetails(result.Second);
                     // incoming projectile
-                    GetCombat().ReceiveDamageDetails(result.Second);
+                    //GetCombat().ReceiveDamageDetails(result.Second);
+                }
                 else if (result.First == "KIL")
+                {
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceiveKillDetails(result.Second);
                     // incoming projectile
-                    GetCombat().ReceiveKillDetails(result.Second);
+                    // GetCombat().ReceiveKillDetails(result.Second);
+                }
                 else if (result.First == "DIE")
+                {
+                    foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).ReceiveDeathDetails(result.Second);
                     // incoming projectile
-                    GetCombat().ReceiveDeathDetails(result.Second);
+                    // GetCombat().ReceiveDeathDetails(result.Second);
+                }
             }
 
             log.Info("Closing Connection and Cleaning Up...");

@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Template.cs" />
     <Compile Include="POSHBot.cs" />
     <Compile Include="Combat.cs" />
     <Compile Include="Movement.cs" />

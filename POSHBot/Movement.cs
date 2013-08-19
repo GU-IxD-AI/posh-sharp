@@ -46,7 +46,7 @@ namespace Posh_sharp.POSHBot
         /// the position of a flag is how we determine where the bases are
         /// </summary>
         /// <param name="values">Dictionary containing the Flag details</param>
-        internal void ReceiveFlagDetails(Dictionary<string, string> values)
+        override internal void ReceiveFlagDetails(Dictionary<string, string> values)
         {
             // TODO: fix the mix of information in this method it should just contain relevant info
 
@@ -80,7 +80,7 @@ namespace Posh_sharp.POSHBot
         /// at present other IDs are ignored
         /// </summary>
         /// <param name="valuesDict"></param>
-        internal void ReceivePathDetails(Dictionary<string, string> valuesDict)
+        override internal void ReceivePathDetails(Dictionary<string, string> valuesDict)
         {
             if (!valuesDict.ContainsKey("Id"))
                 return;
@@ -124,7 +124,7 @@ namespace Posh_sharp.POSHBot
         /// <summary>
         /// clean-up after dying
         /// </summary>
-        internal void ReceiveDeathDetails()
+        override internal void ReceiveDeathDetails(Dictionary<string, string> value)
         {
             info.pathHome.Clear();
             info.pathToEnemyBase.Clear();
@@ -319,7 +319,7 @@ namespace Posh_sharp.POSHBot
                 // as that will just mean we go to the nav point even if we're close by
                 location = Vector3.NullVector();
 
-            Console.Out.WriteLine(location.ToString());
+            //Console.Out.WriteLine(location.ToString());
 
             // is there already a navpoint we're aiming for?
 
@@ -414,7 +414,7 @@ namespace Posh_sharp.POSHBot
             {
                 Console.Out.WriteLine("in EnemyFlagReachable");
                 if (info.enemyFlagInfo.Count() > 0)
-                    Console.Out.WriteLine(info.enemyFlagInfo.ToString());
+                    Console.Out.WriteLine("enemyFlaginfo "+info.enemyFlagInfo.ToString());
             }
 
             // Made simpler FA
@@ -440,7 +440,7 @@ namespace Posh_sharp.POSHBot
             {
                 Console.Out.WriteLine("in OurFlagReachable");
                 if (info.ourFlagInfo.Count() > 0)
-                    Console.Out.WriteLine(info.ourFlagInfo.ToString());
+                    Console.Out.WriteLine("ourFlaginfo "+info.ourFlagInfo.ToString());
             }
 
             // Made simpler FA
