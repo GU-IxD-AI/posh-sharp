@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys.strict
+namespace POSH_sharp.sys.scheduled
 {
     /// <summary>
     /// Implementation of DriveCollection
     /// 
     /// A drive collection, containing drive priority elements.
     /// 
-    /// A POSH.strict.DriveCollection contains several
-    /// POSH.strict.DrivePriorityElement s
-    /// that contains several POSH.strict.DriveElement s. Upon firing a drive
+    /// A POSH.scheduled.DriveCollection contains several
+    /// POSH.scheduled.DrivePriorityElement s
+    /// that contains several POSH.scheduled.DriveElement s. Upon firing a drive
     /// collection, either the goal is satisfied, or either of the drive
     /// priority elements needs to be fired successfully. Otherwise, the
     /// drive fails. The drive priority elements are tested in order or
@@ -62,7 +62,7 @@ namespace POSH_sharp.sys.strict
         /// <summary>
         /// Fires the drive collection.
         /// 
-        /// This method first checks if the goal (if not null) is met. If
+        /// This method first checks if the goal (if not None) is met. If
         /// that is the case, then FireResult(False, self) is
         /// returned. Otherwise it goes through the list of priority
         /// elements until the first one was fired successfully (returning

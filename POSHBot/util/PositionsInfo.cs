@@ -55,7 +55,7 @@ namespace Posh_sharp.POSHBot.util
         public bool HasEnemyFlagInfoExpired(int lsecs)
         {
             if (enemyFlagInfo.Count > 0 && enemyFlagInfo.ContainsKey("Reachable"))
-                if (long.Parse(enemyFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
+                if (long.Parse(enemyFlagInfo["TimeStamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
                     return true;
             
             return false;
@@ -77,7 +77,7 @@ namespace Posh_sharp.POSHBot.util
         public bool HasOurFlagInfoExpired(int lsecs)
         {
             if ( ourFlagInfo.Count > 0 && ourFlagInfo.ContainsKey("Reachable") )
-                if (long.Parse(ourFlagInfo["timestamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
+                if (long.Parse(ourFlagInfo["TimeStamp"]) < ( TimerBase.CurrentTimeStamp() - lsecs) )
                     return true;
             
             return false;

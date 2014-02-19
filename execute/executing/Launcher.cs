@@ -292,7 +292,7 @@ namespace POSH_sharp.executing
             string agentsInitFile = string.Format("{0}_{1}", agentLibrary, "init.txt");
             
             // check if the agent init file exists
-            if (!control.checkAgentInitFile(agentsInitFile)) 
+            if (!control.CheckAgentInitFile(agentsInitFile)) 
                 throw new UsageException(string.Format("cannot find specified agent init file in directory '{0}' which should contain the agent init file '{1}'", 
                         control.config["InitPath"], agentsInitFile));
                 
@@ -300,13 +300,13 @@ namespace POSH_sharp.executing
                     Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentsInitFile));
             try
             {
-                agentsInit = AgentInitParser.initAgentFile(control.getAgentInitFileStream(agentsInitFile));
+                agentsInit = AgentInitParser.initAgentFile(control.GetAgentInitFileStream(agentsInitFile));
             }
             catch (Exception e)
             {
                 try
                 {
-                    agentsInit = AgentInitParser.initAgentFile(control.getAgentInitFileStream(assembly,agentsInitFile));
+                    agentsInit = AgentInitParser.initAgentFile(control.GetAgentInitFileStream(assembly,agentsInitFile));
                 }
                 catch (Exception )
                 {

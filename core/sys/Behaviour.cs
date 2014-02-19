@@ -5,6 +5,8 @@ using System.Text;
 using POSH_sharp.sys.strict;
 using System.Text.RegularExpressions;
 using POSH_sharp.sys;
+using System.Reflection;
+using POSH_sharp.sys.annotations;
 
 namespace POSH_sharp.sys
 {
@@ -66,6 +68,14 @@ namespace POSH_sharp.sys
                 GetActionsSenses(caller);
             else 
             {
+                MethodInfo[] methods = this.GetType().GetMethods();
+
+                if (actions == null || actions.Length < 1)
+                    actions = ExtractPrimitives(this,true);
+                
+                if (senses == null || senses.Length < 1)
+                    senses = ExtractPrimitives(this,false);
+                
                 Dictionary<string, POSH_sharp.sys.strict.POSHAction> a = new Dictionary<string, POSH_sharp.sys.strict.POSHAction>();
                 foreach (string elem in actions)
                     a.Add(elem,null);
@@ -82,6 +92,29 @@ namespace POSH_sharp.sys
             if (attributes != null)
                 AssignAttributes(attributes);
 
+        }
+
+        string[] ExtractPrimitives(Behaviour source, bool acts)
+        {
+            MethodInfo[] methods = source.GetType().GetMethods();
+            List<string> primitives = new List<string>();
+            if (acts)
+                foreach (MethodInfo method in methods)
+                {
+                    // include versioning of primitives at some later point 
+                    if (method.GetCustomAttributes(typeof(ExecutableAction), true).Length > 0)
+                        primitives.Add(method.Name);
+                }
+            else
+                foreach (MethodInfo method in methods)
+                {
+                    // include versioning of primitives at some later point 
+                    if (method.GetCustomAttributes(typeof(ExecutableSense), true).Length > 0)
+                        primitives.Add(method.Name);
+                }
+            
+
+            return primitives.ToArray();
         }
 
         void GetActionsSenses(Behaviour sourceObj)

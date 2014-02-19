@@ -289,7 +289,7 @@ namespace Posh_sharp.POSHBot
                 varDict[attribute] = value;
             }
             if (cmd == "DAM" || cmd == "PRJ")
-                varDict["timestamp"] = POSH_sharp.sys.strict.TimerBase.CurrentTimeStamp().ToString();
+                varDict["TimeStamp"] = POSH_sharp.sys.strict.TimerBase.CurrentTimeStamp().ToString();
 
             return new Tuple<string,Dictionary<string,string>>(cmd,varDict);
         }
@@ -597,7 +597,7 @@ namespace Posh_sharp.POSHBot
         /// <param name="message">Tuples[command,valuesDictionary]</param>
         internal void ProcessSync(Tuple<string,Dictionary<string,string>> message)
         {
-            message.Second["timestamp"] = TimerBase.CurrentTimeStamp().ToString();
+            message.Second["TimeStamp"] = TimerBase.CurrentTimeStamp().ToString();
             switch (message.First){
                 case "SLF":
                     // info about bot's state

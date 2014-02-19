@@ -108,14 +108,7 @@ namespace POSH_sharp.sys
         /// <returns>Behaviour dictionary with all behaviours in the library</returns>
         internal BehaviourDict loadBehaviours()
         {
-            BehaviourDict dict = new BehaviourDict();
-            log.Info("Scanning library for behaviours");
-            Dictionary<string,List<Type>> behaviourClasses = AssemblyControl.GetControl().GetBehaviours(library,log);
-            Type [] types=new Type[1] {typeof(AgentBase)};
-            
-            foreach (KeyValuePair<string,List<Type>> assembly in behaviourClasses)
-                foreach (Type behaviourClass in assembly.Value)
-                {
+            BehaviourDict dict = AssemblyControl.GetControl().GetBehaviours(library,log,this);
                     // TODO: Profiler needs to be included later on.
                     //    self.log.info("Creating instance of behaviour '%s'" % \
                     //                  behaviour_class.__name__)
@@ -126,14 +119,6 @@ namespace POSH_sharp.sys
                     //            behaviour = behaviour_class(self)            
                     //    else:
                     //        behaviour = behaviour_class(self)  
-                    log.Info(String.Format("Creating instance of behaviour {0}.",behaviourClass));
-                    ConstructorInfo behaviourConstruct = behaviourClass.GetConstructor(types);
-                    object[] para= new object[1] {this};
-                    log.Debug("Registering behaviour in behaviour dictionary");
-                    if (behaviourConstruct != null)
-                        dict.RegisterBehaviour((Behaviour) behaviourConstruct.Invoke(para));
-                }
-            
             return dict;
         }
 

@@ -70,7 +70,7 @@ namespace POSH_sharp.sys.parse
             {new Regex("(?i)hz"),"HZ"},
             {new Regex("(?i)pm"),"PM"},
             {new Regex("(?i)none"),"NONE"},
-            {new Regex("(==|=|!=|<|>|<=|>=)"),"PREDICATE"},
+            {new Regex("(==|!=|=|<=|>=|<|>)"),"PREDICATE"},
             {new Regex(@"-?(\d*\.\d+|\d+\.)([eE][\+\-]?\d+)?"),"NUMFLOAT"},
             {new Regex(@"\-?[0-9]+"),"NUMINT"},
             {new Regex(@"(?i)[a-z][a-z0-9_\-]*"),"NAME"},

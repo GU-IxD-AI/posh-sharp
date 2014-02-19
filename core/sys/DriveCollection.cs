@@ -62,7 +62,7 @@ namespace POSH_sharp.sys.strict
         /// <summary>
         /// Fires the drive collection.
         /// 
-        /// This method first checks if the goal (if not null) is met. If
+        /// This method first checks if the goal (if not None) is met. If
         /// that is the case, then FireResult(False, self) is
         /// returned. Otherwise it goes through the list of priority
         /// elements until the first one was fired successfully (returning
