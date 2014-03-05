@@ -46,6 +46,7 @@
     <Compile Include="sys\annotations\ExecutableAction.cs" />
     <Compile Include="sys\BehaviourDict.cs" />
     <Compile Include="sys\AgentInitParser.cs" />
+    <Compile Include="sys\IBehaviourConnector.cs" />
     <Compile Include="sys\MobileControl.cs" />
     <Compile Include="sys\exceptions\AgentInitParseException.cs" />
     <Compile Include="sys\exceptions\AttributeException.cs" />
