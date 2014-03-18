@@ -75,7 +75,7 @@ namespace Posh_sharp.POSHBot
             // set flag stuff
             if (values["Team"] == GetBot().info["Team"])
                 if (values["State"].ToLower() == "held")
-                    info.HoldingOurFlag = values["Holder"];
+                    info.HoldingOurFlag = (values.ContainsKey("Holder")) ? values["Holder"] : string.Empty;
                 else
                 {
                     info.HoldingOurFlag = string.Empty;
