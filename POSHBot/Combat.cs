@@ -83,10 +83,10 @@ namespace Posh_sharp.POSHBot
                 }
             else
             {
-                if (values["State"].ToLower() == "held")
+                if (values["State"].ToLower() == "held" && values.ContainsKey("Holder"))
                 {
                     if (GetBot().viewPlayers.ContainsKey(values["Holder"]))
-                        info.HoldingEnemyFlagPlayerInfo = GetBot().viewPlayers["Holder"];
+                        info.HoldingEnemyFlagPlayerInfo = GetBot().viewPlayers[values["Holder"]];
                     info.HoldingEnemyFlag = values["Holder"];
                 }
                 else
