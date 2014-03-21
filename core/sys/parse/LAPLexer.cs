@@ -28,7 +28,7 @@ namespace POSH_sharp.sys.parse
         ///  as they would match even if they only match the beginning
         ///  of a word.
         /// </summary>
-        public static Tuple<Regex, string> FULLTOKENS = new Tuple<Regex, string>(new Regex("\"[^\"]*\""), "COMMENT");
+        public static Tuple<Regex, string> FULLTOKENS = new Tuple<Regex, string>(new Regex("^\"([A-Z|a-z][A-Z|a-z| ]*[A-Z|a-z]+)\""), "COMMENT");
 
         /// <summary>
         /// separating characters are characters that split the input
@@ -53,6 +53,7 @@ namespace POSH_sharp.sys.parse
         /// tokens match, the first in the list is returned.
         /// </summary>
          public static Dictionary<Regex,string> TOKENS =  new Dictionary<Regex,string> {
+            {new Regex("documentation"),"DOC"},
             {new Regex("AP"),"AP"},
             {new Regex("C"),"C"},
             {new Regex("DC"),"DC"},
@@ -107,11 +108,11 @@ namespace POSH_sharp.sys.parse
         private Token checkFullTokens()
         {
             // first check for full tokens
-            Match match = FULLTOKENS.First.Match(input);
+            Match match = FULLTOKENS.First.Match(input.Trim());
             if (match is Match && match.Success)
             {
-                string matchedString = match.Value;
-                input = input.Substring(matchedString.Length);
+                string matchedString = match.Groups[1].Value;
+                input = input.Substring(match.Value.Length+1);
                 // count the number of newlines in the matched
                 // string to keep track of the line number
                 lineNo += newlines.Matches(matchedString).Count;

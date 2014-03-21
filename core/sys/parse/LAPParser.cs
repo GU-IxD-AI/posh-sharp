@@ -241,7 +241,7 @@ using POSH_sharp.sys.strict;
                 }
                 nextToken();
                 // check for documentation
-                if ( match(new string[] {"DOCUMENTATION",}) )
+                if ( match(new string[] {"DOC",}) )
                 {
                     if ( ap + c + dc + d > 0 )
                         error("Documentation only allowed as first " +
@@ -295,7 +295,7 @@ using POSH_sharp.sys.strict;
         /// <returns>The three comments in the form {string,string,string}.</returns>
         public string[] getDocString()
         {
-            if (!match(new string[] {"DOCUMENTATION",}))
+            if (!match(new string[] {"DOC",}))
                 error(string.Format("Expected 'documentation' as start of docstring " +
                     "instead of '{0}'" ,token.value));
             nextToken();
@@ -305,7 +305,7 @@ using POSH_sharp.sys.strict;
                 if (!match(new string[] {"COMMENT",}))
                     error(string.Format("Expected a comment of form \"...\" instead " +
                         "of '%s' in documentation", token.value));
-                docs[i] =(token.value.Substring(1,token.value.Length-2));
+                docs[i] =(token.value);
                 nextToken();
             }
             if (!match(new string[] {"RPAREN",}))
