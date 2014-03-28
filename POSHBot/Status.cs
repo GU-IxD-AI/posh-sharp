@@ -117,7 +117,7 @@ namespace Posh_sharp.POSHBot
             if (GetBot().info.Count == 0)
                 return 0;
 
-            return int.Parse(GetBot().info["CurrentAmmo"]);
+            return int.Parse(GetBot().info["PrimaryAmmo"]);
         }
 
         [ExecutableSense("ArmedAndAmmo")]
