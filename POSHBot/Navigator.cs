@@ -180,7 +180,7 @@ namespace Posh_sharp.POSHBot
 		{
             if (_debug_)
                 Console.Out.WriteLine("in select_enemy_flag");
-			return select_flag (true) ;
+			return select_flag (false) ;
 		}
 
 		[ExecutableAction("select_own_flag")]
