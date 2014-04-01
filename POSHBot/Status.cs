@@ -17,7 +17,7 @@ namespace Posh_sharp.POSHBot
 
 		public Status(AgentBase agent) : base(agent,
                         new string[] {},
-		new string[] {"fail","succeed","focusing_task","game_ended","have_enemy_flag"})
+        new string[] { "fail", "succeed", "focusing_task", "game_ended", "have_enemy_flag", "ArmedAndAmmo", "OwnHealthLevel", "AreArmed", "AmmoAmount" })
         {}
 
 		/*
@@ -116,8 +116,7 @@ namespace Posh_sharp.POSHBot
         {
             if (GetBot().info.Count == 0)
                 return 0;
-
-            return int.Parse(GetBot().info["CurrentAmmo"]);
+            return int.Parse(GetBot().info["PrimaryAmmo"]);
         }
 
         [ExecutableSense("ArmedAndAmmo")]
