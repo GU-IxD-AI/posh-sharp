@@ -28,12 +28,13 @@ namespace Posh_sharp.POSHBot.util
             Velocity = dictRaw.ContainsKey("Velocity") ? Vector3.ConvertToVector3(dictRaw["Velocity"]) : null;
             Speed = dictRaw.ContainsKey("Speed") ? float.Parse(dictRaw["Speed"]) : 0;
             Location = dictRaw.ContainsKey("Location") ? Vector3.ConvertToVector3(dictRaw["Location"]) : null;
-            Time = dictRaw.ContainsKey("Time") ? int.Parse(dictRaw["Time"]) : 0;
+            Time = dictRaw.ContainsKey("Time") ? Int32.Parse(dictRaw["Time"]) : 0;
             Direction = dictRaw.ContainsKey("Direction") ? Vector3.ConvertToVector3(dictRaw["Direction"]) : null;
             Origin = dictRaw.ContainsKey("Origin") ? Vector3.ConvertToVector3(dictRaw["Origin"]) : null;
             DamageRadius = dictRaw.ContainsKey("DamageRadius") ? float.Parse(dictRaw["DamageRadius"]) : 0;
             Type = dictRaw.ContainsKey("Type") ? dictRaw["Type"] : "";
-            TimeStamp = dictRaw.ContainsKey("TimeStamp") ? int.Parse(dictRaw["TimeStamp"]): 0;
+            try { TimeStamp = dictRaw.ContainsKey("TimeStamp") ? Int32.Parse(dictRaw["TimeStamp"]) : 0; }
+            catch (Exception e) { TimeStamp = dictRaw.ContainsKey("TimeStamp") ? ((Int32)(Int64.Parse(dictRaw["TimeStamp"])&((Int64)0xFFFFFFFF))) : 0; }
             
 
         }

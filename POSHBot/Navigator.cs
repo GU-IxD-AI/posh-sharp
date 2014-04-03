@@ -38,6 +38,13 @@ namespace Posh_sharp.POSHBot
          * 
          */
 
+
+        override internal void ReceiveDeathDetails(Dictionary<string, string> value)
+        {
+            __selectedNavpoint__ = null;
+            closestNavPointReachable = new Dictionary<string, bool>();
+        }
+
 		/// <summary>
 		/// used in validating the bot's path home or to the enemy flag
 		/// if the thing has the right ID, then clear the relevant path if it's not reachable
@@ -180,7 +187,7 @@ namespace Posh_sharp.POSHBot
 		{
             if (_debug_)
                 Console.Out.WriteLine("in select_enemy_flag");
-			return select_flag (true) ;
+			return select_flag (false) ;
 		}
 
 		[ExecutableAction("select_own_flag")]
