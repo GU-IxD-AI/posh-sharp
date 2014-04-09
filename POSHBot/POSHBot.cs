@@ -68,7 +68,7 @@ namespace Posh_sharp.POSHBot
         protected internal Dictionary<string, string> gameinfo { get; private set; }
         protected internal Dictionary<string, UTPlayer> viewPlayers { get; private set; }
         protected internal List<InvItem> viewItems { get; private set; }
-        protected internal Dictionary<string,NavPoint> navPoints;
+        protected internal Dictionary<string, NavPoint> navPoints { get; private set; }
         protected internal Dictionary<string, string> info { get; private set; }
 		protected internal bool killConnection { get; private set;}
 
@@ -482,7 +482,11 @@ namespace Posh_sharp.POSHBot
                     // These are sync. messages, handle them with another method
                     ProcessSync(result);
                 else if (result.First == "END")
+                {
                     SynShadowStates();
+                    this.viewPlayers = this.sViewPlayers;
+
+                }
                 if (this.connectedToGame)
                 {
                     this.connReady = true;
@@ -494,7 +498,8 @@ namespace Posh_sharp.POSHBot
                     this.events.Add(new Tuple<long, string>(TimerBase.CurrentTimeStamp(), result.ToString()));
                 else if (result.First == "SEE")
                     // Update the player Position
-                    this.viewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
+                    
+                    this.sViewPlayers[result.Second["Id"]] = new UTPlayer(result.Second);
                 else if (pathStates.Contains(result.First))
                 {
                     foreach (Behaviour behave in agent.getBehaviours())
