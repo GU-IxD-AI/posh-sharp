@@ -6,8 +6,10 @@ using System.Timers;
 using System.Reflection;
 using System.IO;
 using log4net;
+using POSH.sys.exceptions;
+using System.Threading;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     public class AssemblyControl
     {
@@ -32,8 +34,8 @@ namespace POSH_sharp.sys
         {
             Environment.SetEnvironmentVariable("POSHUnityMode","True");
 
-            if (!instance.GetType().IsSubclassOf(typeof(AssemblyControl)))
-                instance = new MobileControl();
+            if (instance == null || !instance.GetType().IsSubclassOf(typeof(EmbeddedControl)))
+                instance = new EmbeddedControl();
         }
 
 
@@ -86,18 +88,13 @@ namespace POSH_sharp.sys
             return assembly;
         }
 
-		private string getAssemblyLibrary()
-		{
-			return getAssemblyLibrary ("");
-		}
-
         /// <summary>
         /// Returns the path to the behaviour assembly directory. If no library is given,
         /// then the base path of the library is returned.
         /// </summary>
         /// <param name="lib">The library to return the path for</param>
         /// <returns>The base library path or the path to the given library</returns>
-        private string getAssemblyLibrary(string lib)
+        protected string getAssemblyLibrary(string lib)
         {
             string path = getRootPath() + Path.DirectorySeparatorChar + config["LibraryPath"];
             if (!Directory.Exists(path))
@@ -164,8 +161,8 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="lib">The library that the plan is from</param>
         /// <param name="plan">The name of the plan (without the .lap ending)</param>
-        /// <returns>The filename with full path of the plan</returns>
-        internal Stream GetPlanFile(string lib, string plan)
+        /// <returns>The plan in the form of a single string, still containing linebreaks</returns>
+        internal virtual string GetPlanFile(string lib, string plan)
         {
             string planPath=getPlanPath(lib);
             string [] plans={};
@@ -189,31 +186,9 @@ namespace POSH_sharp.sys
             {
                 // TODO: @swen: some clever log or comment here!!!
             }
-            Stream planStream = new StreamReader(File.OpenRead(result)).BaseStream;
+            string planResult = new StreamReader(File.OpenRead(result)).ReadToEnd();
             
-            return planStream;
-        }
-
-        /// <summary>
-        /// Returns the file name for the given library (not for plans, see above)
-        /// </summary>
-        /// <param name="lib">The library that the file is in</param>
-        /// <param name="file">The name of the file (including any needed ending)</param>
-        /// <returns>The filename with full path</returns>
-        StreamReader getLibraryFile(string lib, string file)
-        {
-            return new StreamReader(getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+file);
-        }
-
-        /// <summary>
-        /// Returns the file name for the given library (not for plans, see above)
-        /// </summary>
-        /// <param name="lib">The library that the file is in</param>
-        /// <param name="file">The name of the file (including any needed ending)</param>
-        /// <returns>The filename with full path</returns>
-        string getAssemblyFile(string lib, string file)
-        {
-            return getAssemblyLibrary(lib) + Path.DirectorySeparatorChar + file;
+            return planResult;
         }
 
         /// <summary>
@@ -239,7 +214,7 @@ namespace POSH_sharp.sys
         /// <returns>List of libraries</returns>
         internal string [] getLibraries()
         {
-            string libraryPath=getAssemblyLibrary();
+            string libraryPath=getAssemblyLibrary("");
             string []dirList=Directory.GetDirectories(libraryPath);
             List<string> result=new List<string>();
 
@@ -263,10 +238,10 @@ namespace POSH_sharp.sys
         /// <returns>If the library is a valid library</returns>
         public bool isLibrary(string assembly,string lib)
         {
-            if (!File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly))
+            if (!File.Exists(getAssemblyLibrary("") + Path.DirectorySeparatorChar + assembly))
                 return false;
 
-            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary("") + Path.DirectorySeparatorChar + assembly);
             ManifestResourceInfo info = libAssembly.GetManifestResourceInfo(lib);
             
             return (File.Exists(getAssemblyLibrary(lib))) ? true : false;
@@ -316,7 +291,7 @@ namespace POSH_sharp.sys
             
             Assembly a = GetAssembly(lib);
             foreach(Type t in a.GetTypes())
-                if (t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(POSH_sharp.sys.Behaviour)) && (this.worldScript == null || t.Name != this.worldScript.Second))
+                if (t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(POSH.sys.Behaviour)) && (this.worldScript == null || t.Name != this.worldScript.Second))
                 {
                     log.Info(String.Format("Creating instance of behaviour {0}.", t));
                     ConstructorInfo behaviourConstruct = t.GetConstructor(types);
@@ -341,6 +316,43 @@ namespace POSH_sharp.sys
         {
             string agentInitScript = getAssemblyLibrary(lib)+Path.DirectorySeparatorChar+config["InitPath"]+lib+"_init.txt";
             return File.Exists(agentInitScript) ? agentInitScript : "";
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="verbose"></param>
+        /// <param name="assembly"></param>
+        /// <param name="agentLibrary"></param>
+        /// <returns>returns a dictionary containing agentnames and a dictionary containing attributes for the agent</returns>
+        public virtual List<Tuple<string, object>> InitAgents(bool verbose, string assembly, string agentLibrary)
+        {
+            List<Tuple<string, object>> agentsInit = null;
+            string agentsInitFile = string.Format("{0}_{1}", agentLibrary, "init.txt");
+
+            // check if the agent init file exists
+            if (!CheckAgentInitFile(agentsInitFile))
+                throw new UsageException(string.Format("cannot find specified agent init file in directory '{0}' which should contain the agent init file '{1}'",
+                        config["InitPath"], agentsInitFile));
+
+            if (verbose)
+                Console.Out.WriteLine(string.Format("reading initialisation file '{0}'", agentsInitFile));
+            try
+            {
+                agentsInit = AgentInitParser.initAgentFile(GetAgentInitFileString(agentsInitFile));
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    agentsInit = AgentInitParser.initAgentFile(GetAgentInitFileString(assembly, agentsInitFile));
+                }
+                catch (Exception)
+                {
+                    throw new UsageException("reading agent initialisation file Failed", e);
+                }
+            }
+
+            return agentsInit;
         }
 
         /// <summary>
@@ -444,7 +456,7 @@ namespace POSH_sharp.sys
 
         public bool checkDirectory(string planDir)
         {
-            return Directory.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + planDir);
+            return Directory.Exists(getAssemblyLibrary("") + Path.DirectorySeparatorChar + planDir);
         }
 
         public bool IsAssembly(string assembly)
@@ -456,13 +468,13 @@ namespace POSH_sharp.sys
             
         }
 
-        public Assembly GetAssembly(string assembly)
+        public virtual Assembly GetAssembly(string assembly)
         {
-            if (!File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar+ assembly))
+            if (!File.Exists(getAssemblyLibrary("") + Path.DirectorySeparatorChar+ assembly))
                 return null;
             try
             {
-                Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+                Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary("") + Path.DirectorySeparatorChar + assembly);
                 return libAssembly;
             }
             catch (FileNotFoundException)
@@ -481,13 +493,13 @@ namespace POSH_sharp.sys
 
         }
 
-        public bool IsLibraryInAssembly(string assembly,string agentLibrary)
+        public virtual bool IsLibraryInAssembly(string assembly,string agentLibrary)
         {
             Module library = null;
             if (!IsAssembly(assembly))
                 return false;
 
-            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary() + Path.DirectorySeparatorChar + assembly);
+            Assembly libAssembly = Assembly.LoadFile(getAssemblyLibrary("") + Path.DirectorySeparatorChar + assembly);
             
             try
             {
@@ -521,32 +533,32 @@ namespace POSH_sharp.sys
 
         public bool CheckAgentInitFile(string agentsInitFile)
         {
-            if (this.config["InitPath"] == null || !Directory.Exists(getAssemblyLibrary()+Path.DirectorySeparatorChar+this.config["InitPath"]))
+            if (this.config["InitPath"] == null || !Directory.Exists(getAssemblyLibrary("")+Path.DirectorySeparatorChar+this.config["InitPath"]))
                 return false;
-            if (File.Exists(getAssemblyLibrary() + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile))
+            if (File.Exists(getAssemblyLibrary("") + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile))
                 return true;
             
             return false;
         }
 
-        public virtual StreamReader GetAgentInitFileStream(string agentsInitFile)
+        public virtual string GetAgentInitFileString(string agentsInitFile)
         {
             if (!CheckAgentInitFile(agentsInitFile))
                 return null;
             
-            return File.OpenText(getAssemblyLibrary() + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile);
+            return File.OpenText(getAssemblyLibrary("") + Path.DirectorySeparatorChar + this.config["InitPath"] + Path.DirectorySeparatorChar + agentsInitFile).ReadToEnd();
             
         }
 
-        public virtual StreamReader GetAgentInitFileStream(string assembly, string agentsInitFile)
+        public virtual string GetAgentInitFileString(string assembly, string agentsInitFile)
         {
             Assembly assem = GetAssembly(assembly);
             if (assem is Assembly)
-                foreach (String name in assem.GetManifestResourceNames())
+                foreach (string name in assem.GetManifestResourceNames())
                 {
                     if (name == agentsInitFile)
                     {
-                        return new StreamReader(assem.GetFile(name));
+                        return new StreamReader(assem.GetFile(name)).ReadToEnd();
                     }
 
                 }
@@ -555,9 +567,62 @@ namespace POSH_sharp.sys
 
             return null;
         }
+
+        public virtual bool Run(bool verbose, AgentBase[] agents, bool loopsRunning)
+        {
+            // check all 0.1 seconds if the loops are still running, and exit otherwise
+            while (loopsRunning)
+            {
+                Thread.Sleep(100);
+                loopsRunning = false;
+                foreach (AgentBase agent in agents)
+                    if (agent.LoopStatus().First)
+                        loopsRunning = true;
+            }
+            if (verbose)
+                Console.Out.WriteLine("- all agents stopped");
+            return loopsRunning;
+        }
+        public virtual AgentBase[] CreateAgents(bool verbose, string assembly, List<Tuple<string, object>> agentsInit, Tuple<World, bool> setting)
+        {
+            // create the agents
+            AgentBase[] agents = null;
+            if (verbose)
+                Console.Out.WriteLine("- creating agent(s)");
+            try
+            {
+                agents = AgentFactory.CreateAgents(assembly, "", agentsInit, setting.First);
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("creating agent(s) Failed, see following error");
+                Console.Out.WriteLine("----");
+                if (verbose)
+                    Console.Out.WriteLine(e);
+            }
+            return agents;
+        }
+
+        public bool StartAgents(bool verbose, AgentBase[] agents)
+        {
+            if (verbose)
+                Console.Out.WriteLine("- starting the agent(s)");
+            if (agents is AgentBase[])
+                foreach (AgentBase agent in agents)
+                    agent.StartLoop();
+
+            return true;
+        }
     }
 
-
+    // Custom serializable class
+    [System.Serializable]
+    public class AgentParameter
+    {
+        public string agentID;
+        public string parameter = "name";
+        public string value = "bot";
+    }
 
 
 }

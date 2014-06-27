@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using POSH_sharp.sys.strict;
+using POSH.sys.strict;
 using System.Threading;
 using System.IO;
-using POSH_sharp.sys.exceptions;
+using POSH.sys.exceptions;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// Base class for POSH agent.
@@ -95,7 +95,7 @@ namespace POSH_sharp.sys
             this.assignAttributes(attributes);
             
             // load the plan
-            loadPlan(AssemblyControl.GetControl().GetPlanFile(library, plan));
+            LoadPlan(plan);
             // loop thread control
             _execLoop = false;
             _loopPause = false;
@@ -203,7 +203,8 @@ namespace POSH_sharp.sys
                 log.Debug(String.Format("Assigning attributes to behaviour {0}", pair.Key.First));
                 try
                 {
-                    _bdict.getBehaviour(pair.Key.First).AssignAttribute(pair.Key.Second, pair.Value);
+                    if (_bdict.getBehaviour(pair.Key.First) != null)
+                        _bdict.getBehaviour(pair.Key.First).AssignAttribute(pair.Key.Second, pair.Value);
                 }
                 catch (NameException )
                 {
@@ -230,9 +231,9 @@ namespace POSH_sharp.sys
                 behave.SetRNG(rng);
         }
 
-		public virtual bool reset()
+		public virtual bool Reset()
 		{
-			return reset (300);
+			return Reset (300);
 		}
 
         /// <summary>
@@ -249,7 +250,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="waitTime">Timout waiting for behaviours (see L{checkError()}).</param>
         /// <returns></returns>
-        public virtual bool reset(int waitTime)
+        public virtual bool Reset(int waitTime)
         {
             log.Debug("Resetting the behaviours");
             if (_bdict.getBehaviours().Length == 0)
@@ -267,16 +268,16 @@ namespace POSH_sharp.sys
                     return false;
                 }
             }
-            if (checkError(waitTime) > 0)
+            if (CheckError(waitTime) > 0)
                 return false;
 
         log.Debug("Reset successful");
         return true;
         }
 
-		public int checkError()
+		public int CheckError()
 		{
-			return checkError (0);
+			return CheckError (0);
 		}
 
         /// <summary>
@@ -294,15 +295,15 @@ namespace POSH_sharp.sys
         /// <param name="waitTime">Number of 10ths of seconds to wait for behaviours
         /// to be ready.</param>
         /// <returns>Number of behaviours that are not ready.</returns>
-        public int checkError(int waitTime)
+        public int CheckError(int waitTime)
         {
             log.Debug("Waiting for behaviours ready");
-            int error = countErrors();
+            int error = CountErrors();
             while (error > 0 && waitTime > 0)
             {
                 Thread.Sleep(10);
                 waitTime -= 1;
-                error = countErrors();
+                error = CountErrors();
             }
             if (error > 0)
                 log.Error("Waiting for behaviours ready timed out");
@@ -312,7 +313,7 @@ namespace POSH_sharp.sys
             return error;
         }
 
-        private int countErrors()
+        private int CountErrors()
         {
             int error = 0;
             foreach (Behaviour behave in _bdict.getBehaviours())
@@ -332,16 +333,16 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <returns>True if the loop was started, and False if it is already
         ///     running, or the reset failed.</returns>
-        public bool startLoop()
+        public bool StartLoop()
         {
             //# don't start the loop twice
-            if (!reset() || _execLoop)
+            if (!Reset() || _execLoop)
                 return false;
             log.Debug("Starting real-time loop");
             this._loopPause = false;
             this._execLoop = true;
 
-            myThread = new Thread(this.loopThreadWrapper);
+            myThread = new Thread(this.LoopThreadWrapper);
             myThread.Start();
             return true;
         }
@@ -356,7 +357,7 @@ namespace POSH_sharp.sys
         /// exception is thrown.
         /// </summary>
         /// <returns></returns>
-        public bool pauseLoop()
+        public bool PauseLoop()
         {
             if (!_execLoop)
                 throw new ThreadStateException("pauseLoop() called while real-time loop was not running");
@@ -376,7 +377,7 @@ namespace POSH_sharp.sys
         /// This method can also be called when the loop is paused. If it is
         /// called when the loop is not running, an exception is thrown.
         /// </summary>
-        public void stopLoop()
+        public void StopLoop()
         {
             if (!_execLoop)
                 throw new ThreadStateException("stopLoop() called while real-time loop was not running");
@@ -393,7 +394,7 @@ namespace POSH_sharp.sys
         /// then isPaused indicates if the loop is currently paused.
         /// </summary>
         /// <returns>Returns the state of the Tread in the form Tuple(isRunning, isPaused).</returns>
-        public Tuple<bool, bool> loopStatus()
+        public Tuple<bool, bool> LoopStatus()
         {
             return new Tuple<bool, bool>(_execLoop, _loopPause);
         }
@@ -404,11 +405,11 @@ namespace POSH_sharp.sys
         /// This method stops the loop if it is running and calls exitPrepare() of
         /// all behaviours.
         /// </summary>
-        public void exitPrepare()
+        public void ExitPrepare()
         {
             log.Info("Exit Command Received - Prepare to exit");
             if (_execLoop)
-                stopLoop();
+                StopLoop();
             foreach (Behaviour behave in _bdict.getBehaviours())
                 behave.ExitPrepare();
         }
@@ -418,7 +419,7 @@ namespace POSH_sharp.sys
         /// 
         /// This method needs to be overriden by inheriting classes.
         /// </summary>
-        public virtual int followDrive()
+        public virtual int FollowDrive()
         {
             throw new NotImplementedException("AgentBase.followDrive() needs to be overridden");
         }
@@ -432,7 +433,7 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="planFile"></param>
         /// <returns></returns>
-        public  virtual void loadPlan(Stream planFile)
+        public  virtual void LoadPlan(string planFile)
         {
             throw new NotImplementedException("AgentBase._loadPlan() needs to be overridden");
         }
@@ -444,9 +445,9 @@ namespace POSH_sharp.sys
         /// _execLoop and _loopPause to the correct values after
         /// loopThread() returns.
         /// </summary>
-        private void loopThreadWrapper()
+        private void LoopThreadWrapper()
         {
-            loopThread();
+            LoopThread();
             _execLoop = false;
             _loopPause = false;
 
@@ -459,7 +460,7 @@ namespace POSH_sharp.sys
         /// If needs to check the status of the object variables _execLoop and
         /// _loopPause and react to them.
         /// </summary>
-        public virtual void loopThread()
+        public virtual void LoopThread()
         {
             throw new NotImplementedException("AgentBase._loop_thread() needs to be overridden");
         }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
-using POSH_sharp.sys.exceptions;
+using POSH.sys.exceptions;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// Module to parse agent initialisation file.
@@ -104,18 +104,19 @@ namespace POSH_sharp.sys
         /// <param name="initFile">File path for the agent initialisation.</param>
         /// <returns>Data structure representing content of the file
         /// dictionary (behaviour, attribute) -> value</returns>
-        public static List<Tuple<string, object>> initAgentFile(StreamReader initFileReader)
+        public static List<Tuple<string, object>> initAgentFile(string initFileString)
         {
 
 
-            string plan = ""; ;
+            string plan = "";
+            string[] initFile = initFileString.Split(Environment.NewLine.ToCharArray());
             List<Tuple<string, object>> agentsInit = new List<Tuple<string, object>>();
             Dictionary<Tuple<string, string>, object> currentAttributes = new Dictionary<Tuple<string, string>, object>();
             int lineNr = 0;
-
-            string line = initFileReader.ReadLine();
-            while (line != null)
+            
+            foreach(string row in initFile)
             {
+                string line = row;
                 lineNr++;
                 // clean comments, newlines, leading and trailing spaces
                 int commentPos = line.IndexOf('#');
@@ -129,7 +130,7 @@ namespace POSH_sharp.sys
                     {
                         if (plan != string.Empty)
                             agentsInit.Add(new Tuple<string,object>(plan,currentAttributes));
-                        // TODO: I am not sure why the first and last character is removed maybe wrong implementation (my side) 
+                        // removing the brackets around the plan name
                         plan = line.Substring(1, line.Length - 2);
                         currentAttributes = new Dictionary<Tuple<string,string>, object>();
                     }
@@ -155,7 +156,6 @@ namespace POSH_sharp.sys
                         currentAttributes[new Tuple<string,string>(behaviour,attribute)] =  strToValue(value);
                     }
                 }
-                line = initFileReader.ReadLine();
             }
             if (plan != string.Empty)
                 agentsInit.Add(new Tuple<string, object>(plan, currentAttributes));

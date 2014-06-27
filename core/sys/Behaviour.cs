@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.strict;
+using POSH.sys.strict;
 using System.Text.RegularExpressions;
-using POSH_sharp.sys;
+using POSH.sys;
 using System.Reflection;
-using POSH_sharp.sys.annotations;
+using POSH.sys.annotations;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     
 
@@ -76,10 +76,10 @@ namespace POSH_sharp.sys
                 if (senses == null || senses.Length < 1)
                     senses = ExtractPrimitives(this,false);
                 
-                Dictionary<string, POSH_sharp.sys.strict.POSHAction> a = new Dictionary<string, POSH_sharp.sys.strict.POSHAction>();
+                Dictionary<string, POSH.sys.strict.POSHAction> a = new Dictionary<string, POSH.sys.strict.POSHAction>();
                 foreach (string elem in actions)
                     a.Add(elem,null);
-                Dictionary<string, POSH_sharp.sys.strict.POSHSense> s = new Dictionary<string, POSH_sharp.sys.strict.POSHSense>();
+                Dictionary<string, POSH.sys.strict.POSHSense> s = new Dictionary<string, POSH.sys.strict.POSHSense>();
                 foreach (string elem in senses)
                     s.Add(elem,null);
 
@@ -209,10 +209,10 @@ namespace POSH_sharp.sys
         {
 
             if (key != ACTIONS && key != SENSES && key != INSPECTORS)
-                if (attrib.GetType().IsSubclassOf(typeof(POSH_sharp.sys.strict.POSHAction)))
+                if (attrib.GetType().IsSubclassOf(typeof(POSH.sys.strict.POSHAction)))
                     ((Dictionary<string, object>)this.attributes[ACTIONS])[key] = attrib;
                 else
-                    if (attrib.GetType().IsSubclassOf(typeof(POSH_sharp.sys.strict.POSHSense)))
+                    if (attrib.GetType().IsSubclassOf(typeof(POSH.sys.strict.POSHSense)))
                         ((Dictionary<string, object>)this.attributes[SENSES])[key] = attrib;
                     else
                         this.attributes[key] = attrib;

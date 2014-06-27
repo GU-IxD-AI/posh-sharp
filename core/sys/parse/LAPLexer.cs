@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace POSH_sharp.sys.parse
+namespace POSH.sys.parse
 {
     /// <summary>
     /// A Lexer for tokenising .lap files.

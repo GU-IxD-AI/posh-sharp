@@ -1,8 +1,8 @@
 using System;
 using Posh_sharp.POSHBot.util;
-using POSH_sharp.sys;
+using POSH.sys;
 using System.Collections.Generic;
-using POSH_sharp.sys.annotations;
+using POSH.sys.annotations;
 
 namespace Posh_sharp.POSHBot
 {

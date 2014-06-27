@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys;
+using POSH.sys;
 using System.Threading;
 using System.IO;
-using POSH_sharp.sys.parse;
+using POSH.sys.parse;
 
-namespace POSH_sharp.sys.strict
+namespace POSH.sys.strict
 {
     /// <summary>
     /// Implementation of a POSH Agent.
@@ -78,9 +78,9 @@ namespace POSH_sharp.sys.strict
         }
 
 
-		public override bool  reset()
+		public override bool  Reset()
 		{
-			return reset (300);
+			return Reset (300);
 		}
         /// <summary>
         /// Checks if the behaviours are ready and resets the agent's timer.
@@ -93,9 +93,9 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="waitTime">Timout waiting for behaviours (see L{checkError()}).</param>
         /// <returns>If the reset was successful.</returns>
-        public override bool  reset(int waitTime)
+        public override bool  Reset(int waitTime)
         {
- 	         if (!base.reset(waitTime))
+ 	         if (!base.Reset(waitTime))
                  return false;
             timer.Reset();
             return true;
@@ -113,7 +113,7 @@ namespace POSH_sharp.sys.strict
         /// the goal wasn't reached and a drive triggered.
         /// </summary>
         /// <returns></returns>
-        public override int followDrive()
+        public override int FollowDrive()
         {
             FireResult result;
             // FIXME: This test is *very* costly, this function is the most frequently run in a POSH. 
@@ -144,11 +144,11 @@ namespace POSH_sharp.sys.strict
         /// 
         /// This thread controls how L{followDrive} is called.
         /// </summary>
-        public override void  loopThread()
+        public override void  LoopThread()
         {
             int result;
 
-            while (checkError(0) == 0)
+            while (CheckError(0) == 0)
             {
                 // check for pause
                 if (_loopPause)
@@ -162,7 +162,7 @@ namespace POSH_sharp.sys.strict
                 if (!_execLoop)
                     return;
                 // follow drive, and control the loop timing after that
-                result = followDrive();
+                result = FollowDrive();
                 if (result == DRIVEWON || result == DRIVELOST)
                     return;
                 timer.LoopWait();
@@ -177,14 +177,14 @@ namespace POSH_sharp.sys.strict
         /// </summary>
         /// <param name="planFile">Filename of the plan file that is loaded.</param>
         /// <returns></returns>
-        public override void loadPlan(Stream plan)
+        public override void LoadPlan(string planName)
         {
             // if setTimer() is not called, then the first use of
             // the timer will fail. setTimer() is called when the drive
             // collection is built.
             timer = null;
             // read plan, parse it and build drive collection
- 	        PlanBuilder builder = new LAPParser().parse(new StreamReader(plan).ReadToEnd());
+ 	        PlanBuilder builder = new LAPParser().parse(AssemblyControl.GetControl().GetPlanFile(library, planName));
             dc = builder.build(this);
         }
 

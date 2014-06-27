@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     public class World
     {

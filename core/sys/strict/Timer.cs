@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace POSH_sharp.sys.strict
+namespace POSH.sys.strict
 {
     /**
      * Implementation of the agent timer.

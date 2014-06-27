@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.strict;
-using POSH_sharp.sys.exceptions;
+using POSH.sys.strict;
+using POSH.sys.exceptions;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// A class to build plans and create plan objects
@@ -15,9 +15,9 @@ namespace POSH_sharp.sys
     public class PlanBuilder
     {
         private string[] docString;
-        private Tuple<string,string,List<object>,List<Tuple<string,List<object>,string,long>[]>> driveCollection;
-        private Dictionary<string,Tuple<string,long,List<object>>> actionPatterns;
-        private Dictionary<string,Tuple<string,long,List<object>,List<Tuple<string,List<object>,string,int>[]>>> competences;
+        public Tuple<string, string, List<object>, List<Tuple<string, List<object>, string, long>[]>> driveCollection { private set; get; }
+        public Dictionary<string, Tuple<string, long, List<object>>> actionPatterns { private set; get; }
+        public Dictionary<string, Tuple<string, long, List<object>, List<Tuple<string, List<object>, string, int>[]>>> competences { private set; get; }
         /// <summary>
         /// Initialises the plan builder.
         /// </summary>
@@ -72,7 +72,7 @@ namespace POSH_sharp.sys
         /// given as a trigger.
         /// </summary>
         /// <param name="collection"></param>
-        public void setDriveCollection(Tuple<string,string,List<object>,List<Tuple<string,List<object>,string,long>[]>> collection)
+        public void SetDriveCollection(Tuple<string,string,List<object>,List<Tuple<string,List<object>,string,long>[]>> collection)
         {
             this.driveCollection = collection;
         }
@@ -571,11 +571,11 @@ namespace POSH_sharp.sys
             // according behaviour in the behaviour dictionary. Hence, if no
             // behaviour provides that action, we need to check competences and
             // action pattern
-            POSH_sharp.sys.strict.POSHAction element;
+            POSH.sys.strict.POSHAction element;
 
             try
             {
-                element = new POSH_sharp.sys.strict.POSHAction(agent,name);
+                element = new POSH.sys.strict.POSHAction(agent,name);
             } 
             catch (NameException)
             {

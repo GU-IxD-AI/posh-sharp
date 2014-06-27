@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys.scheduled
+namespace POSH.sys.scheduled
 {
     /// <summary>
     /// Implementation of an ActionPattern.

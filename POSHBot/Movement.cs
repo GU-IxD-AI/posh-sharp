@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys;
-using POSH_sharp.sys.annotations;
+using POSH.sys;
+using POSH.sys.annotations;
 using Posh_sharp.POSHBot.util;
-using POSH_sharp.sys.strict;
+using POSH.sys.strict;
 
 namespace Posh_sharp.POSHBot
 {
@@ -173,7 +173,7 @@ namespace Posh_sharp.POSHBot
 
         }
 
-        private void SendGetPath()
+        private void SendGetPathHome()
         {
             if (_debug_)
                 Console.Out.WriteLine("in SendGetPath");

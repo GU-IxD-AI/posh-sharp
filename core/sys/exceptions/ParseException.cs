@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys.exceptions
+namespace POSH.sys.exceptions
 {
     /// <summary>
     /// An Exception that indicates a parse error.

@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using log4net;
-using POSH_sharp.sys.strict;
-using log4net.Core;
+using POSH.sys.strict;
+
 using System.IO;
+using log4net;
+using log4net.Core;
 using log4net.Layout;
 using log4net.Appender;
 using log4net.Repository.Hierarchy;
 
-namespace POSH_sharp.sys
+
+namespace POSH.sys
 {
     /// <summary>
     /// Base for agent-based log messages.
@@ -74,6 +76,8 @@ namespace POSH_sharp.sys
             attributes = new Dictionary<string, object>();
             if (defaultLevel != null)
                 ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel;
+
+            log4net.Config.XmlConfigurator.Configure();
         }
 		protected void Init(string id)
 		{

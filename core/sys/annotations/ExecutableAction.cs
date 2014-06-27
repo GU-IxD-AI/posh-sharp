@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys.annotations
+namespace POSH.sys.annotations
 {
     public class ExecutableAction : Attribute
     {

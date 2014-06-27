@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// A class that implements a universal latch

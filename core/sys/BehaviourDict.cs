@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.exceptions;
-using POSH_sharp.sys.strict;
+using POSH.sys.exceptions;
+using POSH.sys.strict;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// The behaviour dictionary.

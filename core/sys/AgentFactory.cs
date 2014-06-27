@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.strict;
+using POSH.sys.strict;
 using System.IO;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /// <summary>
     /// Functions to create new agents.
@@ -63,14 +63,13 @@ namespace POSH_sharp.sys
         /// </summary>
         /// <param name="planFile"> Filename of the plan file</param>
         /// <returns>Type of plan, or '' if not recognised</returns>
-        public static PLANTYPE getPlanType(Stream planFile)
+        public static PLANTYPE getPlanType(string planFile)
         {
             try
             {
-                StreamReader reader = new StreamReader(planFile);
+                string[] reader = planFile.Split(Environment.NewLine.ToCharArray());
                 
-                string line = reader.ReadLine();
-                while (line != null)
+                foreach(string line in reader)
                 {
                     foreach (PLANTYPE planID in Enum.GetValues(typeof(PLANTYPE)))
                     { 
@@ -86,7 +85,6 @@ namespace POSH_sharp.sys
                         if (idPos - bracketPos == 1 || line.Substring(bracketPos,idPos-bracketPos).Trim() == string.Empty)
                             return planID;
                     }
-                    line = reader.ReadLine();
                 }
   
             }
@@ -99,7 +97,7 @@ namespace POSH_sharp.sys
 
 		public static AgentBase[] createAgents(string assembly)
 		{
-			return createAgents (assembly,"",null,null);
+			return CreateAgents (assembly,"",null,null);
 		}
         /// <summary>
         /// Returns a sequence of newly created agents using the given behaviour
@@ -123,7 +121,7 @@ namespace POSH_sharp.sys
         /// as returned by AgentInitParser.initAgentFile}</param>
         /// <param name="world">world object, given to agents at construction</param>
         /// <returns>List of Agents</returns>
-        public static AgentBase[] createAgents(string assembly, string plan, List<Tuple<string, object>> agentsInit, World world)
+        public static AgentBase[] CreateAgents(string assemblyName, string plan, List<Tuple<string, object>> agentsInit, World world)
         {
             // build initialisation structure
             if (agentsInit == null)
@@ -143,20 +141,20 @@ namespace POSH_sharp.sys
                 string agentPlan = pair.First;
                 Dictionary<Tuple<string, string>, object> agentAttributes = (Dictionary<Tuple<string, string>, object>) pair.Second;
                 // determine agent type from plan
-                PLANTYPE planType = getPlanType(AssemblyControl.GetControl().GetPlanFile(assembly, agentPlan));
+                PLANTYPE planType = getPlanType(AssemblyControl.GetControl().GetPlanFile(assemblyName, agentPlan));
                 if (planType == PLANTYPE.NONE)
                     throw new KeyNotFoundException(string.Format("plan type of plan {0} not recognised", agentPlan));
                 Type agentType = AGENTTYPE.getType(planType);
                 // create agent and append to sequence
 
                 Type[] constructorTypes = new Type[4];
-                constructorTypes[0] = assembly.GetType();
+                constructorTypes[0] = assemblyName.GetType();
                 constructorTypes[1] = agentPlan.GetType();
                 constructorTypes[2] = agentAttributes.GetType();
                 constructorTypes[3] = (world != null) ? world.GetType() : typeof(World);
 
                 System.Reflection.ConstructorInfo constructor = agentType.GetConstructor(constructorTypes);
-                agents.Add((AgentBase)constructor.Invoke(new object[] {assembly, agentPlan, agentAttributes, world}));
+                agents.Add((AgentBase)constructor.Invoke(new object[] {assemblyName, agentPlan, agentAttributes, world}));
             }
             return agents.ToArray();
         }

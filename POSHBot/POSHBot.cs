@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys;
+using POSH.sys;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
-using POSH_sharp.sys.strict;
+using POSH.sys.strict;
 using Posh_sharp.POSHBot.util;
 
 namespace Posh_sharp.POSHBot
@@ -289,7 +289,7 @@ namespace Posh_sharp.POSHBot
                 varDict[attribute] = value;
             }
             if (cmd == "DAM" || cmd == "PRJ")
-                varDict["TimeStamp"] = POSH_sharp.sys.strict.TimerBase.CurrentTimeStamp().ToString();
+                varDict["TimeStamp"] = POSH.sys.strict.TimerBase.CurrentTimeStamp().ToString();
 
             return new Tuple<string,Dictionary<string,string>>(cmd,varDict);
         }

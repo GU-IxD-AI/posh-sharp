@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys;
+using POSH.sys;
 
 namespace Posh_sharp.POSHBot.util
 {

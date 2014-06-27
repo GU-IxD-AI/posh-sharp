@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.IO;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     /**
      * This class was written by Philipp Rohlfshagen to report the data found in Rohlfshagen & Bryson (2008).

@@ -88,9 +88,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\core\POSH-sharp.core.csproj">
+    <ProjectReference Include="..\core\POSH.core.csproj">
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
-      <Name>POSH-sharp.core</Name>
+      <Name>POSH.core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

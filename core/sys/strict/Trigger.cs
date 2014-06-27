@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace POSH_sharp.sys.strict
+namespace POSH.sys.strict
 {
     /// <summary>
     /// A conjunction of senses and sense-acts, acting as a trigger.

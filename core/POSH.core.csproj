@@ -8,10 +8,12 @@
     <ProjectGuid>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>POSH_sharp</RootNamespace>
-    <AssemblyName>POSH-sharp-core</AssemblyName>
+    <RootNamespace>POSH</RootNamespace>
+    <AssemblyName>POSH-core</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -28,17 +30,17 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\POSH-sharp-core.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\POSH-core.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="log4net">
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>library\libs\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="sys\AgentFactory.cs" />
@@ -47,7 +49,7 @@
     <Compile Include="sys\BehaviourDict.cs" />
     <Compile Include="sys\AgentInitParser.cs" />
     <Compile Include="sys\IBehaviourConnector.cs" />
-    <Compile Include="sys\MobileControl.cs" />
+    <Compile Include="sys\EmbeddedControl.cs" />
     <Compile Include="sys\exceptions\AgentInitParseException.cs" />
     <Compile Include="sys\exceptions\AttributeException.cs" />
     <Compile Include="sys\exceptions\UsageException.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="sys\scheduled\Generic.cs" />
     <Compile Include="sys\scheduled\PlanElement.cs" />
     <Compile Include="sys\scheduled\Agent.cs" />
+    <Compile Include="sys\RampActivation.cs" />
     <Compile Include="sys\scheduled\Sense.cs" />
     <Compile Include="sys\scheduled\Timer.cs" />
     <Compile Include="sys\scheduled\Trigger.cs" />

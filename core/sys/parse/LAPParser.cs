@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.exceptions;
-using POSH_sharp.sys.strict;
+using POSH.sys.exceptions;
+using POSH.sys.strict;
 
 
 
- namespace POSH_sharp.sys.parse
+ namespace POSH.sys.parse
 {
     /// <remarks>
     /// Parser for .lap files.
@@ -270,7 +270,7 @@ using POSH_sharp.sys.strict;
                     if ( dc > 0 )
                         error("Only a single drive-collection allowed");
                     dc ++;
-                    planBuilder.setDriveCollection(getDriveCollection());
+                    planBuilder.SetDriveCollection(getDriveCollection());
                     // print
                 }
                 else

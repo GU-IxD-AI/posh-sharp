@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using POSH_sharp.sys.parse;
+using POSH.sys.parse;
 
-namespace POSH_sharp.sys.scheduled
+namespace POSH.sys.scheduled
 {
     /// <summary>
     /// A drive priority element, containing drive elements.

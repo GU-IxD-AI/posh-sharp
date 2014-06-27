@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace POSH_sharp.sys.scheduled
+namespace POSH.sys.scheduled
 {
     /**
      * Implementation of the agent timer.

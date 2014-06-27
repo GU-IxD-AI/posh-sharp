@@ -2,14 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
-namespace POSH_sharp.sys
+namespace POSH.sys
 {
     public interface IBehaviourConnector
     {
+        string GetBehaviourLibrary();
+
         Behaviour[] GetBehaviours(AgentBase agent);
 
-        void ConnectPOSHAgent(AgentBase agent);
+        string GetPlanFileStream(string planName);
+
+        string GetInitFileStream(string initFileName);
 
         bool Ready();
 
