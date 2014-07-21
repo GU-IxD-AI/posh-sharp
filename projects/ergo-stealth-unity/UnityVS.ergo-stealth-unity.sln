@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.0
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityVS.ergo-stealth-unity.CSharp", "UnityVS.ergo-stealth-unity.CSharp.csproj", "{589D012D-62C0-7BC7-0A0E-EDF2637EF6E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityVS.ergo-stealth-unity.CSharp.Plugins", "UnityVS.ergo-stealth-unity.CSharp.Plugins.csproj", "{B05735BF-F858-D0CC-061A-9F4D2DD27D79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{589D012D-62C0-7BC7-0A0E-EDF2637EF6E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{589D012D-62C0-7BC7-0A0E-EDF2637EF6E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{589D012D-62C0-7BC7-0A0E-EDF2637EF6E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{589D012D-62C0-7BC7-0A0E-EDF2637EF6E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B05735BF-F858-D0CC-061A-9F4D2DD27D79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B05735BF-F858-D0CC-061A-9F4D2DD27D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B05735BF-F858-D0CC-061A-9F4D2DD27D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B05735BF-F858-D0CC-061A-9F4D2DD27D79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

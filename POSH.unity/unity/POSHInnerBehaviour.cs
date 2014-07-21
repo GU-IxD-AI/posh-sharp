@@ -32,6 +32,17 @@ namespace POSH.unity
             this.parent = parent;
         }
 
+        public override void AssignAttributes(Dictionary<string, object> attribs)
+        {
+            base.AssignAttributes(attribs);
+            parent.ConfigureParameters(attribs);
+        }
+
+        public override void AssignAttribute(string key, object attrib)
+        {
+            base.AssignAttribute(key, attrib);
+            parent.ConfigureParameter(key, attrib);
+        }
         
 
     }

@@ -1,0 +1,34 @@
+(
+ (C a-groom (goal ((s_succeed 0)))
+    (elements   
+      ((has-no-target      (trigger((s_has_groom_target 0)))            a_pick_groom_target))
+      ((not-near-target    (trigger((s_is_near_groom_target 0)))        a_move_to_groom_target)) 
+      ((default-groom      (trigger((s_succeed)))                       a_groom_with_target))
+     )
+    ) 
+
+  (C a-eat (goal ((s_succeed 0)))
+    (elements
+      ((has-no-food      		(trigger((s_has_food 0)))            	a_pick_food))
+      ((not-near-target  		(trigger((s_is_near_food_target 0))) 	a_move_to_food))
+      ((default-feeding  		(trigger((s_succeed)))    				a_eat))
+     )
+    )
+
+  (C a-drink (goal ((s_succeed 0)))
+    (elements
+      ((has-no-drink      		(trigger((s_has_drink 0)))            		a_pick_drink))
+      ((not-near-target  		(trigger((s_is_near_drink_target 0))) 		a_move_to_drink))
+      ((default-feeding  		(trigger((s_is_near_drink_target)))  		a_drink))
+     )
+    )
+  
+ (SDC life (goal (s_one_step (s_succeed 0)))
+     (drives
+       ((dead	   (trigger((s_is_dead 0)))				a_stay_dead))
+       ((drink     (trigger((s_wants_drink))) 			a-drink) (eat       (trigger((s_wants_food)))					a-eat))      
+       ((groom     (trigger((s_wants_to_groom))) 		a-groom)) 
+       ((explore   (trigger((s_succeed))) 				a_move_around))                          	          
+      )
+     )
+ )

@@ -13,11 +13,17 @@ namespace POSH.unity
         protected POSHController controller;
         protected AgentBase agent = null;
 
+        /// <summary>
+        /// Links the actual gameObject and its Component the POSHBehaviour to the POSHController.
+        /// </summary>
+        /// <param name="agent">The agent controlling the gameObject</param>
+        /// <returns>A POSHBehaviour which is connected to the gameObject so that POSH is able to control Unity objects</returns>
         public sys.Behaviour LinkPOSHBehaviour(AgentBase agent)
         {
             if (this.agent == null || this.agent == agent)
             {
                 this.agent = agent;
+                Dictionary<string, object> parameters = agent.GetAttributes();
                 poshBehaviour = InstantiateInnerBehaviour(agent);
             }
             else
@@ -28,7 +34,17 @@ namespace POSH.unity
             return poshBehaviour;
         }
 
+        /// <summary>
+        /// Needs tyo be implemented by an actual behaviour to allow the behaviour to specifically instantiate the POSHInnerBehaviour and set additional things in motion.
+        /// Is called only from LinkPOSHBehaviour.
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <returns></returns>
         protected abstract POSHInnerBehaviour InstantiateInnerBehaviour(AgentBase agent);
+
+        protected internal abstract void ConfigureParameters(Dictionary<string,object> parameters);
+
+        protected internal abstract void ConfigureParameter(string parameter, object value);
 
         public void ConnectPOSHUnity(POSHController control)
         {

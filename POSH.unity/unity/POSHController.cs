@@ -41,6 +41,7 @@ namespace POSH.unity
 
         protected void InitPOSH()
         {
+#if LOG_ON
             string configFile = Application.dataPath + String.Format("{0}POSH{0}lib{0}log4net.xml",Path.DirectorySeparatorChar);
             if (Application.platform == RuntimePlatform.WindowsPlayer)
             {
@@ -53,7 +54,7 @@ namespace POSH.unity
             log4net.Config.XmlConfigurator.ConfigureAndWatch(fileInfo);
             /**/
             log4net.LogManager.GetLogger(typeof(LogBase)).InfoFormat("tesat", configFile);
-
+#endif 
 
             AssemblyControl.SetForUnityMode();
             poshLink = AssemblyControl.GetControl() as EmbeddedControl;

@@ -1,0 +1,142 @@
+System:
+  OS: Windows 7 Service Pack 1 (6.1.7601) 64bit
+  CPU: Intel(R) Core(TM) i5-2520M CPU @ 2.50GHz, count: 4
+  Physical RAM: 3994 MB
+  Addressable RAM: 2048 MB
+
+D3D9:
+  Renderer: Intel(R) HD Graphics 3000
+  VendorID: 8086
+  Driver: igdumd32.dll 9.17.10.3040
+  VRAM: 880 (via DXGI)
+
+OpenGL:
+  Version: 3.1.0 - Build 9.17.10.3040
+  Vendor: Intel
+  Renderer: Intel(R) HD Graphics 3000
+  VRAM: 880 (via DXGI)
+  Extensions: GL_EXT_blend_minmax GL_EXT_blend_subtract GL_EXT_blend_color GL_EXT_abgr GL_EXT_texture3D GL_EXT_clip_volume_hint GL_EXT_compiled_vertex_array GL_SGIS_texture_edge_clamp GL_SGIS_generate_mipmap GL_EXT_draw_range_elements GL_SGIS_texture_lod GL_EXT_rescale_normal GL_EXT_packed_pixels GL_EXT_texture_edge_clamp GL_EXT_separate_specular_color GL_ARB_multitexture GL_EXT_texture_env_combine GL_EXT_bgra GL_EXT_blend_func_separate GL_EXT_secondary_color GL_EXT_fog_coord GL_EXT_texture_env_add GL_ARB_texture_cube_map GL_ARB_transpose_matrix GL_ARB_texture_env_add GL_IBM_texture_mirrored_repeat GL_EXT_multi_draw_arrays GL_NV_blend_square GL_ARB_texture_compression GL_3DFX_texture_compression_FXT1 GL_EXT_texture_filter_anisotropic GL_ARB_texture_border_clamp GL_ARB_point_parameters GL_ARB_texture_env_combine GL_ARB_texture_env_dot3 GL_ARB_texture_env_crossbar GL_EXT_texture_compression_s3tc GL_ARB_shadow GL_ARB_window_pos GL_EXT_shadow_funcs GL_EXT_stencil_wrap GL_ARB_vertex_program GL_EXT_texture_rectangle GL_ARB_fragment_program GL_EXT_stencil_two_side GL_ATI_separate_stencil GL_ARB_vertex_buffer_object GL_EXT_texture_lod_bias GL_ARB_occlusion_query GL_ARB_fragment_shader GL_ARB_shader_objects GL_ARB_shading_language_100 GL_ARB_texture_non_power_of_two GL_ARB_vertex_shader GL_NV_texgen_reflection GL_ARB_point_sprite GL_ARB_fragment_program_shadow GL_EXT_blend_equation_separate GL_ARB_depth_texture GL_ARB_texture_rectangle GL_ARB_draw_buffers GL_ARB_color_buffer_float GL_ARB_half_float_pixel GL_ARB_texture_float GL_ARB_pixel_buffer_object GL_EXT_framebuffer_object GL_ARB_draw_instanced GL_ARB_half_float_vertex GL_ARB_occlusion_query2 GL_EXT_draw_buffers2 GL_WIN_swap_hint GL_EXT_texture_sRGB GL_ARB_multisample GL_EXT_packed_float GL_EXT_texture_shared_exponent GL_ARB_texture_rg GL_ARB_texture_compression_rgtc GL_NV_conditional_render GL_EXT_texture_swizzle GL_ARB_sync GL_ARB_framebuffer_sRGB GL_EXT_packed_depth_stencil GL_ARB_depth_buffer_float GL_EXT_transform_feedback GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_ARB_framebuffer_object GL_EXT_texture_array GL_EXT_texture_integer GL_ARB_map_buffer_range GL_EXT_texture_snorm GL_INTEL_performance_queries GL_ARB_copy_buffer GL_ARB_sampler_objects GL_NV_primitive_restart GL_ARB_seamless_cube_map GL_ARB_uniform_buffer_object GL_ARB_depth_clamp GL_ARB_vertex_array_bgra GL_ARB_shader_bit_encoding GL_ARB_draw_buffers_blend GL_ARB_texture_query_lod GL_ARB_explicit_attrib_location GL_ARB_draw_elements_base_vertex GL_ARB_instanced_arrays GL_ARB_fragment_coord_conventions GL_EXT_gpu_program_parameters GL_ARB_texture_buffer_object_rgb32 GL_ARB_compatibility GL_ARB_texture_rgb10_a2ui GL_ARB_vertex_type_2_10_10_10_rev GL_ARB_timer_query GL_INTEL_map_texture GL_ARB_vertex_array_object GL_ARB_provoking_vertex 
+
+User locale: en-GB
+System locale: en-GB
+
+Running processes:
+FF_Protection.exe (4716)
+    path: C:\Program Files (x86)\STMicroelectronics\AccelerometerP11\FF_Protection.exe
+    company:  
+    product:  FF_Protection Application
+    filedesc: FF_Protection MFC Application
+    filever:  2.0.0.6
+    prodver:  1.0.0.0
+googledrivesync.exe (4820)
+    path: C:\Program Files (x86)\Google\Drive\googledrivesync.exe
+    company:  Google
+    product:  Google Drive
+    filedesc: Google Drive
+    filever:  1.16.7009.9618
+    prodver:  1.16.7009.9618
+Dropbox.exe (4844)
+    path: C:\Users\swen\AppData\Roaming\Dropbox\bin\Dropbox.exe
+    company:  Dropbox, Inc.
+    product:  Dropbox
+    filedesc: Dropbox
+    filever:  2.8.2.0
+    prodver:  1.0.0.1
+IAStorIcon.exe (4220)
+    path: C:\Program Files (x86)\Intel\Intel(R) Rapid Storage Technology\IAStorIcon.exe
+    company:  Intel Corporation
+    product:  IAStorIcon
+    filedesc: IAStorIcon
+    filever:  10.1.0.1008
+    prodver:  10.1.0.1008
+iTunesHelper.exe (4152)
+    path: C:\Program Files (x86)\iTunes\iTunesHelper.exe
+    company:  Apple Inc.
+    product:  iTunes
+    filedesc: iTunesHelper
+    filever:  10.6.3.25
+    prodver:  10.6.3.25
+EsHelper2.exe (5056)
+    path: C:\Program Files (x86)\KORG\KORG USB-MIDI Driver\EsHelper2.exe
+    company:  KORG Inc.
+    product:  
+    filedesc: KORG DriverTools EzSetup Helper
+    filever:  1.1.0.2
+    prodver:  1.1.0.2
+RunDll32.exe (5380)
+    path: C:\Windows\SysWOW64\RunDll32.exe
+    company:  Microsoft Corporation
+    product:  Microsoft® Windows® Operating System
+    filedesc: Windows host process (Rundll32)
+    filever:  6.1.7600.16385
+    prodver:  6.1.7600.16385
+googledrivesync.exe (5816)
+    path: C:\Program Files (x86)\Google\Drive\googledrivesync.exe
+    company:  Google
+    product:  Google Drive
+    filedesc: Google Drive
+    filever:  1.16.7009.9618
+    prodver:  1.16.7009.9618
+BluetoothHeadsetProxy.exe (5988)
+    path: C:\Program Files\WIDCOMM\Bluetooth Software\BluetoothHeadsetProxy.exe
+    company:  Broadcom Corporation.
+    product:  Bluetooth Software
+    filedesc: Bluetooth Headset Skype Proxy
+    filever:  6.3.0.8800
+    prodver:  6.3.0.8800
+thunderbird.exe (5436)
+    path: C:\Program Files (x86)\Mozilla Thunderbird\thunderbird.exe
+    company:  Mozilla Corporation
+    product:  Thunderbird
+    filedesc: Thunderbird
+    filever:  24.6.0.5274
+    prodver:  24.6.0.0
+firefox.exe (6824)
+    path: C:\Program Files (x86)\Mozilla Firefox\firefox.exe
+    company:  Mozilla Corporation
+    product:  Firefox
+    filedesc: Firefox
+    filever:  30.0.0.5269
+    prodver:  30.0.0.0
+plugin-container.exe (5960)
+    path: C:\Program Files (x86)\Mozilla Firefox\plugin-container.exe
+    company:  Mozilla Corporation
+    product:  Firefox
+    filedesc: Plugin Container for Firefox
+    filever:  30.0.0.5269
+    prodver:  30.0.0.0
+googletalkplugin.exe (6912)
+    path: C:\Users\swen\AppData\Local\Google\Google Talk Plugin\googletalkplugin.exe
+    company:  Google
+    product:  Google Talk Plugin
+    filedesc: Hangouts Plugin
+    filever:  5.0.0.0
+    prodver:  5.0.0.0
+notepad++.exe (5184)
+    path: C:\Program Files (x86)\Notepad++\notepad++.exe
+    company:  Don HO don.h@free.fr
+    product:  Notepad++
+    filedesc: Notepad++ : a free (GNU) source code editor
+    filever:  6.1.3.0
+    prodver:  6.1.3.0
+devenv.exe (5892)
+    path: C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe
+    company:  Microsoft Corporation
+    product:  Microsoft® Visual Studio® 2010
+    filedesc: Microsoft Visual Studio 2010
+    filever:  10.0.30319.1
+    prodver:  10.0.30319.1
+adb.exe (7132)
+    path: D:\Programs\android-sdk-windows\platform-tools\adb.exe
+    company:  
+    product:  
+    filedesc: 
+    filever:  0.0.0.0
+    prodver:  0.0.0.0
+UnityBugReporter.exe (5640)
+    path: C:\Program Files (x86)\Unity\Editor\UnityBugReporter.exe
+    company:  Unity Technologies ApS
+    product:  Unity Bug Reporter
+    filedesc: Unity Bug Reporter
+    filever:  4.5.0.18735
+    prodver:  4.5.0.18735

@@ -1,0 +1,52 @@
+###
+# agent init file
+###
+
+[robotguard]
+RobotMovementInner.name = Robo 1
+RobotMovementInner.startloc = wayPoint_004
+RobotMovementInner.waypoints = wayPoint_001 wayPoint_002 wayPoint_003 wayPoint_004
+
+[robotguard]
+RobotMovementInner.name = Robo 2
+RobotMovementInner.startloc = wayPoint_006
+RobotMovementInner.waypoints = wayPoint_010 wayPoint_008 wayPoint_011 wayPoint_006
+
+[robotguard]
+RobotMovementInner.name = Robo 3
+RobotMovementInner.startloc = wayPoint_005
+RobotMovementInner.waypoints = wayPoint_009 wayPoint_007 wayPoint_011 wayPoint_005
+
+[robotguard]
+RobotMovementInner.name = Robo 4
+RobotMovementInner.startloc = wayPoint_010
+RobotMovementInner.waypoints = wayPoint_006 wayPoint_005 wayPoint_009 wayPoint_010 
+
+[robotguard]
+RobotMovementInner.name = Robo 5
+RobotMovementInner.startloc = wayPoint_005
+RobotMovementInner.waypoints = wayPoint_005 wayPoint_006 wayPoint_010 wayPoint_009
+
+#[robotguard]
+#RobotMovementInner.name = Robo 6
+#RobotMovementInner.startloc = wayPoint_002
+
+#[robotguard]
+#RobotMovementInner.name = Robo 7
+#RobotMovementInner.startloc = wayPoint_010
+#RobotMovementInner.waypoints = wayPoint_010 wayPoint_008 wayPoint_011 wayPoint_006
+
+#[robotguard]
+#RobotMovementInner.name = Robo 8
+#RobotMovementInner.startloc = wayPoint_009
+#RobotMovementInner.waypoints = wayPoint_009 wayPoint_007 wayPoint_011 wayPoint_005
+
+#[robotguard]
+#RobotMovementInner.name = Robo 9
+#RobotMovementInner.startloc = wayPoint_006
+#RobotMovementInner.waypoints = wayPoint_006 wayPoint_005 wayPoint_010 wayPoint_006
+
+#[robotguard]
+#RobotMovementInner.name = Robo 10
+#RobotMovementInner.startloc = wayPoint_005
+#RobotMovementInner.waypoints = wayPoint_005 wayPoint_006 wayPoint_010 wayPoint_009
