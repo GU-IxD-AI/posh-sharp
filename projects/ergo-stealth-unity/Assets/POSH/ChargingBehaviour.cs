@@ -13,6 +13,7 @@ public class ChargingBehaviour : MonoBehaviour {
     public float energy;
     public int max_energy;
     public float energyUsage;
+    public float criticalLowEnergy;
 
     public bool alive=false;
    
@@ -34,7 +35,7 @@ public class ChargingBehaviour : MonoBehaviour {
 
     public bool NeedToCharge()
     {
-        if (energy < max_energy * 0.30)
+        if (energy < criticalLowEnergy)
             return true;
 
         return false;
@@ -56,16 +57,22 @@ public class ChargingBehaviour : MonoBehaviour {
             }
             else
                 energy -= energyUsage;
-            
-            
+
+
 
             if (energy > max_energy)
                 ergos["charging"].ReachedGoal();
 
             if (energy <= 0)
                 alive = false;
-            
-           
+
+
+        }
+        else
+        {
+            energy += energyUsage;
+            if (energy > criticalLowEnergy)
+                alive = true;
         }
 
         

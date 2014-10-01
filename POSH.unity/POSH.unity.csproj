@@ -50,8 +50,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="unity\GPController.cs" />
     <Compile Include="unity\POSHController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="unity\POSHGPLink.cs" />
     <Compile Include="unity\POSHInnerBehaviour.cs" />
     <Compile Include="unity\POSHMonoBehaviour.cs" />
   </ItemGroup>
@@ -62,6 +64,10 @@
     <ProjectReference Include="..\core\POSH.core.csproj">
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
       <Name>POSH.core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GrammarGP\GrammarGP.csproj">
+      <Project>{EF96D805-C98A-45D1-80A4-A040D917AB03}</Project>
+      <Name>GrammarGP</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

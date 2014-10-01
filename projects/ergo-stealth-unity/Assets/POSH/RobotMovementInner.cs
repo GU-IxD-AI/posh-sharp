@@ -112,7 +112,7 @@ namespace POSH.unity
         public bool saw_enemy()
         {
             AttachToLog("in saw_enemy");
-            if (GetRobotMovement().playerInSight == false && !GetRobotMovement().personalLastSighting.Equals(new Vector3(1000f, 1000f, 1000f)))
+            if (GetRobotMovement().playerInSight == false && !(GetRobotMovement().personalLastSighting == new Vector3(1000f, 1000f, 1000f)))
                 return true;
             return false;
         }

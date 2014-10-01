@@ -8,7 +8,7 @@
     <ProjectGuid>{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>POSH_sharp</RootNamespace>
+    <RootNamespace>POSH</RootNamespace>
     <AssemblyName>POSH-sharp</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -50,7 +50,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>POSH_sharp.executing.Launcher</StartupObject>
+    <StartupObject>POSH.executing.Launcher</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Optimize>false</Optimize>
@@ -58,7 +58,7 @@
     <WarningLevel>4</WarningLevel>
     <Commandlineparameters>-v -a=PoshBot.dll POSHBot</Commandlineparameters>
     <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;LOG_ON</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="executing\Launcher.cs" />
@@ -89,9 +89,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\core\POSH-sharp.core.csproj">
+    <ProjectReference Include="..\core\POSH.core.csproj">
       <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
-      <Name>POSH-sharp.core</Name>
+      <Name>POSH.core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
