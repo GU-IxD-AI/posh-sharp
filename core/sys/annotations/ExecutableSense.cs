@@ -5,19 +5,29 @@ using System.Text;
 
 namespace POSH.sys.annotations
 {
-    public class ExecutableSense : Attribute
+    public class ExecutableSense : POSHPrimitive
     {
-        public string command { get; private set; }
-        public float version { get; private set; }
-
-		public ExecutableSense(string command) : this(command, 0.1f)
+        public ExecutableSense(string command) : base(command)
 		{}
 
         //TODO: remodel the Action to link it against any method which is called by ExecutableSense
         public ExecutableSense(string command, float version)
+            : base(command,version)
+        { }
+
+        public override bool Equals(object obj)
         {
-            this.command = command;
-            this.version = version;
+            ExecutableSense otherSense = obj as ExecutableSense;
+
+            if (obj == null || otherSense == null)
+                return false;
+
+            return (otherSense.command == this.command) ? true : false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

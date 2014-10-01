@@ -12,8 +12,8 @@ namespace POSH.sys.strict
     public class DriveElement : Element
     {
         internal Trigger trigger;
-        private Object root;
-        private object element;
+        private CopiableElement root;
+        private CopiableElement element;
         private long maxFreq;
         private long lastFired;
 
@@ -40,7 +40,7 @@ namespace POSH.sys.strict
         /// <param name="maxFreq">The maximum frequency at which is element is
         ///     fired. The frequency is given in milliseconds between
         ///     invocation. A negative number disables this feature.</param>
-        public DriveElement(Agent agent, string elementName, Trigger trigger, Object root, long maxFreq)
+        public DriveElement(Agent agent, string elementName, Trigger trigger, CopiableElement root, long maxFreq)
             : base(string.Format("DE.{0}", elementName), agent)
         {
             this.name = elementName;
@@ -151,6 +151,17 @@ namespace POSH.sys.strict
         public override CopiableElement copy()
         {
             throw new NotImplementedException("DriveElement.copy() is never supposed to be called");
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = string.Empty;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            plan = String.Format("({0} (trigger {1}) {2} {3})", name, trigger.ToSerialize(elements), element.ToSerialize(elements), POSH.sys.parse.LAPParser.GetTimeString(this.maxFreq));
+
+
+            return plan;
         }
     }
 }

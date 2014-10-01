@@ -244,7 +244,7 @@ namespace POSH.sys
                     agent.setTimer(new SteppedTimer());
                     break;
                 case "SRDC":
-                    agent.setTimer(new RealTimeTimer( (long)(1000.00 / 50.0) ));
+                    agent.setTimer(new RealTimeTimer( (long)(1000.00 / 30.0) ));
                     break;
                 default:
                     throw new TypeLoadException(string.Format("Drive collection of type '{0}' not " +
@@ -272,7 +272,7 @@ namespace POSH.sys
                 priorityElements.Add(new DrivePriorityElement(agent,dcName,elementList.ToArray()));
             }
 
-            return new DriveCollection(agent,dcName,priorityElements.ToArray(),goal);
+            return new DriveCollection(agent,dcType,dcName,priorityElements.ToArray(),goal);
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace POSH.sys
         /// Completes the action pattern based on the given
         /// action pattern stubs.
         /// 
-        /// This method modifies the given action pattern stubst and
+        /// This method modifies the given action pattern stubs and
         /// creates all its elements. The elements can either be other
         /// competences, actions or senses, where competences are only
         /// allowed as the last elements in action patterns. In case of
@@ -381,7 +381,7 @@ namespace POSH.sys
                     //neither of above -> action
                     elementList.Add(getTriggerable(agent,(string)elementNames[elementNames.Length-1],competences));
                 
-                actionPatterns[actionPattern].setElements(elementList.ToArray());
+                actionPatterns[actionPattern].SetElements(elementList.ToArray());
             }
         }
 
@@ -400,6 +400,7 @@ namespace POSH.sys
                 in this.competences)
             {
                 Trigger goal = buildGoal(agent,pair.Value.Third);
+                // FIXME: @swen: this is an actual issue as the plan allows setting a timeout which the engine currently is ignoring
                 competenceStubs[pair.Key] = new Competence(agent,pair.Key, new CompetencePriorityElement[] {}, goal);
             }
 
@@ -418,7 +419,8 @@ namespace POSH.sys
             Dictionary<string,ActionPattern> patternStubs = new Dictionary<string,ActionPattern>();
             
             foreach (KeyValuePair<string,Tuple<string,long,List<object>>> pair in this.actionPatterns )
-                //INFO: we're just ignoring the time, as we use the simple slip-stack
+                // INFO: OLD: we're just ignoring the time, as we use the simple slip-stack
+                // FIXME: @swen: this is an actual issue as the plan allows setting a timeout which the engine currently is ignoring
                 patternStubs[pair.Key] = new ActionPattern(agent,pair.Key,new CopiableElement[] {});
             
             return patternStubs;

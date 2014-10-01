@@ -5,9 +5,14 @@ using System.Text;
 using System.Timers;
 using System.Reflection;
 using System.IO;
-using log4net;
 using POSH.sys.exceptions;
 using System.Threading;
+
+#if LOG_ON
+    using log4net;
+#else
+    using POSH.sys;
+#endif
 
 namespace POSH.sys
 {
@@ -23,7 +28,7 @@ namespace POSH.sys
                 return instance;
             else
             {
-                Environment.SetEnvironmentVariable("POSHUnityMode", "False");
+                //Environment.SetEnvironmentVariable("POSHUnityMode", "False");
                 instance = new AssemblyControl();
                 return instance;
             }
@@ -32,7 +37,7 @@ namespace POSH.sys
 
         public static void SetForUnityMode()
         {
-            Environment.SetEnvironmentVariable("POSHUnityMode","True");
+            //Environment.SetEnvironmentVariable("POSHUnityMode","True");
 
             if (instance == null || !instance.GetType().IsSubclassOf(typeof(EmbeddedControl)))
                 instance = new EmbeddedControl();
@@ -583,6 +588,7 @@ namespace POSH.sys
                 Console.Out.WriteLine("- all agents stopped");
             return loopsRunning;
         }
+
         public virtual AgentBase[] CreateAgents(bool verbose, string assembly, List<Tuple<string, object>> agentsInit, Tuple<World, bool> setting)
         {
             // create the agents
@@ -612,6 +618,17 @@ namespace POSH.sys
                     agent.StartLoop();
 
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agent"></param>
+        /// <param name="planName"></param>
+        /// <returns></returns>
+        public void ReLinkAgents(AgentBase agent,string planName)
+        {
+            agent.LoadPlan(planName);
         }
     }
 

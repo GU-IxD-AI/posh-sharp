@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -15,10 +16,11 @@ namespace POSH.sys.strict
     /// A sense / sense-act as a thin wrapper around a behaviour's
     /// sense / sense-act method.
     /// </summary>
-    public class POSHSense : CopiableElement
+    public class POSHSense : PlanElement
     {
         BehaviourDict behaviourDict;
         private Tuple<string,Behaviour> sense;
+        private string senseName;
         protected internal Behaviour behaviour;
         private object value;
         string predicate;
@@ -48,6 +50,7 @@ namespace POSH.sys.strict
         public POSHSense(Agent agent, string senseName, string value, string predicate)
             :base(string.Format("Sense.{0}",senseName),agent)
         {
+            this.senseName = senseName;
             behaviourDict = agent.getBehaviourDict();
             sense = behaviourDict.getSense(senseName);
             behaviour = behaviourDict.getSenseBehaviour(senseName);
@@ -56,6 +59,10 @@ namespace POSH.sys.strict
             this.predicate = (predicate is string) ? predicate : "==";
 
             log.Debug("Created");
+
+            //hook up to a listener for fire events
+            if (agent.HasListenerForTyp(EventType.Fire))
+                agent.SubscribeToListeners(this, EventType.Fire);
         }
 
         private bool compare<T>(string predicate, T operand1, T operand2) where T : IComparable
@@ -81,40 +88,55 @@ namespace POSH.sys.strict
         /// Activates the sense and returns its result.
         /// </summary>
         /// <returns>The result of the sense.</returns>
-        public bool fire()
+        public override FireResult fire()
         {
             object result;
             bool checkBool;
             int checkInt;
             float checkFloat;
             long checkLong;
+            bool output = false;
 
             log.Debug("Firing");
 
             result = sense.Second.ExecuteSense(sense.First);
-
+            
+            //logging the result
+            SenseArgs args = new SenseArgs();
+            args.Sensed = result;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
+            
             switch (result.GetType().Name)
             {
                 case "Boolean":
                     if (value == null)
-                        return (bool) result;
+                    {
+                        output = (bool)result;
+                        break;
+                    }
                     if (bool.TryParse(value.ToString(), out checkBool))
-                        return compare<bool>(predicate.Trim(), (bool)result,checkBool);
+                    {
+                        output =  compare<bool>(predicate.Trim(), (bool)result, checkBool);
+                        break;
+                    }
                     if (int.TryParse(value.ToString(), out checkInt))
-                        return compare<int>(predicate.Trim(),(((bool)result) ? 1 : 0), checkInt);
+                    {
+                        output = compare<int>(predicate.Trim(), (((bool)result) ? 1 : 0), checkInt);
+                    }
                     break;
                 case "Float":
                     if (float.TryParse(value.ToString(), out checkFloat))
-                        return compare<float>(predicate.Trim(),(float)result,checkFloat);
+                        output = compare<float>(predicate.Trim(),(float)result,checkFloat);
                     break;
                 case "Long":
                     if (long.TryParse(value.ToString(), out checkLong))
-                        return compare<long>(predicate.Trim(),(long)result,checkLong);
+                        output = compare<long>(predicate.Trim(),(long)result,checkLong);
                     break;
                 default:
                     break;
             }
-            return false;
+            return new FireResult(output,null);
         }
 
         
@@ -129,6 +151,17 @@ namespace POSH.sys.strict
         public override CopiableElement copy()
         {
             return this;
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+            plan = String.Format("( {0} {1} {2} )", name.Split('.').Last(), (value != null)? value.ToString() : "1.0", predicate);
+
+            return plan;
         }
     }
 }

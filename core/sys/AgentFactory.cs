@@ -95,7 +95,7 @@ namespace POSH.sys
             return PLANTYPE.NONE;
         }
 
-		public static AgentBase[] createAgents(string assembly)
+		public static AgentBase[] CreateAgents(string assembly)
 		{
 			return CreateAgents (assembly,"",null,null);
 		}
@@ -115,10 +115,10 @@ namespace POSH.sys
         /// and returned as a sequence. If both a plan and agents_init are given,
         /// then the plan is ignored.
         /// </summary>
-        /// <param name="library">name of the library</param>
+        /// <param name="assemblyName">name of the library</param>
         /// <param name="plan">name of the plan (without path and file ending)</param>
         /// <param name="agentsInit">data structure for agent initialisation
-        /// as returned by AgentInitParser.initAgentFile}</param>
+        /// as returned by AgentInitParser.initAgentFile. The first element is the plan file name the second element is an attribute dictionary</param>
         /// <param name="world">world object, given to agents at construction</param>
         /// <returns>List of Agents</returns>
         public static AgentBase[] CreateAgents(string assemblyName, string plan, List<Tuple<string, object>> agentsInit, World world)

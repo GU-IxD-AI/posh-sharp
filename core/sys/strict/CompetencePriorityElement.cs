@@ -90,5 +90,21 @@ namespace POSH.sys.strict
 
             return newObj;
         }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = string.Empty;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+            
+
+            foreach (CompetenceElement elem in this.elements)
+            {
+                plan += "\t(" + elem.ToSerialize(elements) + ")";
+            }
+
+            return plan;
+        }
     }
 }

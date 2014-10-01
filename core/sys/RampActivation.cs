@@ -14,6 +14,7 @@ namespace POSH.sys
         private float urgency;
         private float activation;
         private bool active;
+        private int interrupts;
         private int count;
 
         /// <summary>
@@ -24,7 +25,7 @@ namespace POSH.sys
         /// <param name="lower"></param>
         /// <param name="increment"></param>
         /// <param name="urgency_multiplier"></param>
-        public RampActivation(int activation, int stickiness, int lower, float increment, float urgency_multiplier)
+        public RampActivation(int activation, int stickiness, int lower, float increment, float urgency_multiplier, int interrupts)
         {
             this.activation = activation;
             this.stickiness = stickiness;
@@ -33,6 +34,7 @@ namespace POSH.sys
             this.increment = increment;
             this.urgency = urgency_multiplier;
             this.active = false;
+            this.interrupts = interrupts;
             this.count = 0;
         }
 
@@ -79,7 +81,7 @@ namespace POSH.sys
         {
             if (active)
             {
-                if (count < 0 || saturation <= 0)
+                if (interrupts < 0 || count < interrupts ||saturation <= 0)
                 {
                     active = false;
                     saturation = stickiness;

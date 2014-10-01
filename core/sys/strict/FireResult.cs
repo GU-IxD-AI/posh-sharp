@@ -44,6 +44,8 @@ namespace POSH.sys.strict
             continueExecuting = continueExecution;
             if (continueExecution && nextElement is CopiableElement)
                 // copy the next element, if there is one
+                // FIX: @swen: I do not see the need for copying loads of elements when they can be referenced instead.
+                // FIXME: @ check if this still works when not cloned
                 next = (ElementCollection)nextElement.copy();
             else
                 next = null;

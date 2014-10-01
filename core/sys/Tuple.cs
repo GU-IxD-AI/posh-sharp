@@ -14,6 +14,14 @@ namespace POSH.sys
             First = first;
             Second = second;
         }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1,T2> tup = obj as Tuple<T1,T2>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second);
+        }
     }
 
     public class Tuple<T1, T2,T3> : Tuple<T1,T2>
@@ -23,6 +31,14 @@ namespace POSH.sys
             : base(first,second)
         {
             Third = third;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2,T3> tup = obj as Tuple<T1, T2, T3>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third);
         }
     }
 
@@ -35,6 +51,14 @@ namespace POSH.sys
         {
             Forth = forth;
         }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2, T3, T4> tup = obj as Tuple<T1, T2, T3, T4>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth);
+        }
     }
 
     public class Tuple<T1, T2, T3, T4, T5> : Tuple<T1, T2, T3, T4>
@@ -45,6 +69,14 @@ namespace POSH.sys
             : base(first, second, third,forth)
         {
             Fifth = fifth;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2, T3, T4, T5> tup = obj as Tuple<T1, T2, T3, T4, T5>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth);
         }
     }
 
@@ -57,6 +89,14 @@ namespace POSH.sys
         {
             Sixth = sixth;
         }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2, T3, T4, T5, T6> tup = obj as Tuple<T1, T2, T3, T4, T5, T6>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth) && Sixth.Equals(tup.Sixth);
+        }
     }
 
     public class Tuple<T1, T2, T3, T4, T5, T6, T7> : Tuple<T1, T2, T3, T4, T5, T6>
@@ -67,6 +107,14 @@ namespace POSH.sys
             : base(first, second, third, forth, fifth, sixth)
         {
             Seventh = seventh;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2, T3, T4, T5, T6, T7> tup = obj as Tuple<T1, T2, T3, T4, T5, T6, T7>;
+            if (tup == null)
+                return false;
+            return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth) && Sixth.Equals(tup.Sixth) && Seventh.Equals(tup.Seventh);
         }
     }
 

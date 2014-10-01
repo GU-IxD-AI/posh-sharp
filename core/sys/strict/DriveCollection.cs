@@ -25,7 +25,7 @@ namespace POSH.sys.strict
         protected internal Trigger goal;
         protected internal DriveElement lastTriggeredElement;
 
-
+        private string type;
 
         /// <summary>
         /// Initialises the drive collection.
@@ -39,12 +39,13 @@ namespace POSH.sys.strict
         /// <param name="priorityElements">The drive elements in order of their
         ///         priority, starting with the highest priority.</param>
         /// <param name="goal">The goal of the drive collection.</param>
-        public DriveCollection(Agent agent, string collectionName, DrivePriorityElement [] priorityElements, Trigger goal)
-            : base(string.Format( "DC.{0}", collectionName),agent)
+        public DriveCollection(Agent agent, string collectionType, string collectionName, DrivePriorityElement[] priorityElements, Trigger goal)
+            : base(string.Format( "SDC.{0}", collectionName),agent)
         {
             name = collectionName;
             elements = priorityElements;
             this.goal = goal;
+            type = collectionType;
 
             log.Debug("Created");
         }
@@ -108,6 +109,24 @@ namespace POSH.sys.strict
         public override CopiableElement  copy()
         {
  	         throw new NotImplementedException("DriveCollection.copy() is never supposed to be called");
-        } 
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string dc;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            
+            string acts = string.Empty;
+            foreach (DrivePriorityElement elem in this.elements)
+            {
+                acts += "\t(" + elem.ToSerialize(elements) + "\t)\n";
+            }
+
+            // TODO: the current implementation does not support timeouts
+            dc = String.Format("({0} {1} (goal {3})\n\t(drives \n{2} \n\t)\n)", type, name, acts, goal.ToSerialize(elements));
+            
+            return dc;
+        }
     }
 }

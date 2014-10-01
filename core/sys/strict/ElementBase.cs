@@ -64,11 +64,11 @@ namespace POSH.sys.strict
         /// <summary>
         /// Returns the string representation of the element.
         /// </summary>
-        /// <returns>[Classname] [Elementname]</returns>
+        /// <returns>[Classname] [Elementname] [Id]</returns>
         public override string ToString()
         {
 
-            return string.Format("{0} {1}", this.GetType().Name, name);
+            return string.Format("[{0} {1} {2}]", this.GetType().Name, name, id);
         }
 
         /// <summary>
@@ -78,6 +78,18 @@ namespace POSH.sys.strict
         public int getId()
         {
             return id;
+        }
+
+        /// <summary>
+        /// TO convert a plan structure back intto its textual form we extract thei plan in POSH format.
+        /// </summary>
+        /// <param name="elements">The already existing elements so that duplicates can be treated more efficient.
+        /// The dictionary will be altered if a new compentence or actionpattern is found.</param>
+        /// <returns>THe posh plan representation of the element and its sub elements.
+        /// The return value cis a string containing the tree structure opf the plan.</returns>
+        public virtual string ToSerialize(Dictionary<string,string> elements)
+        {
+            throw new NotImplementedException(); 
         }
 
     }

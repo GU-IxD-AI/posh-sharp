@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -10,7 +11,7 @@ namespace POSH.sys.strict
     /// 
     /// An action as a thin wrapper around a behaviour's action method.
     /// </summary>
-    public class POSHAction : CopiableElement
+    public class POSHAction : PlanElement
     {
         BehaviourDict behaviourDict;
         private Tuple<string,Behaviour> action;
@@ -37,16 +38,27 @@ namespace POSH.sys.strict
             behaviour = behaviourDict.getActionBehaviour(actionName);
             name = string.Format("{0}.{1}",behaviour.GetName(),actionName);
             log.Debug("Created");
+
+            //hook up to a listener for fire events
+            if (agent.HasListenerForTyp(EventType.Fire))
+                agent.SubscribeToListeners(this, EventType.Fire);
         }
 
         /// <summary>
         /// Performs the action and returns if it was successful.
         /// </summary>
         /// <returns>True if the action was successful, and False otherwise.</returns>
-        public bool fire()
+        public override FireResult fire()
         {
+            bool success = action.Second.ExecuteAction(action.First);
+            FireArgs args = new FireArgs();
+            args.FireResult = success;
+            args.Time = DateTime.Now;
+            
+            BroadCastFireEvent(args);
+
             log.Debug("Firing");
-            return (action.Second.ExecuteAction(action.First));
+            return new FireResult(success,null);
         }
 
         /// <summary>
@@ -60,6 +72,11 @@ namespace POSH.sys.strict
         public override CopiableElement copy()
         {
             return this;
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            return name.Split('.').Last();
         }
         
     }

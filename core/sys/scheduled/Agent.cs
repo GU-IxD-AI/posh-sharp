@@ -46,6 +46,11 @@ namespace POSH.sys.scheduled
             driverDelay = driverdelay;
             delayMultiplier = delaymultiplier;
         }
+
+        internal TimerBase getTimer()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

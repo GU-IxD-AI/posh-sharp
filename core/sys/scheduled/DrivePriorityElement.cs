@@ -30,7 +30,7 @@ namespace POSH.sys.scheduled
         {
             name = driveName;
             this.elements = new List<DriveElement>(elements);
-           // timer = agent.getTimer();
+            timer = agent.getTimer();
             this.agent = agent;
 
             log.Debug("Created");

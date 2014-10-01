@@ -70,9 +70,9 @@ namespace POSH.sys.strict
             {
                 bool result;
                 if (element is POSHAction)
-                    result = ((POSHAction)element).fire();
+                    result = ((POSHAction)element).fire().continueExecution();
                 else
-                    result = ((POSHSense)element).fire();
+                    result = ((POSHSense)element).fire().continueExecution();
 
                 if (!result)
                 {
@@ -90,7 +90,7 @@ namespace POSH.sys.strict
                 }
                 return new FireResult(true, null);
             }
-            else if (elements[elementIdx] is Competence)
+            else if (element is Competence)
             {
                 // we have a competence
                 elementIdx = 0;
@@ -123,11 +123,33 @@ namespace POSH.sys.strict
         /// <param name="elements">The list of elements of the action patterns. 
         ///         A sequence of Actions. An additional Competence can be the
         ///         last Element of the ActionPattern.</param>
-        public void setElements(CopiableElement [] elements)
+        public void SetElements(CopiableElement [] elements)
         {
             this.elements = new List<CopiableElement>(elements);
             
             reset();
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = name;
+            string ap;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+            if (elements.ContainsKey(name))
+                return plan;
+
+
+            string acts = string.Empty;
+            foreach (CopiableElement elem in this.elements)
+            {
+                acts += "\t"+ elem.ToSerialize(elements) + "\n";
+            }
+            // TODO: the current implementation does not support timeouts
+            ap = String.Format("(AP {0} {1} ( \n{2} \n))",name,"",acts);
+            elements[name] = ap;
+            return plan;
         }
 
     }

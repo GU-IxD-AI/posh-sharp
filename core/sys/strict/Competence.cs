@@ -127,5 +127,28 @@ namespace POSH.sys.strict
             this.elements = new List<CompetencePriorityElement>(elements);
             reset();
         }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = name;
+            string c;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+            if (elements.ContainsKey(name))
+                return plan;
+
+
+            string acts = string.Empty;
+            foreach (CompetencePriorityElement elem in this.elements)
+            {
+                acts += "\t(" + elem.ToSerialize(elements) + "\t)\n";
+            }
+            
+            // TODO: the current implementation does not support timeouts
+            c = String.Format("(C {0} {1} (goal {3})\n\t(elements \n{2} \n\t)\n)", name, "", acts,goal.ToSerialize(elements));
+            elements[name] = c;
+            return plan;
+        }
     }
 }

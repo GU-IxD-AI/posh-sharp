@@ -138,5 +138,21 @@ namespace POSH.sys.strict
         {
             throw new NotImplementedException("DrivePriorityElement.copy() is never supposed to be called");
         }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = string.Empty;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+
+
+            foreach (DriveElement elem in this.elements)
+            {
+                plan += "\t(" + elem.ToSerialize(elements) + ")";
+            }
+
+            return plan;
+        }
     }
 }

@@ -94,8 +94,8 @@ namespace POSH.sys
         }
 
         /// <summary>
-        /// Returns a data structure containing the content of the file.
-
+        /// Returns a data structure containing the content of the file. 
+        ///
         /// See the module docstring for the accepted file format. The returned data
         /// structure is a sequence with one entry per agent, with is a pair of a
         /// string for the plan and a dictionary for the

@@ -127,8 +127,8 @@ using POSH.sys.strict;
 
         // additional members
 
-        private LAPLexer lex;
-        private Token token;
+        protected LAPLexer lex;
+        protected Token token;
 
         /// <summary>
         /// Initialises the parser.
@@ -144,16 +144,16 @@ using POSH.sys.strict;
         /// </summary>
         /// <param name="inputString">The input string.</param>
         /// <returns>The plan builder object representing the plan.</returns>
-        public PlanBuilder parse( string inputString)
+        public PlanBuilder Parse( string inputString)
         {
             lex = new LAPLexer(inputString);
-            return start();
+            return Start();
         }
 
         /// <summary>
         /// Gets the next token from the lexer.
         /// </summary>
-        public void nextToken()
+        public void NextToken()
         {
             token = lex.token();
             // if (token is Token)
@@ -172,7 +172,7 @@ using POSH.sys.strict;
         /// <param name="allowedTokens">A list of allowed tokens.</param>
         /// <returns>If the current token type matches any of the allowed tokens.</returns>
         /// <exception cref="ParseException">If there is no current token.</exception>  
-        public bool match(string[] allowedTokens)
+        public bool Match(string[] allowedTokens)
         {
             if (!(token is Token))
                 throw new ParseException("Unexpected End Of File (EOF)");
@@ -187,7 +187,7 @@ using POSH.sys.strict;
         /// </summary>
         /// <param name="msg">The error message.</param>
         /// <exception cref="ParseException">always</exception>
-        public void error(string msg)
+        public void Error(string msg)
         {
             throw new ParseException(string.Format("Line {0}: {1}", lex.getLineNumber(), msg));
         }
@@ -199,10 +199,10 @@ using POSH.sys.strict;
         /// the created plan builder object.
         /// </summary>
         /// <returns>A plan builder object representing the parsed plan.</returns>
-        public PlanBuilder start()
+        public PlanBuilder Start()
         {
-            nextToken();
-            return plan();
+            NextToken();
+            return Plan();
         }
 
         /// <summary>
@@ -216,73 +216,73 @@ using POSH.sys.strict;
         ///            ")"
         /// </summary>
         /// <returns>A plan builder object representing the parsed plan.</returns>
-        protected internal PlanBuilder plan()
+        protected internal PlanBuilder Plan()
         {
             PlanBuilder planBuilder = new PlanBuilder();
             // this method cheats a bit by counting the action-pattern
             // and competences and also drive-collections to check when things are
             // allowed were.
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Plan needs to start with '(' rather than '{0}'" , token.value));
-            nextToken();
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Plan needs to start with '(' rather than '{0}'" , token.value));
+            NextToken();
             // action pattern, competence, docstring, drive collection
             int ap = 0, c = 0, d = 0, dc = 0;
             while (true)
             {
-                if (!match(new string[] {"LPAREN", "RPAREN"}))
-                    error(string.Format("Expected '(' as start of documentation / " +
+                if (!Match(new string[] {"LPAREN", "RPAREN"}))
+                    Error(string.Format("Expected '(' as start of documentation / " +
                         "competence / action-pattern / drive-collection, or " +
                         "')' to end plan, instead of '{0}'" ,token.value));
-                if (match(new string[] {"RPAREN",}))
+                if (Match(new string[] {"RPAREN",}))
                 {
                     // end of plan
-                    nextToken();
+                    NextToken();
                     break;
                 }
-                nextToken();
+                NextToken();
                 // check for documentation
-                if ( match(new string[] {"DOC",}) )
+                if ( Match(new string[] {"DOC",}) )
                 {
                     if ( ap + c + dc + d > 0 )
-                        error("Documentation only allowed as first " +
+                        Error("Documentation only allowed as first " +
                             "element in plan");
                     d +=1;
-                    planBuilder.setDocString(getDocString());
+                    planBuilder.setDocString(GetDocString());
                     // print docString();
                 } 
                 // check for competence
-                else if (match(new string[] {"C",}))
+                else if (Match(new string[] {"C",}))
                 {
                     c++;
-                    planBuilder.addCompetence(getCompetence());
+                    planBuilder.addCompetence(GetCompetence());
                     // print competence()
                 }
                 // check for action-pattern
-                else if ( match(new string[] {"AP",}) )
+                else if ( Match(new string[] {"AP",}) )
                 {
                     ap++;
-                    planBuilder.addActionPattern(getActionPattern());
+                    planBuilder.addActionPattern(GetActionPattern());
                     // print actionPattern();
                 }
                 // check for drive-collection
-                else if ( match(new string[] {"DC", "RDC", "SDC", "SRDC"}) )
+                else if ( Match(new string[] {"DC", "RDC", "SDC", "SRDC"}) )
                 {
                     if ( dc > 0 )
-                        error("Only a single drive-collection allowed");
+                        Error("Only a single drive-collection allowed");
                     dc ++;
-                    planBuilder.SetDriveCollection(getDriveCollection());
+                    planBuilder.SetDriveCollection(GetDriveCollection());
                     // print
                 }
                 else
-                    error(string.Format("Expected docstring / competence / action " +
+                    Error(string.Format("Expected docstring / competence / action " +
                         "pattern or drive collection instead of '{0}'", token.value));
             }
 
             // the plan was closed
             if (token is Token)
-                error(string.Format("Illegal token '{0}' after end of plan" , token.value));
+                Error(string.Format("Illegal token '{0}' after end of plan" , token.value));
             if (dc == 0 && (ap+c) != 1)
-                error("Illegal plan: A plan without a drive-collection " +
+                Error("Illegal plan: A plan without a drive-collection " +
                     "only allows for a SINLGE action-pattern OR a SINGLE competence");
            
             // everything is fine
@@ -293,24 +293,24 @@ using POSH.sys.strict;
         /// docstring ::= DOCUMENTATION COMMENT COMMENT COMMENT ")"
         /// </summary>
         /// <returns>The three comments in the form {string,string,string}.</returns>
-        public string[] getDocString()
+        public string[] GetDocString()
         {
-            if (!match(new string[] {"DOC",}))
-                error(string.Format("Expected 'documentation' as start of docstring " +
+            if (!Match(new string[] {"DOC",}))
+                Error(string.Format("Expected 'documentation' as start of docstring " +
                     "instead of '{0}'" ,token.value));
-            nextToken();
+            NextToken();
             string[] docs = new string[3];
             for (int i = 0; i < 3; i++)
             {
-                if (!match(new string[] {"COMMENT",}))
-                    error(string.Format("Expected a comment of form \"...\" instead " +
+                if (!Match(new string[] {"COMMENT",}))
+                    Error(string.Format("Expected a comment of form \"...\" instead " +
                         "of '%s' in documentation", token.value));
                 docs[i] =(token.value);
-                nextToken();
+                NextToken();
             }
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' to end docstring instead of '{0}'", token.value));
-            nextToken();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' to end docstring instead of '{0}'", token.value));
+            NextToken();
             return docs;
 
         }
@@ -324,60 +324,60 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>The drive collection as 
         ///    (id, name, goal, [priority1, priority2, ...])</returns>
-        public Tuple<string,string,List<object>,List<Tuple<string, List<object>, string, long>[]>> getDriveCollection()
+        public Tuple<string,string,List<object>,List<Tuple<string, List<object>, string, long>[]>> GetDriveCollection()
         {
-            string cid = getDriveCollectionId();
+            string cid = GetDriveCollectionId();
             List<object> goal = null;
             List<Tuple<string, List<object>, string, long>[]> priorities;
 
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("Expected a valid drive collection name instead " +
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected a valid drive collection name instead " +
                     "of '{0}'", token.value));
             string name = token.value;
-            nextToken();
+            NextToken();
             // check if there is a goal and set it if given
             // ( NIL | "(" <goal> | ) "("
 
-            if (match(new string[] {"NIL",}))
+            if (Match(new string[] {"NIL",}))
             {
                 // NIL "("
-                nextToken();
-                if (!match(new string[] {"LPAREN",}))
-                    error(string.Format("Expected '(' after 'nil' instead of '{0}' in " +
+                NextToken();
+                if (!Match(new string[] {"LPAREN",}))
+                    Error(string.Format("Expected '(' after 'nil' instead of '{0}' in " +
                         "drive collection '{1}'" ,token.value, name));
-                nextToken();
+                NextToken();
 
             }
             else
             {
                 // "(" [ <goal> "(" ]
-                if (!match(new string[] {"LPAREN",}))
-                    error(string.Format("Expected '(' after drive collection name " +
+                if (!Match(new string[] {"LPAREN",}))
+                    Error(string.Format("Expected '(' after drive collection name " +
                         "instead of '{0}' in drive collection '{1}'",token.value, name));
-                nextToken();
+                NextToken();
                 // check if a goal is specified
-                if (match(new string[] {"GOAL",}))
+                if (Match(new string[] {"GOAL",}))
                 {
                     // <goal> "("
-                    goal = getGoal();
-                    if (!match(new string[] {"LPAREN",}))
-                        error(string.Format("Expected '(' after goal " +
+                    goal = GetGoal();
+                    if (!Match(new string[] {"LPAREN",}))
+                        Error(string.Format("Expected '(' after goal " +
                             "instead of '{0}' in drive collection '{1}'",token.value, name));
-                    nextToken();
+                    NextToken();
                 }
             }
             // get the drive priorities
-            if (!match(new string[] {"DRIVES",}))
-                error(string.Format("Expected 'drives' instead of '{0}' in drive " +
+            if (!Match(new string[] {"DRIVES",}))
+                Error(string.Format("Expected 'drives' instead of '{0}' in drive " +
                     "collection '{1}'",token.value, name));
-            nextToken();
-            priorities = getDrivePriorities();
+            NextToken();
+            priorities = GetDrivePriorities();
             for(int i = 0; i < 2;i++)
             {
-                if (!match(new string[] {"RPAREN",}))
-                    error(string.Format("Expected ')' to end drive collection instead " +
+                if (!Match(new string[] {"RPAREN",}))
+                    Error(string.Format("Expected ')' to end drive collection instead " +
                         "of '{0}' in drive collection '{1}'",token.value, name));
-                nextToken();
+                NextToken();
             }
 
             return new Tuple<string,string,List<object>,List<Tuple<string, List<object>, string, long>[]>>(cid,name,goal,priorities);
@@ -387,12 +387,12 @@ using POSH.sys.strict;
         /// drive-collection-id ::= DC | RDC | SDC | SRDC
         /// </summary>
         /// <returns>The drive collection id as a string.</returns>
-        public string getDriveCollectionId()
+        public string GetDriveCollectionId()
         {
-            if (!match(new string[] {"DC", "RDC", "SDC", "SRDC"}) )
-                error(string.Format("Expected the drive collection type instead of {0}'", token.value));
+            if (!Match(new string[] {"DC", "RDC", "SDC", "SRDC"}) )
+                Error(string.Format("Expected the drive collection type instead of {0}'", token.value));
             string cid = token.token;
-            nextToken();
+            NextToken();
 
             return cid;
         }
@@ -401,16 +401,16 @@ using POSH.sys.strict;
         /// drive_priorities ::= <drive-elements>+
         /// </summary>
         /// <returns>A list of drive priorities as given by driveElements().</returns>
-        public List<Tuple<string, List<object>, string, long>[]> getDrivePriorities()
+        public List<Tuple<string, List<object>, string, long>[]> GetDrivePriorities()
         {
             List<Tuple<string, List<object>, string, long>[]> priorities;
 
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' that starts list of drive elements " +
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' that starts list of drive elements " +
                     "instead of '{0}'" ,token.value));
             priorities = new List<Tuple<string, List<object>, string, long>[]>();
-            while(match(new string[] {"LPAREN",}))
-                priorities.Add(getDriveElements());
+            while(Match(new string[] {"LPAREN",}))
+                priorities.Add(GetDriveElements());
 
             return priorities;
         }
@@ -419,23 +419,23 @@ using POSH.sys.strict;
         /// drive-elements ::= "(" <drive-element>+ ")"
         /// </summary>
         /// <returns>A sequence of drive elements as given by driveElement</returns>
-        public Tuple<string, List<object>, string, long>[] getDriveElements()
+        public Tuple<string, List<object>, string, long>[] GetDriveElements()
         {
             List<Tuple<string, List<object>, string, long>> elements;
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' that starts list of drive elements " +
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' that starts list of drive elements " +
                     "instead of '{0}'" ,token.value));
-            nextToken();
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' that starts list of drive elements " +
+            NextToken();
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' that starts list of drive elements " +
                     "instead of '{0}'" ,token.value));
             elements = new List<Tuple<string,List<object>,string,long>>();
-            while (match(new string[] {"LPAREN",}))
-                elements.Add(getDriveElement());
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' to end list of drive elements " +
+            while (Match(new string[] {"LPAREN",}))
+                elements.Add(GetDriveElement());
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' to end list of drive elements " +
                     "instead of '{0}'" ,token.value));
-            nextToken();
+            NextToken();
 
             return elements.ToArray();
         }
@@ -448,59 +448,59 @@ using POSH.sys.strict;
         /// If no frequency is given, then 0 is returned for the frequency.
         /// </summary>
         /// <returns>The drive element as (name, trigger, triggerable, freq): Tuple(string, trigger, string, long).</returns>
-        public Tuple<string, List<object>, string, long> getDriveElement()
+        public Tuple<string, List<object>, string, long> GetDriveElement()
         {
             string name;
             List<object> trigger = null;
             string triggerable = null;
             long freq = 0;
 
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' to start drive element instead " +
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' to start drive element instead " +
                     "of '{0}'", token.value));
-            nextToken();
-            if(!match(new string[] {"NAME",}))
-                error(string.Format("Expected valid drive element name instead of '{0}'", 
+            NextToken();
+            if(!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected valid drive element name instead of '{0}'", 
                     token.value));
             name = token.value;
-            nextToken();
+            NextToken();
             // ( NIL | "(" <trigger> | ) NAME
-            if (!match(new string[] {"NAME","LPAREN","NIL"}))
-                error(string.Format("Expected name of triggerable, '(' or 'nil' " +
+            if (!Match(new string[] {"NAME","LPAREN","NIL"}))
+                Error(string.Format("Expected name of triggerable, '(' or 'nil' " +
                     "instead of '{0}' in drive element '{1}'", token.value, name));
             // get trigger if there is one
-            if (match(new string[] {"NIL","LPAREN"}))
+            if (Match(new string[] {"NIL","LPAREN"}))
             {
-                if (match(new string[] {"NIL",}))
-                    nextToken();
+                if (Match(new string[] {"NIL",}))
+                    NextToken();
                 else
                 {
-                    nextToken();
-                    trigger = getTrigger();
+                    NextToken();
+                    trigger = GetTrigger();
                 }
-                if (!match(new string[] {"NAME",}))
-                    error(string.Format("Expected name of triggerable instead of '%s' " +
+                if (!Match(new string[] {"NAME",}))
+                    Error(string.Format("Expected name of triggerable instead of '%s' " +
                         "in drive elements '{0}'", token.value, name));     
             }
             // get triggerable (NAME)
             triggerable = token.value;
-            nextToken();
+            NextToken();
             // check for frequency
             // ( NIL | "(" <freq> | )
-            if (match(new string[] {"LPAREN","NIL"}))
-                if (match(new string[] {"NIL",}))
-                    nextToken();
+            if (Match(new string[] {"LPAREN","NIL"}))
+                if (Match(new string[] {"NIL",}))
+                    NextToken();
                 else
                 {
-                    nextToken();
-                    freq = getFreq();
+                    NextToken();
+                    freq = GetFreq();
                 }
             // <opt-comment> ")"
-            getOptComment();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' instead of '%s' as the end of drive " +
+            GetOptComment();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' instead of '%s' as the end of drive " +
                     "element '{0}'", token.value, name));
-            nextToken();
+            NextToken();
 
             return new Tuple<string,List<object>,string,long>(name,trigger,triggerable,freq);
         }
@@ -515,7 +515,7 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>The competence as (name, time, goal, priorities)
         ///     : (string, time, goal, priorities)</returns>
-        public Tuple<string,long,List<object>,List<Tuple<string,List<object>,string,int> []>> getCompetence()
+        public Tuple<string,long,List<object>,List<Tuple<string,List<object>,string,int> []>> GetCompetence()
         {
             string name;
             long time = 0;
@@ -523,110 +523,110 @@ using POSH.sys.strict;
             List<Tuple<string,List<object>,string,int> []> priorities;
 
             // C NAME
-            if (!match(new string[] {"C",}))
-                error(string.Format("Expected 'C' as start of competence instead " +
+            if (!Match(new string[] {"C",}))
+                Error(string.Format("Expected 'C' as start of competence instead " +
                     "of '{0}'", token.value));
-            nextToken();
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("Expected valid competence name instead " +
+            NextToken();
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected valid competence name instead " +
                     "of '{0}'", token.value));
             name = token.value;
-            nextToken();
+            NextToken();
             // ( NIL | "(" <time> | ) ( NIL | "(" <goal> | ) "("
             // The branching below should be checked (might have missed a case)
-            if (!match(new string[] {"LPAREN","NIL"}))
-                error(string.Format("Expected '(' or 'nil' after competence name " +
+            if (!Match(new string[] {"LPAREN","NIL"}))
+                Error(string.Format("Expected '(' or 'nil' after competence name " +
                     "instead of '{0}' in competence '{1}'", token.value,name));
-            if (match(new string[] {"NIL",}))
+            if (Match(new string[] {"NIL",}))
             {
                 // NIL ( NIL | "(" <goal> | ) "("
-                nextToken();
-                if (!match(new string[] {"LPAREN","NIL"}))
-                    error(string.Format("Expected '(' or 'nil' after 'nil' for time " +
+                NextToken();
+                if (!Match(new string[] {"LPAREN","NIL"}))
+                    Error(string.Format("Expected '(' or 'nil' after 'nil' for time " +
                         "instead of '{0}' in competence '{1}'", token.value,name));
-                if (match(new string[] {"NIL",}))
+                if (Match(new string[] {"NIL",}))
                 {
                     // NIL NIL "("
-                    nextToken();
-                    if (!match(new string[] {"LPAREN",}))
-                        error(string.Format("Expected '(' after 'nil' for goal instead " +
+                    NextToken();
+                    if (!Match(new string[] {"LPAREN",}))
+                        Error(string.Format("Expected '(' after 'nil' for goal instead " +
                             "instead of '{0}' in competence '{1}'",token.value,name));
-                    nextToken();
+                    NextToken();
                 }
                 else
                 {
                     // NIL "(" [ <goal> "(" ]
-                    nextToken();
-                    if (match(new string[] {"GOAL",}))
+                    NextToken();
+                    if (Match(new string[] {"GOAL",}))
                     {
-                        goal = getGoal();
-                        if (!match(new string[] {"LPAREN",}))
-                            error(string.Format("Expected '(' after goal instead of " +
+                        goal = GetGoal();
+                        if (!Match(new string[] {"LPAREN",}))
+                            Error(string.Format("Expected '(' after goal instead of " +
                                 "instead of '{0}' in competence '{1}'",token.value,name));
-                        nextToken();
+                        NextToken();
                     }
                 }
             }
             else
             {
                 // "(" ( <time> ( NIL | "(" <goal> | ) "(" | <goal> "(" | )
-                nextToken();
-                if (match(new string[] {"HOURS","MINUTES","SECONDS","NONE"}))
+                NextToken();
+                if (Match(new string[] {"HOURS","MINUTES","SECONDS","NONE"}))
                 {
                     // "(" <time> ( NIL | "(" <goal> | ) "("
-                    time = getTime();
-                    if (!match(new string[] {"LPAREN","NIL"}))
-                            error(string.Format("Expected '(' or 'nil' after time instead " +
+                    time = GetTime();
+                    if (!Match(new string[] {"LPAREN","NIL"}))
+                            Error(string.Format("Expected '(' or 'nil' after time instead " +
                                 "instead of '{0}' in competence '{1}'",token.value,name));
-                    if (match(new string[] {"NIL",}))
+                    if (Match(new string[] {"NIL",}))
                     {
                         // "(" <time> NIL "("
-                        nextToken();
-                        if (!match(new string[] {"LPAREN",}))
-                            error(string.Format("Expected '(' after 'nil' for goal " +
+                        NextToken();
+                        if (!Match(new string[] {"LPAREN",}))
+                            Error(string.Format("Expected '(' after 'nil' for goal " +
                                 "instead of '{0}' in competence '{1}'",token.value,name));
-                        nextToken();
+                        NextToken();
                     }
                     else
                     {
                         //  "(" <time> "(" [ <goal> "(" ]
-                        nextToken();
-                        if (match(new string[] {"GOAL",}))
+                        NextToken();
+                        if (Match(new string[] {"GOAL",}))
                         {
-                            goal = getGoal();
-                            if (!match(new string[] {"LPAREN",}))
-                                error(string.Format("Expected '(' after goal " +
+                            goal = GetGoal();
+                            if (!Match(new string[] {"LPAREN",}))
+                                Error(string.Format("Expected '(' after goal " +
                                     "instead of '{0}' in competence '{1}'",token.value,name));
-                            nextToken();
+                            NextToken();
                         }
                     }
                 } 
-                else if (match(new string[] {"GOAL",}))
+                else if (Match(new string[] {"GOAL",}))
                 {
                     //  "(" <goal> "("
-                    goal = getGoal();
-                    if (!match(new string[] {"LPAREN",}))
-                        error(string.Format("Expected '(' after goal " +
+                    goal = GetGoal();
+                    if (!Match(new string[] {"LPAREN",}))
+                        Error(string.Format("Expected '(' after goal " +
                             "instead of '{0}' in competence '{1}'",token.value,name));
-                    nextToken();
+                    NextToken();
                 }
             }
             // competence priorities
             // ELEMENTS <competence-priorities> <opt-comment> ")"
-            if (!match(new string[] {"ELEMENTS",}))
-                error(string.Format("Expected 'elements' as start of element " +
+            if (!Match(new string[] {"ELEMENTS",}))
+                Error(string.Format("Expected 'elements' as start of element " +
                     "instead of '{0}' in competence '{1}'",token.value,name));
-            nextToken();
-            priorities = getCompetencePriorities();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' to end competence " +
+            NextToken();
+            priorities = GetCompetencePriorities();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' to end competence " +
                     "instead of '{0}' in competence '{1}'",token.value,name));
-            nextToken();
-            getOptComment();
-            if (!match(new string[] { "RPAREN", }))
-                error(string.Format("Expected ')' to end competence " +
+            NextToken();
+            GetOptComment();
+            if (!Match(new string[] { "RPAREN", }))
+                Error(string.Format("Expected ')' to end competence " +
                     "instead of '{0}' in competence '{1}'", token.value, name));
-            nextToken();
+            NextToken();
             
             return new Tuple<string,long,List<object>,List<Tuple<string,List<object>,string,int> []>>(name,time,goal,priorities);
         }
@@ -637,14 +637,14 @@ using POSH.sys.strict;
         /// </code>
         /// </summary>
         /// <returns>A list of competence priorities.</returns>
-        public List<Tuple<string,List<object>,string,int> []> getCompetencePriorities()
+        public List<Tuple<string,List<object>,string,int> []> GetCompetencePriorities()
         {
             List<Tuple<string,List<object>,string,int> []> priorities = new List<Tuple<string,List<object>,string,int>[]>();
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' as start of a list of competence elements "+
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' as start of a list of competence elements "+
                     "instead of '{0}'",token.value));
-            while(match(new string[] {"LPAREN",}))
-                priorities.Add(getCompetenceElements());
+            while(Match(new string[] {"LPAREN",}))
+                priorities.Add(GetCompetenceElements());
 
             return priorities;
         }
@@ -656,24 +656,24 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>A sequence of competence elements as given by
         ///     competence_element</returns>
-        public Tuple<string,List<object>,string,int> [] getCompetenceElements()
+        public Tuple<string,List<object>,string,int> [] GetCompetenceElements()
         {
             List<Tuple<string,List<object>,string,int>> elements = new List<Tuple<string,List<object>,string,int>>();
 
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' as start of a list of competence elements "+
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' as start of a list of competence elements "+
                     "instead of '{0}'",token.value));
-            nextToken();
+            NextToken();
             // a competence element start with a '('
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' as start a competence element "+
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' as start a competence element "+
                     "instead of '{0}'",token.value));
-            while (match(new string[] {"LPAREN",}))
-                elements.Add(getCompetenceElement());
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' as end of a list of competence elements "+
+            while (Match(new string[] {"LPAREN",}))
+                elements.Add(GetCompetenceElement());
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' as end of a list of competence elements "+
                     "instead of '{0}'",token.value));
-            nextToken();
+            NextToken();
 
             return elements.ToArray();
         }
@@ -687,11 +687,11 @@ using POSH.sys.strict;
         /// ]]>
         /// </code>
         /// 
-        /// If no number of retires is given, then -1 is returned.
+        /// If no number of retires is given, then 0 is returned.
         /// </summary>
         /// <returns>The competence element as 
         /// (name, trigger, triggerable, maxRetries)</returns>
-        public Tuple<string,List<object>,string,int> getCompetenceElement()
+        public Tuple<string,List<object>,string,int> GetCompetenceElement()
         {
             string name;
             List<object> trigger = null;
@@ -699,46 +699,46 @@ using POSH.sys.strict;
             int maxRetries;
 
             // "(" NAME
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' to start a competence element "+
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' to start a competence element "+
                     "instead of '{0}'",token.value));
-            nextToken();
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("Expected competence element name "+
+            NextToken();
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected competence element name "+
                     "instead of '{0}'",token.value));
             name = token.value;
-            nextToken();
+            NextToken();
             // check for trigger
             // ( NIL | "(" <trigger> | )
-            if (match(new string[] {"NIL",}))
-                nextToken();
-            else if (match(new string[] {"LPAREN",}))
+            if (Match(new string[] {"NIL",}))
+                NextToken();
+            else if (Match(new string[] {"LPAREN",}))
             {
-                nextToken();
-                trigger = getTrigger();
+                NextToken();
+                trigger = GetTrigger();
             }
             // NAME
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("Expected name of triggerable "+
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected name of triggerable "+
                     "instead of '{0}' in competence '{1}'",token.value,name));
             triggerable = token.value;
-            nextToken();
+            NextToken();
             // check for maxRetries
             // ( NIL | INTNUM | )
-            maxRetries = -1;
-            if (match(new string[] {"NIL",}))
-                nextToken();
-            else if (match(new string[] {"NUMINT",}))
+            maxRetries = 0;
+            if (Match(new string[] {"NIL",}))
+                NextToken();
+            else if (Match(new string[] {"NUMINT",}))
             {
                 maxRetries = int.Parse(token.value);
-                nextToken();
+                NextToken();
             }
             // <opt-comment> ")"
-            getOptComment();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' to end competence element "+
+            GetOptComment();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' to end competence element "+
                     "instead of '{0}' in competence '{1}'",token.value,name));
-            nextToken();
+            NextToken();
             
             return new Tuple<string,List<object>,string,int>(name, trigger, triggerable, maxRetries);
         }
@@ -755,57 +755,57 @@ using POSH.sys.strict;
         /// <returns>The action pattern as (name, time, [name1, name2, ...])
         ///     (string, long, (string or full-sense (<code>Tuple[string,string,string]</code>), ...))
         /// </returns>
-        public Tuple<string,long,List<object>> getActionPattern()
+        public Tuple<string,long,List<object>> GetActionPattern()
         {
             string name;
             long time = 0;
             List<object> elements;
 
             // AP NAME
-             if (!match(new string[] {"AP",}))
-                error(string.Format("Expected 'AP' instead of '{0}'",token.value));
-            nextToken();
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("{0}' is not a valid name for an action pattern",token.value));
+             if (!Match(new string[] {"AP",}))
+                Error(string.Format("Expected 'AP' instead of '{0}'",token.value));
+            NextToken();
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("{0}' is not a valid name for an action pattern",token.value));
             name = token.value;
-            nextToken();
+            NextToken();
 
             // ( NIL | "(" <time> | ) "("
-            if (match(new string[] {"NIL",}))
+            if (Match(new string[] {"NIL",}))
             {
                 // NIL "("
-                nextToken();
-                if (!match(new string[] {"LPAREN",}))
-                    error(string.Format("Expected '(' after 'nil' for time instead of '{0}'"+
+                NextToken();
+                if (!Match(new string[] {"LPAREN",}))
+                    Error(string.Format("Expected '(' after 'nil' for time instead of '{0}'"+
                         "in action pattern '{1}'",token.value,name) );
-                nextToken();
+                NextToken();
             }
-            else if (match(new string[] {"LPAREN",}))
+            else if (Match(new string[] {"LPAREN",}))
             {
                 // "(" [ <time> "(" ]
-                nextToken();
-                if (match(new string[] {"HOURS","MINUTES","SECONDS","NONE"}))
+                NextToken();
+                if (Match(new string[] {"HOURS","MINUTES","SECONDS","NONE"}))
                 {
                     // "(" <time> "("
-                    time = getTime();
-                    if (!match(new string[] {"LPAREN",}))
-                        error(string.Format("Expected '(' after time instead of '{0}'"+
+                    time = GetTime();
+                    if (!Match(new string[] {"LPAREN",}))
+                        Error(string.Format("Expected '(' after time instead of '{0}'"+
                             "in action pattern '{1}'",token.value,name) );
-                    nextToken();
+                    NextToken();
                 }
             }
             else
-                error(string.Format("Expected '(' or 'nil' after action pattern name "+
+                Error(string.Format("Expected '(' or 'nil' after action pattern name "+
                     "instead of '{0}' in action pattern '{1}'",token.value,name) );
             // proceed with action pattern element list
             // <action-pattern-elements> <opt-comment> ")"
-            elements = getActionPatternElements();
-            getOptComment();
+            elements = GetActionPatternElements();
+            GetOptComment();
 
-            if (!match(new string[] {"RPAREN",}))
-                    error(string.Format("Expected ')' instead of '{0}'"+
+            if (!Match(new string[] {"RPAREN",}))
+                    Error(string.Format("Expected ')' instead of '{0}'"+
                         "in action pattern '{1}'",token.value,name) );
-            nextToken();
+            NextToken();
 
             return new Tuple<string,long,List<object>>(name,time,elements);
         }
@@ -818,26 +818,26 @@ using POSH.sys.strict;
         /// <returns>A list of action pattern elements given as senses 
         /// (<code>string</code>) and full-senses 
         /// (<code>Tuple[string,string,string]</code>).</returns>
-        public List<object> getActionPatternElements()
+        public List<object> GetActionPatternElements()
         {
             List<object> elements = new List<object>();
 
-            if (!match(new string[] {"LPAREN","NAME"}))
-                error(string.Format("Expected an action pattern element name of '(' "+
+            if (!Match(new string[] {"LPAREN","NAME"}))
+                Error(string.Format("Expected an action pattern element name of '(' "+
                     "instead of '{0}'",token.value));
-            while (match(new string[] {"NAME","LPAREN"}))
+            while (Match(new string[] {"NAME","LPAREN"}))
             {
-                if(match(new string[] {"LPAREN",}))
-                    elements.Add(getFullSenses());
+                if(Match(new string[] {"LPAREN",}))
+                    elements.Add(GetFullSenses());
                 else
                 {
                     elements.Add(token.value);
-                    nextToken();
+                    NextToken();
                 }
             }
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' to end action pattern instead of '{0}'",token.value));
-            nextToken();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' to end action pattern instead of '{0}'",token.value));
+            NextToken();
 
             return elements;
         }
@@ -851,17 +851,17 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>>A list of senses (<code>string</code>) and full-senses 
         /// (<code>Tuple[string,string,string]</code>) that were given as the goal</returns>
-        public List<object> getGoal()
+        public List<object> GetGoal()
         {
             List<object> senses;
 
-            if (!match(new string[] {"GOAL",}))
-                error(string.Format("Expected 'goal' instead of '{0}'",token.value));
-            nextToken();
-            senses = getSenses();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' as the end of a goal instead of '{0}'",token.value));
-            nextToken();
+            if (!Match(new string[] {"GOAL",}))
+                Error(string.Format("Expected 'goal' instead of '{0}'",token.value));
+            NextToken();
+            senses = GetSenses();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' as the end of a goal instead of '{0}'",token.value));
+            NextToken();
 
             return (senses is List<object> && senses.Count > 0) ? senses : null;
         }
@@ -874,18 +874,18 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>A list of senses (<code>string</code>) and full-senses 
         /// (<code>Tuple[string,string,string]</code>) that were given as the trigger</returns>
-        public List<object> getTrigger()
+        public List<object> GetTrigger()
         {
             List<object> senses;
 
-            if (!match(new string[] {"TRIGGER",}))
-                error(string.Format("Expected 'trigger' instead of '{0}'",token.value));
-            nextToken();
-            senses = getSenses();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' as the end of a trigger "+
+            if (!Match(new string[] {"TRIGGER",}))
+                Error(string.Format("Expected 'trigger' instead of '{0}'",token.value));
+            NextToken();
+            senses = GetSenses();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' as the end of a trigger "+
                     "instead of '{0}'",token.value));
-            nextToken();
+            NextToken();
             
             return (senses is List<object> && senses.Count > 0) ? senses : null;
         }
@@ -900,37 +900,37 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>An object list containing senses (<code>string</code>) and full-senses 
         /// (<code>Tuple[string,string,string]</code>).</returns>
-        public List<object> getSenses()
+        public List<object> GetSenses()
         {
             List<object> elements;
 
-            if (match(new string[] {"NIL",}))
+            if (Match(new string[] {"NIL",}))
             {
-                nextToken();
+                NextToken();
                 return new List<object>();
             }
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' instead of '{0}'",token.value));
-            nextToken();
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' instead of '{0}'",token.value));
+            NextToken();
             elements = new List<object>();
             while (true)
             {
-                if (match(new string[] {"RPAREN",}))
+                if (Match(new string[] {"RPAREN",}))
                     break;
-                if (!match(new string[] {"LPAREN","NAME"}))
-                    error(string.Format("Expected either a sense-act name or '(' "+
+                if (!Match(new string[] {"LPAREN","NAME"}))
+                    Error(string.Format("Expected either a sense-act name or '(' "+
                         "instead of '{0}'",token.value));
                 // differentiate between sense-acts and senses
-                if (match(new string[] {"NAME",}))
+                if (Match(new string[] {"NAME",}))
                 {
                     elements.Add(token.value);
-                    nextToken();
+                    NextToken();
                 } 
                 else
-                    elements.Add(getFullSenses());
+                    elements.Add(GetFullSenses());
             }
             // matches ')'
-            nextToken();
+            NextToken();
 
             return elements;
         }
@@ -942,27 +942,27 @@ using POSH.sys.strict;
         /// </summary>
         /// <returns>The full sense, and None for the elements that
         ///     are not specified.</returns>
-        public Tuple<string,string,string> getFullSenses()
+        public Tuple<string,string,string> GetFullSenses()
         {
             string name = null, value = null, pred = null;
             
 
-            if (!match(new string[] {"LPAREN",}))
-                error(string.Format("Expected '(' instead of '{0}'",token.value));
-            nextToken();
-            if (!match(new string[] {"NAME",}))
-                error(string.Format("Expected sense name instead of '{0}'",token.value));
+            if (!Match(new string[] {"LPAREN",}))
+                Error(string.Format("Expected '(' instead of '{0}'",token.value));
+            NextToken();
+            if (!Match(new string[] {"NAME",}))
+                Error(string.Format("Expected sense name instead of '{0}'",token.value));
             name = token.value;
-            nextToken();
-            if (!match(new string[] {"RPAREN",}))
+            NextToken();
+            if (!Match(new string[] {"RPAREN",}))
             {
-                value = getValue();
-                if (!match(new string[] {"RPAREN",}))
-                    pred = getPredicate();
+                value = GetValue();
+                if (!Match(new string[] {"RPAREN",}))
+                    pred = GetPredicate();
             }
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' instead of '{0}'",token.value));
-            nextToken();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' instead of '{0}'",token.value));
+            NextToken();
 
             return new Tuple<string,string,string>(name,value,pred);
         }
@@ -971,13 +971,13 @@ using POSH.sys.strict;
         /// value ::= NUMINT | NUMFLOAT | NAME
         /// </summary>
         /// <returns>The value as string.</returns>
-        public string getValue()
+        public string GetValue()
         {
-            if (!match(new string[] {"NUMINT","NUMFLOAT","NAME","STRINGVALUE","NIL"}))
-                error(string.Format("Expected a valid sense value " +
+            if (!Match(new string[] {"NUMINT","NUMFLOAT","NAME","STRINGVALUE","NIL"}))
+                Error(string.Format("Expected a valid sense value " +
                     " instead of '{0}'", token.value));
             string value = token.value;
-            nextToken();
+            NextToken();
 
             return value;
         }
@@ -986,13 +986,13 @@ using POSH.sys.strict;
         /// predicate ::= PREDICATE
         /// </summary>
         /// <returns>The predicate as a string.</returns>
-        public string getPredicate()
+        public string GetPredicate()
         {
-            if (!match(new string[] {"PREDICATE",}))
-                error(string.Format("Expected a valid sense predicate " +
+            if (!Match(new string[] {"PREDICATE",}))
+                Error(string.Format("Expected a valid sense predicate " +
                     " instead of '{0}'", token.value));
             string pred = token.value;
-            nextToken();
+            NextToken();
 
             return pred;
         }
@@ -1001,13 +1001,13 @@ using POSH.sys.strict;
         /// freq ::= <freq-unit> <numfloat> ")"
         /// </summary>
         /// <returns>frequency as period time</returns>
-        public long getFreq()
+        public long GetFreq()
         {
-            string unit = getFreqUnit();
-            float value = getNumFloat();
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' instead of '{0}'",token.value));
-            nextToken();
+            string unit = GetFreqUnit();
+            float value = GetNumFloat();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' instead of '{0}'",token.value));
+            NextToken();
             //process the frequency unit
             switch (unit)
             {
@@ -1030,13 +1030,13 @@ using POSH.sys.strict;
         /// freq-unit ::= HOURS | MINUTES | SECONDS | HZ | PM | NONE
         /// </summary>
         /// <returns>The token string of the frequency unit.</returns>
-        public string getFreqUnit()
+        public string GetFreqUnit()
         {
-            if (!match(new string[] {"HOURS", "MINUTES", "SECONDS", "HZ", "PM", "NONE"}))
-                error(string.Format("Expected a valid frequency unit " +
+            if (!Match(new string[] {"HOURS", "MINUTES", "SECONDS", "HZ", "PM", "NONE"}))
+                Error(string.Format("Expected a valid frequency unit " +
                     "instead of '{0}'",token.value));
             string unit = token.token;
-            nextToken();
+            NextToken();
 
             return unit;
         }
@@ -1045,14 +1045,14 @@ using POSH.sys.strict;
         /// time ::= <time-unit> <numfloat> ")"
         /// </summary>
         /// <returns>time in milliseconds</returns>
-        public long getTime()
+        public long GetTime()
         {
-            string unit = getTimeUnit();
-            float value = getNumFloat();
+            string unit = GetTimeUnit();
+            float value = GetNumFloat();
 
-            if (!match(new string[] {"RPAREN",}))
-                error(string.Format("Expected ')' instead of '{0}'",token.value));
-            nextToken();
+            if (!Match(new string[] {"RPAREN",}))
+                Error(string.Format("Expected ')' instead of '{0}'",token.value));
+            NextToken();
             // process the time unit
             switch (unit)
             {
@@ -1068,16 +1068,39 @@ using POSH.sys.strict;
         }
 
         /// <summary>
+        /// translates the internal time representation from long back to string
+        /// </summary>
+        /// <returns>timeas string including the unit</returns>
+        public static string GetTimeString(long time)
+        {
+            
+
+            // process the time unit
+            if (time <= 0)
+                return "";
+            if (time < 0.001)
+                return "(seconds 0.001)";
+            if (time < 60000)
+                return String.Format("(seconds {0:G29})",time/1000);
+            if (time < 3600000)
+                return String.Format("(minutes {0:G29})",time/60000);
+            
+            return String.Format("(hours {0:G29})",time/3600000);
+        }
+
+
+
+        /// <summary>
         /// time-unit ::= HOURS | MINUTES | SECONDS | NONE
         /// </summary>
         /// <returns>The unit as token string.</returns>
-        public string getTimeUnit()
+        public string GetTimeUnit()
         {
-            if (!match(new string[] {"HOURS", "MINUTES","SECONDS","NONE"}))
-                error(string.Format("Expected a valid time unit " +
+            if (!Match(new string[] {"HOURS", "MINUTES","SECONDS","NONE"}))
+                Error(string.Format("Expected a valid time unit " +
                     "instead of '{0}'",token.value));
             string unit = token.value;
-            nextToken();
+            NextToken();
 
             return unit;
         }
@@ -1086,13 +1109,13 @@ using POSH.sys.strict;
         /// numfloat ::= NUMINT | NUMFLOAT
         /// </summary>
         /// <returns>The number as float.</returns>
-        public float getNumFloat()
+        public float GetNumFloat()
         {
-            if (!match(new string[] {"NUMINT", "NUMFLOAT"}))
-                error(string.Format("Expected a floating-point number " +
+            if (!Match(new string[] {"NUMINT", "NUMFLOAT"}))
+                Error(string.Format("Expected a floating-point number " +
                     "instead of '{0}'",token.value));
             string value = token.value;
-            nextToken();
+            NextToken();
 
             return float.Parse(value);
         }
@@ -1100,10 +1123,10 @@ using POSH.sys.strict;
         /// <summary>
         /// opt-comment ::= COMMENT |
         /// </summary>
-        public void getOptComment()
+        public void GetOptComment()
         {
-            if (match(new string[] {"COMMENT",}))
-                nextToken();
+            if (Match(new string[] {"COMMENT",}))
+                NextToken();
         }
     }
 }

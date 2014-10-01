@@ -5,12 +5,14 @@ using System.Text;
 using POSH.sys.strict;
 
 using System.IO;
+
+#if LOG_ON
 using log4net;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Appender;
 using log4net.Repository.Hierarchy;
-
+#endif 
 
 namespace POSH.sys
 {
@@ -24,8 +26,13 @@ namespace POSH.sys
     public class LogBase
     {
         public string logDomain {get; private set;}
+#if LOG_ON
+        public log4net.ILog log {get; private set;}
+#else
         public ILog log {get; private set;}
+#endif
         protected internal bool _debug_ { get; internal set;}
+        protected AgentBase _agent_;
 
         /// <summary>
         /// Returns a list of available attributes.
@@ -53,17 +60,20 @@ namespace POSH.sys
         /// <param name="logName">Name of the logging domain, "" if called
         /// for the agent.</param>
         /// <param name="defaultLevel">The default logging level.</param>
-        public LogBase(string logName, AgentBase agent, Level defaultLevel, bool debug)
+        public LogBase(string logName, AgentBase agent, object defaultLevel, bool debug)
         { 
             // workaround for scheduled POSH, where not all plan elements are
             // initialised with an agent -> the given 'agent' attribute does
             // not have an id
             
             _debug_ = debug;
+            attributes = new Dictionary<string, object>();
+
             if (agent == null)
                 agent = ((AgentBase)this);
             else 
             {
+                _agent_ = agent;
                 string agentId = agent.id != string.Empty ? agent.id : "NOID";
 
                 if (logName == string.Empty){
@@ -71,13 +81,18 @@ namespace POSH.sys
                     logDomain = agentId;
                 }else
                     logDomain = agentId+"."+logName;
+#if LOG_ON
                 log = LogManager.GetLogger(logDomain);
+#else 
+                log = new Log();
+#endif
             }
-            attributes = new Dictionary<string, object>();
+#if LOG_ON           
             if (defaultLevel != null)
-                ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel;
+                ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel as Level;
 
             log4net.Config.XmlConfigurator.Configure();
+#endif
         }
 		protected void Init(string id)
 		{
@@ -95,8 +110,24 @@ namespace POSH.sys
                 logDomain = id;
             }else
                 logDomain = id+"."+logName;
+#if LOG_ON
             log = LogManager.GetLogger(logDomain);
+#else
+            log = new Log();
+#endif
         }
+
+        public Dictionary<string,object> GetAttributes()
+        {
+            Dictionary<string,object> output = new Dictionary<string,object>();
+            foreach (string key in this.attributes.Keys)
+            {
+                output[key] = this.attributes[key];
+            }
+
+            return output;
+        }
+
         
 
     }
@@ -113,14 +144,17 @@ namespace POSH.sys
         /// Initialises the stream logger.
         /// </summary>
         public void init(){
+#if LOG_ON
             PatternLayout layout = new PatternLayout("%r [%t] %p %c %x - %m%n");
             StreamHandler writer = new StreamHandler(this);
             
             TextWriterAppender appender= new TextWriterAppender();
             appender.Layout = layout;
             appender.Writer = writer;
+
             Hierarchy h = LogManager.GetRepository()as Hierarchy;
             h.Root.AddAppender(appender);
+#endif
         }
         /// <summary>
         /// Handes the new debug message.
@@ -134,18 +168,6 @@ namespace POSH.sys
             Console.Write(msg);
         }
         
-        /// <summary>
-        /// Sets up basic console logging at the given log level.
-        /// </summary>
-        /// <param name="level"></param>
-        public static void setupConsoleLogging(Level level){
-
-            log4net.Config.BasicConfigurator.Configure();
-        
-            Hierarchy h = LogManager.GetRepository()as Hierarchy;
-            h.Root.Level =level;
-        }
-
     }
 
     public class StreamHandler : StreamWriter

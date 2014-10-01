@@ -19,7 +19,7 @@ namespace POSH.sys
     /// </summary>
     public class Behaviour : LogBase
     {
-        public static readonly string ATTRIBUTES="attributes", ACTIONS="actions",
+        public static readonly string ATTRIBUTES = "attributes", ACTIONS = "actions", PRIMITIVES = "primitives",
             SENSES="senses", INSPECTORS ="inspectors";
 
         protected internal AgentBase agent;
@@ -60,71 +60,121 @@ namespace POSH.sys
         /// <param name="senses">The sense names to register.</param>
         /// <param name="attributes">List of attributes to initialise behaviour state.</param>
         /// <param name="caller"></param>
-        public Behaviour(AgentBase agent,string [] actions,string []senses,Dictionary<string,object> attributes,Behaviour caller) 
+        public Behaviour(AgentBase agent,string [] actions,string []senses,Dictionary<string,object> a_attributes,Behaviour caller) 
             : this(agent)
         {
-            
+
+            Dictionary<string, SortedList<float,POSHPrimitive>> availableActions = new Dictionary<string, SortedList<float,POSHPrimitive>>();
+            Dictionary<string, SortedList<float,POSHPrimitive>> availableSenses = new Dictionary<string, SortedList<float,POSHPrimitive>>();
+
             if (caller != null)
                 GetActionsSenses(caller);
             else 
             {
                 MethodInfo[] methods = this.GetType().GetMethods();
 
-                if (actions == null || actions.Length < 1)
-                    actions = ExtractPrimitives(this,true);
+                availableActions = ExtractPrimitives(this, true);
+                availableSenses = ExtractPrimitives(this,false);
                 
-                if (senses == null || senses.Length < 1)
-                    senses = ExtractPrimitives(this,false);
                 
-                Dictionary<string, POSH.sys.strict.POSHAction> a = new Dictionary<string, POSH.sys.strict.POSHAction>();
-                foreach (string elem in actions)
-                    a.Add(elem,null);
-                Dictionary<string, POSH.sys.strict.POSHSense> s = new Dictionary<string, POSH.sys.strict.POSHSense>();
-                foreach (string elem in senses)
-                    s.Add(elem,null);
+                // filtering the primitives which sould not be made available for the agent
+                FilterPrimitives(actions,availableActions);
+                FilterPrimitives(senses,availableSenses);
 
-                this.attributes.Add(ACTIONS,a);
-                this.attributes.Add(SENSES,s);
+
+
+                this.attributes[ACTIONS] = availableActions;
+                this.attributes[SENSES] = availableSenses;
             }
 
             this.attributes.Add(INSPECTORS,null);
-            // assign attributes
-            if (attributes != null)
-                AssignAttributes(attributes);
+
+            // assign additional attributes
+            if (a_attributes != null)
+                AssignAttributes(a_attributes);
 
         }
 
-        string[] ExtractPrimitives(Behaviour source, bool acts)
+        /// <summary>
+        /// removes all entries of the dictionary which are mentioned in the filter
+        /// As only the dict reference is passed in the dictionary will be modified even if it is not passed back.
+        /// </summary>
+        /// <param name="filter">array of primitiv names which should not be made available for the agent</param>
+        /// <param name="dict">the primitives which are available from a specific behaviour</param>
+        private void FilterPrimitives(string[] filter, Dictionary<string, SortedList<float, POSHPrimitive>> dict)
+        {
+            if (filter != null && filter.Length > 0)
+                foreach (string key in filter)
+                    if (dict.ContainsKey(key))
+                        dict.Remove(key);
+        }
+
+        /// <summary>
+        /// The method is extracting the primitives based on their string names from a behaviour object.
+        /// At this point all possible actions/ senses are extracted and their names are returned as a string list.
+        /// </summary>
+        /// <param name="source">The behaviour to search for the primitives</param>
+        /// <param name="acts">True if search for Actions,\n False if searching for Senses</param>
+        /// <returns>Returns a Dict containing the plan name as key and the correct Attribute defintions 
+        /// all for Actions/Senses inside the given behaviour linked to the specific plan name</returns>
+        private Dictionary<string, SortedList<float, POSHPrimitive>> ExtractPrimitives(Behaviour source, bool acts)
         {
             MethodInfo[] methods = source.GetType().GetMethods();
-            List<string> primitives = new List<string>();
-            if (acts)
-                foreach (MethodInfo method in methods)
+            Dictionary<string, SortedList<float, POSHPrimitive>> primitives = new Dictionary<string, SortedList<float, POSHPrimitive>>();
+
+
+            foreach (MethodInfo method in methods)
+            {
+                POSHPrimitive prim = null;
+
+                // if we want to add actions
+                if (acts)
                 {
                     // include versioning of primitives at some later point 
                     if (method.GetCustomAttributes(typeof(ExecutableAction), true).Length > 0)
-                        primitives.Add(method.Name);
+                        prim = method.GetCustomAttributes(typeof(ExecutableAction), true).First() as ExecutableAction;
                 }
-            else
-                foreach (MethodInfo method in methods)
-                {
-                    // include versioning of primitives at some later point 
+                // if we want to add senses
+                else
                     if (method.GetCustomAttributes(typeof(ExecutableSense), true).Length > 0)
-                        primitives.Add(method.Name);
-                }
-            
+                        prim = method.GetCustomAttributes(typeof(ExecutableSense), true).First() as ExecutableSense;
 
-            return primitives.ToArray();
+                // if there is a primitive we want we store it in a sorted list using the version number as a criteria for later retrieval
+                if (prim != null)
+                {
+                    // linking the primitive to the method which it augments
+                    prim.SetLinkedMethod(method.Name);
+                    prim.SetOriginatingBhaviour(this);
+
+                    if (primitives.ContainsKey(prim.command))
+                    {
+                        primitives[prim.command].Add(prim.version, prim);
+                    }
+                    else
+                    {
+                        SortedList<float, POSHPrimitive> list = new SortedList<float, POSHPrimitive>();
+                        list[prim.version] = prim;
+                        primitives[prim.command] = list;
+                    }
+
+
+                }
+            }
+ 
+            return primitives;
         }
 
-        void GetActionsSenses(Behaviour sourceObj)
+        /// <summary>
+        /// @deprecated I just copied this method from the python code but is seems to overcomplicated stuff and using methods from other behaviours is hard to communicate to the user
+        /// </summary>
+        /// <param name="sourceObj"></param>
+        private void GetActionsSenses(Behaviour sourceObj)
         {
-            
-            try
+           try
             {
                 if (sourceObj.attributes is Dictionary<string, object>)
                 {
-                    // check if the source object contains more actions and adds those
+                    // check if the source object contains more actions and add those to the current attribute dict
                     if (sourceObj.attributes.ContainsKey(ACTIONS) && attributes.ContainsKey(ACTIONS) && attributes[ACTIONS] is Dictionary<string, Behaviour>)
                     {
                         Dictionary<string, Behaviour> a = (Dictionary<string,Behaviour>)sourceObj.attributes[ACTIONS];
@@ -132,7 +182,7 @@ namespace POSH.sys
                             ((Dictionary<string, Behaviour>)this.attributes[ACTIONS])[e.Key] = e.Value;
                            
                     }
-                    // check if the source object contains more senses and adds those
+                    // check if the source object contains more senses and add those
                     if (sourceObj.attributes.ContainsKey(SENSES) && attributes.ContainsKey(SENSES) && attributes[SENSES] is Dictionary<string, Behaviour>)
                     {
                         Dictionary<string, Behaviour> s = (Dictionary<string, Behaviour>)sourceObj.attributes[SENSES];
@@ -198,14 +248,14 @@ namespace POSH.sys
         /// for a list).
         /// </summary>
         /// <param name="attributes">dictionary of attributes to assign to behaviour.</param>
-        public void AssignAttributes(Dictionary<string,object> attribs)
+        public virtual void AssignAttributes(Dictionary<string,object> attribs)
         {
 
             foreach (KeyValuePair<string, object> e in attribs)
                 AssignAttribute(e.Key,e.Value);
         }
 
-        public void AssignAttribute(string key, object attrib)
+        public virtual void AssignAttribute(string key, object attrib)
         {
 
             if (key != ACTIONS && key != SENSES && key != INSPECTORS)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using POSH.sys.exceptions;
 using POSH.sys.strict;
+using POSH.sys.annotations;
 
 namespace POSH.sys
 {
@@ -19,16 +20,17 @@ namespace POSH.sys
     public class BehaviourDict
     {
         Dictionary<string, Behaviour> _behaviours;
-        Dictionary<string, Behaviour> _actions;
-        Dictionary<string, Behaviour> _senses;
+        Dictionary<string, SortedList<float,POSHPrimitive>> _actions;
+        Dictionary<string, SortedList<float, POSHPrimitive>> _senses;
         /// <summary>
         /// Initialises the behaviour dictionary.
         /// </summary>
         public BehaviourDict()
         {
             _behaviours = new Dictionary<string, Behaviour>();
-            _actions = new Dictionary<string, Behaviour>();
-            _senses = new Dictionary<string, Behaviour>();
+
+            _actions = new Dictionary<string, SortedList<float, POSHPrimitive>>();
+            _senses = new Dictionary<string, SortedList<float, POSHPrimitive>>();
 
         }
 
@@ -37,7 +39,7 @@ namespace POSH.sys
 
         ///    Upon registering, it is checked if all action and sense
         ///    methods are actually available in the given behaviour.
-        ///    If that is not the case, an AttributeError is thrown.
+        ///    If that is not the case, an AttributeException is thrown.
 
         ///    If there is already an action or a sense with the same
         ///    name registered in the behaviour dictionary, a
@@ -50,27 +52,39 @@ namespace POSH.sys
         /// <param name="behave">The behaviour to register.</param>
         public void RegisterBehaviour(Behaviour behave)
         {
-            Dictionary<string, POSHAction> actions = (Dictionary<string, POSHAction>)behave.attributes[Behaviour.ACTIONS];
-            Dictionary<string, POSHSense> senses = (Dictionary<string, POSHSense>)behave.attributes[Behaviour.SENSES];
+            Dictionary<string, SortedList<float, POSHPrimitive>> a_actions = (Dictionary<string, SortedList<float, POSHPrimitive>>)behave.attributes[Behaviour.ACTIONS];
+            Dictionary<string, SortedList<float, POSHPrimitive>> a_senses = (Dictionary<string, SortedList<float, POSHPrimitive>>)behave.attributes[Behaviour.SENSES];
             string behaviourName = behave.GetName();
 
             //    # add the behaviour
             if (_behaviours.ContainsKey(behaviourName))
                 throw new NameException(String.Format("Behaviour {0} cannot be registered twice", behaviourName));
             _behaviours.Add(behaviourName, behave);
-            //    # add the actions
-            foreach (KeyValuePair<string, POSHAction> action in actions)
+            
+            // add the actions
+            AddPrimitives(_actions, (Dictionary<string, SortedList<float, POSHPrimitive>>)behave.attributes[Behaviour.ACTIONS], "Action {0} vs. {1} cannot be registered twice");
+
+            // add the senses
+            AddPrimitives(_senses, (Dictionary<string, SortedList<float, POSHPrimitive>>)behave.attributes[Behaviour.SENSES], "Sense {0} vs. {1} cannot be registered twice");
+
+        }
+
+        private void AddPrimitives(Dictionary<string, SortedList<float, POSHPrimitive>> target, Dictionary<string, SortedList<float, POSHPrimitive>> source, string exceptionText)
+        {
+            foreach (KeyValuePair<string, SortedList<float, POSHPrimitive>> prim in source)
             {
-                if (this._actions.ContainsKey(action.Key))
-                    throw new AttributeException(String.Format("Action {0} cannot be registered twice", action));
-                this._actions.Add(action.Key, behave);
-            }
-            //    # .. and the senses
-            foreach (KeyValuePair<string, POSHSense> sense in senses)
-            {
-                if (this._senses.ContainsKey(sense.Key))
-                    throw new AttributeException(String.Format("Sense {0} cannot be registered twice", sense));
-                this._senses.Add(sense.Key, behave);
+                if (target.ContainsKey(prim.Key))
+                {
+                    foreach (float version in target[prim.Key].Keys)
+                        if (source[prim.Key].ContainsKey(version))
+                            throw new AttributeException(String.Format(exceptionText, prim.Key, version));
+                        else
+                            target[prim.Key][version] = source[prim.Key][version];
+                }
+                else
+                {
+                    target[prim.Key] = prim.Value;
+                }
             }
         }
 
@@ -111,17 +125,18 @@ namespace POSH.sys
         }
 
         /// <summary>
-        /// Returns an action by name.
+        /// Returns an action by name and the linked behaviour.
+        /// Important: The name return is the correct unique method name inside a specific behaviour. Also The highest version of the method is returned.
         /// </summary>
-        /// <param name="actionName">The name of a registered action.</param>
-        /// <returns>The action with the given name. If no action with the specified name was registered null is returned.</returns>
+        /// <param name="actionName">The name of a registered action as used in the plan.</param>
+        /// <returns>The method which  implments a given action name. If no action with the specified name was registered null is returned.</returns>
         public Tuple<string,Behaviour> getAction(string actionName)
         {
             if (!_actions.ContainsKey(actionName))
                 throw new NameException(string.Format("Action '{0}' not provided by any behaviour",
                     actionName));
 
-            return new Tuple<string, Behaviour>(actionName, _actions[actionName]);
+            return new Tuple<string, Behaviour>(_actions[actionName].Last().Value.linkedMethod, _actions[actionName].Last().Value.orginatingBehaviour);
         }
 
         /// <summary>
@@ -144,7 +159,21 @@ namespace POSH.sys
                 throw new NameException(string.Format("Action '{0}' not provided by any behaviour",
                     actionName));
 
-            return _actions[actionName];
+            return _actions[actionName].Last().Value.orginatingBehaviour;
+        }
+
+        /// <summary>
+        /// Returns the behaviour that provides the given sense.
+        /// </summary>
+        /// <param name="senseName">The sense that the behaviour provides</param>
+        /// <returns>The behaviour that provides the given sense.</returns>
+        public Behaviour getSenseBehaviour(string senseName)
+        {
+            if (!_senses.ContainsKey(senseName))
+                throw new NameException(string.Format("Sense '{0}' not provided by any behaviour",
+                    senseName));
+
+            return _senses[senseName].Last().Value.orginatingBehaviour;
         }
 
         /// <summary>
@@ -158,7 +187,7 @@ namespace POSH.sys
                 throw new NameException(string.Format("Sense '{0}' not provided by any behaviour",
                     senseName));
 
-            return _senses.ContainsKey(senseName) ? new Tuple<string,Behaviour>(senseName,_senses[senseName]) : null;
+            return _senses.ContainsKey(senseName) ? new Tuple<string, Behaviour>(_senses[senseName].Last().Value.linkedMethod, _senses[senseName].Last().Value.orginatingBehaviour) : null;
         }
 
         /// <summary>
@@ -170,15 +199,7 @@ namespace POSH.sys
             return _senses.Keys.ToArray();
         }
 
-        /// <summary>
-        /// Returns the behaviour that provides the given sense.
-        /// </summary>
-        /// <param name="senseName">The sense that the behaviour provides</param>
-        /// <returns>The behaviour that provides the given sense.</returns>
-        public Behaviour getSenseBehaviour(string senseName)
-        {
-            return _senses[senseName];
-        }
+        
 
     }
 

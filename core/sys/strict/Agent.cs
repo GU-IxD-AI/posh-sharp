@@ -177,16 +177,16 @@ namespace POSH.sys.strict
         /// </summary>
         /// <param name="planFile">Filename of the plan file that is loaded.</param>
         /// <returns></returns>
-        public override void LoadPlan(string planName)
+        internal override void LoadPlan(string planName)
         {
             // if setTimer() is not called, then the first use of
             // the timer will fail. setTimer() is called when the drive
             // collection is built.
             timer = null;
             // read plan, parse it and build drive collection
- 	        PlanBuilder builder = new LAPParser().parse(AssemblyControl.GetControl().GetPlanFile(library, planName));
+ 	        PlanBuilder builder = new LAPParser().Parse(AssemblyControl.GetControl().GetPlanFile(library, planName));
             dc = builder.build(this);
         }
-
+ 
     }
 }

@@ -5,19 +5,31 @@ using System.Text;
 
 namespace POSH.sys.annotations
 {
-    public class ExecutableAction : Attribute
+    public class ExecutableAction : POSHPrimitive
     {
-        public string command { get; private set;}
-        public float version { get; private set; }
-
-		public ExecutableAction(string command) : this(command, 0.1f)
+        public ExecutableAction(string command) : base(command)
 		{}
 
         //TODO: remodel the Action to link it against any method which is called by ExecutableAction
         public ExecutableAction(string command, float version)
+            : base(command, version)
+        { }
+
+
+        public override bool Equals(object obj)
         {
-            this.command = command;
-            this.version = version;
+            ExecutableAction otherAction = obj as ExecutableAction;
+            
+            if (obj == null || otherAction == null)
+                return false;
+
+            return (otherAction.command == this.command) ? true : false;
         }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
     }
 }

@@ -49,12 +49,28 @@ namespace POSH.sys.strict
         {
             log.Debug("Firing");
             foreach (POSHSense sense in this.senses)
-                if (!sense.fire())
+                if (!sense.fire().continueExecution())
                 {
                     log.Debug(string.Format("Sense {0} failed",sense.getName()));
                     return false;
                 }
             return true;
+        }
+
+        public override string ToSerialize(Dictionary<string,string> elements)
+        {
+            string plan = "";
+            elements = (elements is Dictionary<string,string>)? elements : new Dictionary<string,string>();
+
+            // taking appart the senses and putting them into the right form
+            plan = "( ";
+            for (int i = 0; i < senses.Length; i++)
+            {
+                plan += senses[i].ToSerialize(elements)+" ";
+            }
+            plan += ")";
+
+            return plan;
         }
     }
 }

@@ -6,7 +6,12 @@ using System.Timers;
 using System.Reflection;
 using System.IO;
 using POSH.sys.exceptions;
-using log4net;
+
+#if LOG_ON
+    using log4net;
+#else
+    using POSH.sys;
+#endif
 
 namespace POSH.sys
 {
@@ -83,6 +88,11 @@ namespace POSH.sys
             actionPlans = plans;
         }
 
+        public void AddActionPlan(string planName, string plan)
+        {
+            actionPlans[planName] = plan;
+        }
+
         public void SetBehaviourConnector(IBehaviourConnector connector)
         {
             this.connector = connector;
@@ -140,13 +150,13 @@ namespace POSH.sys
             {
                 agentsInit = AgentInitParser.initAgentFile(connector.GetInitFileStream(agentsInitFile));
             }
-            catch (Exception e1)
+            catch (Exception )
             {
                 try
                 {
                     agentsInit = AgentInitParser.initAgentFile(connector.GetInitFileStream(agentLibrary));
                 }
-                catch (Exception e2)
+                catch (Exception )
                 {
                     //TODO: meaningfull error message regarding the agentinit file which seems to be either corrupt or not linked
                 }

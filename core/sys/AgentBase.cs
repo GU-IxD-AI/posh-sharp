@@ -7,6 +7,7 @@ using POSH.sys.strict;
 using System.Threading;
 using System.IO;
 using POSH.sys.exceptions;
+using POSH.sys.events;
 
 namespace POSH.sys
 {
@@ -30,10 +31,18 @@ namespace POSH.sys
         protected internal bool _loopPause;
         protected internal bool _execLoop;
 
+        private List<IListener> _listeners;
+
+        /// <summary>
+        /// The name of the POSH plan which is used for this agent.
+        /// </summary>
+        public string linkedPlanName { get; protected internal set; }
+        
 
 		public AgentBase(string library, string plan, Dictionary<Tuple<string,string>,object> attributes) 
 			: this(library, plan,attributes, null)
 		{
+            _listeners = new List<IListener>();
 		}
 
         /// <summary>
@@ -80,8 +89,8 @@ namespace POSH.sys
             // profiler= Profiler.initProfile(this); 
 
             // load and register the behaviours, and reflect back onto agent
-            this._bdict = loadBehaviours();
-            reflectBehaviours();
+            this._bdict = LoadBehaviours();
+            ReflectBehaviours();
 
             //# more for the profiler
             // FIXME: PR -- is there another place to do this?  will it succeed without MASON? JJB 1 March 2008
@@ -92,7 +101,7 @@ namespace POSH.sys
             //    pass # normally don't expect profiling, nor necessarily MASON
  
             // assign the initial attributes to the behaviours
-            this.assignAttributes(attributes);
+            this.AssignAttributes(attributes);
             
             // load the plan
             LoadPlan(plan);
@@ -106,7 +115,7 @@ namespace POSH.sys
         /// dictionary.
         /// </summary>
         /// <returns>Behaviour dictionary with all behaviours in the library</returns>
-        internal BehaviourDict loadBehaviours()
+        internal BehaviourDict LoadBehaviours()
         {
             BehaviourDict dict = AssemblyControl.GetControl().GetBehaviours(library,log,this);
                     // TODO: Profiler needs to be included later on.
@@ -130,7 +139,7 @@ namespace POSH.sys
         /// exists, an error is raised.
         /// </summary>
         /// 
-        internal void reflectBehaviours()
+        internal void ReflectBehaviours()
         {
             foreach (Behaviour behave in _bdict.getBehaviours())
             {
@@ -194,7 +203,7 @@ namespace POSH.sys
         /// </summary>
         /// <param name="attributes">attributes that are to be assigned to behaviours
         /// dictionary (behaviour_name, attribute_name) -> value</param>
-        public void assignAttributes(Dictionary<Tuple<string, string>, object> attributes)
+        public void AssignAttributes(Dictionary<Tuple<string, string>, object> attributes)
         {
             // # sort attributes by behaviour
             foreach (KeyValuePair<Tuple<string, string>, object> pair in attributes.OrderBy(pair => pair.Key.First))
@@ -224,7 +233,7 @@ namespace POSH.sys
         /// behaviours.
         /// </summary>
         /// <param name="rng">A random number generator.</param>
-        public void setRNG(Random rng)
+        public void SetRNG(Random rng)
         {
             this.random = rng;
             foreach (Behaviour behave in _bdict.getBehaviours())
@@ -433,9 +442,9 @@ namespace POSH.sys
         /// </summary>
         /// <param name="planFile"></param>
         /// <returns></returns>
-        public  virtual void LoadPlan(string planFile)
+        internal  virtual void LoadPlan(string planFile)
         {
-            throw new NotImplementedException("AgentBase._loadPlan() needs to be overridden");
+            throw new NotImplementedException("AgentBase.LoadPlan() needs to be overridden");
         }
 
         /// <summary>
@@ -465,6 +474,33 @@ namespace POSH.sys
             throw new NotImplementedException("AgentBase._loop_thread() needs to be overridden");
         }
 
+        /// <summary>
+        /// Register an IListener to the agent so that you can listen to all events generated during plan execution
+        /// </summary>
+        /// <param name="listener"></param>
+        public void RegisterListener(IListener listener)
+        {
+            if (!(listener is IListener) || _listeners.Contains(listener))
+                return;
+
+            _listeners.Add(listener);
+        }
+
+        public void SubscribeToListeners(PlanElement p, EventType evType)
+        {
+            foreach (IListener listener in _listeners)
+                if (listener.ListensFor(evType))
+                    listener.Subscribe(p);
+        }
+
+        protected internal bool HasListenerForTyp(events.EventType eventType)
+        {
+            if (_listeners is List<IListener> && _listeners.Count > 0)
+                foreach (IListener listener in _listeners)
+                    if (listener.ListensFor(eventType))
+                        return true;
+            return false;
+        }
     }
 
 }

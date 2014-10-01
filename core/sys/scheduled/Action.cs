@@ -14,6 +14,7 @@ namespace POSH.sys.scheduled
     {
         BehaviourDict behaviourDict;
         private Tuple<string,Behaviour> action;
+        private string actionName;
         Behaviour behaviour;
        
 
@@ -32,6 +33,7 @@ namespace POSH.sys.scheduled
         public POSHAction(Agent agent, string actionName)
             :base(string.Format("Action.{0}",actionName),agent)
         {
+            this.actionName = actionName;
             behaviourDict = agent.getBehaviourDict();
             action = behaviourDict.getAction(actionName);
             behaviour = behaviourDict.getActionBehaviour(actionName);

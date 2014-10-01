@@ -59,7 +59,7 @@ namespace POSH.sys.strict
         public override bool  isReady(long timeStamp)
         {
  	         if (trigger.fire())
-                 if (maxRetries < 0 || retries < maxRetries )
+                 if (maxRetries == 0 || retries < maxRetries )
                  {
                      retries +=1;
                      return true;
@@ -101,6 +101,20 @@ namespace POSH.sys.strict
             newObj.reset();
             
             return newObj;
+        }
+
+        public override string ToSerialize(Dictionary<string, string> elements)
+        {
+            string plan = string.Empty;
+            elements = (elements is Dictionary<string, string>) ? elements : new Dictionary<string, string>();
+
+            // taking appart the senses and putting them into the right form
+
+
+            plan = String.Format("({0} (trigger {1}) {2} {3})",name,trigger.ToSerialize(elements),element.ToSerialize(elements),this.maxRetries);
+            
+
+            return plan;
         }
     }
 }
