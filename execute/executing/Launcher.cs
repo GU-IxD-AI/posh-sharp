@@ -374,7 +374,7 @@ namespace POSH.executing
             // start the agents
             bool loopsRunning = application.control.StartAgents(verbose, agents);
 
-            loopsRunning = application.control.Run(verbose, agents, loopsRunning);
+            loopsRunning = application.control.Running(verbose, agents, loopsRunning);
 
         }
 

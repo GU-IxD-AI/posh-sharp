@@ -62,6 +62,9 @@ namespace POSH.unity
         private bool InitGP(List<Tuple<string, object>> agentInit)
         {
             gpSystem = new GPSystem();
+            // TODO: the seed needs to be made reasonable
+            gpSystem.SetRandomSeed(DateTime.Now.Millisecond*DateTime.Now.Minute*DateTime.Now.Hour);
+            
             List<Tuple<string,string>> basePlans = new List<Tuple<string,string>>();
 
             foreach (Tuple<string, object> agents in agentInit)
@@ -72,6 +75,19 @@ namespace POSH.unity
             }
             
             return gpSystem.InitGPWithPlan(basePlans.ToArray());
+        }
+
+        private void StartGPSystem(AgentBase[] agents)
+        {
+            // TODO: here is the perfect place to bring in a listener to use for evolution and simulation of parallel strains of the same agent
+            // we can use poshLink.RelinkAgent(agent,newPlan) for that and beforehand add a new plan to poshLink.AddPlan()
+            // the listener will be in the programchromosome which contains the agent and the plan
+            gpSystem.Configure(50, agents.Length, 150, 0.01f, 0.2f, true);
+            
+            gpSystem.ConnectAgents(agents);
+            // TODO: the gpSystem needs to be told that it has all neded info now 
+            gpSystem.Start();
+   
         }
 
         /// <summary>
@@ -108,13 +124,10 @@ namespace POSH.unity
             Debug.Log("init POSH");
             agents = poshLink.CreateAgents(true, usedPOSHConfig, agentInit, new Tuple<World, bool>(null, false));
 
-            // TODO: here is the perfect place to bring in a listener to use for evolution and simulation pf parallel strains of the same agent
-            // we can use poshLink.RelinkAgent(agent,newPlan) for that ad beforehand add a new plan to poshLink.AddPlan()
-            gpSystem.ConnectAgents(agents);
-
+            StartGPSystem(agents);
 
             poshLink.StartAgents(true, agents);
-            poshLink.Run(true, agents, false);
+            poshLink.Running(true, agents, false);
             Debug.Log("running POSH");
             started = true;
             return started;
@@ -127,14 +140,28 @@ namespace POSH.unity
         /// The method itself takes some time to compute as it fires up the gp so using it within a separate thread or co-routine would be advantageous.
         /// </summary>
         /// <returns></returns>
-        protected bool UpdateAgents()
+        protected void EvaluateAgents()
         {
             // COMMENT: a clever thing would be to check if the agent is visible to the player and then only update those who are not visible
             // but that is something for the future
 
             bool result = gpSystem.EvaluateAgents();
-            gpSystem.
+            gpSystem.Evolve();
 
+        }
+
+        protected void UpdateAgents(int number)
+        {
+            Tuple<string,string> [] plans = gpSystem.GetEvolvedPlans(number);
+
+            for (int i = 0;i< plans.Length; i++)
+                poshLink.AddActionPlan(plans[i].First,plans[i].Second);
+
+
+            // TODO: this needs to be re-worked as the newly linked plan mostl likely should have a different name otherwise we would override
+            // all plans in the controller
+            foreach (AgentBase ag in agents)
+                poshLink.ReLinkAgents(ag,ag.linkedPlanName);
         }
 
 

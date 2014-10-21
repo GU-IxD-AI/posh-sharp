@@ -8,6 +8,14 @@ namespace POSH.sys.events
 {
     public class POSHListener : IListener
     {
+
+        public Stack<Tuple<EventType, object, EventArgs>> eventStack;
+
+        public POSHListener()
+        {
+            eventStack = new Stack<Tuple<EventType, object, EventArgs>>();
+        }
+
         public void Subscribe(object p)
         {
             if (p is PlanElement)
@@ -24,7 +32,7 @@ namespace POSH.sys.events
 
         private void Listen(EventType t, object p, EventArgs f)
         {
-
+            eventStack.Push(new Tuple<EventType, object, EventArgs>(t, p, f));
         }
     }
 }

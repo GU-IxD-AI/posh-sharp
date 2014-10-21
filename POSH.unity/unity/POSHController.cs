@@ -131,7 +131,7 @@ namespace POSH.unity
             Debug.Log("init POSH");
             agents = poshLink.CreateAgents(true, usedPOSHConfig, agentInit, new Tuple<World, bool>(null, false));
             poshLink.StartAgents(true, agents);
-            poshLink.Run(true, agents, false);
+            poshLink.Running(true, agents, false);
             Debug.Log("running POSH");
             started = true;
             return started;
