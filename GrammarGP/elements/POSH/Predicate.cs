@@ -89,9 +89,11 @@ namespace GrammarGP.elements.POSH
                 position = (int) ( (position - mutationRange < range) ? range - Math.Abs(position - mutationRange) : position - mutationRange );
 
             value = position;
+        }
 
-
-
+        public override bool SetChildren(AGene[] children)
+        {
+            return false;
         }
     }
 }

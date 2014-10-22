@@ -40,7 +40,9 @@ namespace GrammarGP.operators
 
         public IChromosome[]  DoCross(IChromosome a_chrom, IChromosome b_chrom)
         {
-             IChromosome[] c = { a_chrom, b_chrom};
+            a_chrom = (IChromosome)a_chrom.Clone();
+            b_chrom = (IChromosome)b_chrom.Clone();
+            IChromosome[] c = { (IChromosome)a_chrom.Clone(), (IChromosome)b_chrom.Clone() };
             
             /* TODO(swen) there is no check if chromosomes are crossed with different arities 
              * which can lead to run-time exceptions and invalid structures */
@@ -75,7 +77,7 @@ namespace GrammarGP.operators
                     // --------------------------------------
         	        /* FIXME(swen) changed getCommandOfClass to AvailableCommand to use the whole available function set for the chromosome for mutation*/
         	        if (b_chrom.AcceptsGenesofType(command.type) ) 
-                        a_chrom.InsertGene(ic0, command);
+                        a_chrom.InsertGene(ic0, command,false);
                     
                     }
                 }
@@ -112,17 +114,23 @@ namespace GrammarGP.operators
                     // --------------------------------------
                       /* FIXME(swen) changed getCommandOfClass to AvailableCommand to use the whole available function set for the chromosome for mutation*/
         	        if (b_chrom.AcceptsGenesofType(command.type) ) 
-                        b_chrom.InsertGene(ic1, command);
+                        b_chrom.InsertGene(ic1, command,false);
                   }
               }
             }
 
-            // TODO: solve in general
+            // mutate a function if possible and place it in the chromosome
             if ( !b_chrom.IsLeaf(b_chrom.GetGene(ic1).type) ) {
-                b_chrom.InsertGene(ic1, b_chrom.GetGene(ic1).Mutate((float) random.NextDouble()));
+                b_chrom.InsertGene(ic1, b_chrom.GetGene(ic1).Mutate((float) random.NextDouble()), true);
             }
+
+            //
+            // parameters for calculating which chromsome goes first and how to do the crossover
+            //
             int s0 = a_chrom.GetSize(ic0); //Number of nodes in a_chrom of gene ic0
             int s1 = b_chrom.GetSize(ic1); //Number of nodes in b_chrom of gene ic1
+            int numberOfFunction_a = a_chrom.GetAllFunctions().Length;
+            int numberOfFunction_b = b_chrom.GetAllFunctions().Length;
             int d0 = a_chrom.GetDepth(ic0); //Depth of ic0
             int d1 = b_chrom.GetDepth(ic1); //Depth of ic1
             int c0s = a_chrom.GetSize(); //Number of nodes in a_chrom
@@ -134,47 +142,32 @@ namespace GrammarGP.operators
                 || c0s - s0 <= 0
    //             || ic0 + s1 + c0s - ic0 - s0 >= a_chrom.GetAllFunctions().Length
                 // corrected to : ic1 + s1 + c0s - ic0 - s0 >= a_chrom.GetAllFunctions().Length
-                // changed to : ic1 + s1 + c0s >= a_chrom.GetAllFunctions().Length + ic0 + s0
+                // changed to : ic1 + s1 + c0s >= numberOfFunction_a + ic0 + s0
                 // I do not get this formula it originally was the position of your subtree + its size
                 ) 
             {
               // Choose the other parent.
               // ------------------------
-              c[0] = b_chrom;
+              c[0] = (IChromosome)b_chrom.Clone();
             }
-            else {
-              c[0] = new Chromosome(m_config,
-                                           a_chrom.GetAllFunctions().Length,
-                                           c[0].getFunctionSet(),
-                                           c[0].getArgTypes(),
-                                           a_chrom.getIndividual());
-              System.arraycopy(a_chrom.getFunctions(), 0, c[0].getFunctions(), 0, p0);
-              System.arraycopy(b_chrom.getFunctions(), p1, c[0].getFunctions(), p0, s1);
-              System.arraycopy(a_chrom.getFunctions(), p0 + s0, c[0].getFunctions(),
-                               p0 + s1, c0s - p0 - s0);
-              c[0].redepth();
+            else 
+            {
+                c[0].InsertGene(ic0,b_chrom.GetGene(ic1),true);
             }
             
             // Check for depth constraint for p0 inserted into c1.
             // ---------------------------------------------------
             if (d1 - 1 + d0/*s0*/ > m_config.maxCrossOverDepth
-                || c1s - p1 - s1 < 0
-                || p1 + s0 + c1s - p1 - s1 >= b_chrom.getFunctions().length) {
+                || c1s - s1 < 0
+              //  || s0 + c1s >= s1 + numberOfFunction_b
+                ) {
               // Choose the other parent.
               // ------------------------
-              c[1] = a_chrom;
+              c[1] = (IChromosome)a_chrom.Clone();
             }
-            else {
-              c[1] = new ProgramChromosome(m_config,
-                                           b_chrom.getFunctions().length,
-                                           c[1].getFunctionSet(),
-                                           c[1].getArgTypes(),
-                                           b_chrom.getIndividual());
-              System.arraycopy(b_chrom.getFunctions(), 0, c[1].getFunctions(), 0, p1);
-              System.arraycopy(a_chrom.getFunctions(), p0, c[1].getFunctions(), p1, s0);
-              System.arraycopy(b_chrom.getFunctions(), p1 + s1, c[1].getFunctions(),
-                               p1 + s0, c1s - p1 - s1);
-              c[1].redepth();
+            else 
+            {
+                c[0].InsertGene(ic1, b_chrom.GetGene(ic0), true);
             }
             return c;
         }

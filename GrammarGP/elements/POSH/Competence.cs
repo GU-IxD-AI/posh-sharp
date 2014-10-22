@@ -56,11 +56,16 @@ namespace GrammarGP.elements.POSH
                         return false;
                 }
             
-            for (int i = 0; i < children.Length; i++)
+            for (int i = 0; i < childList.Count; i++)
                 if (m_Chromosome.AddGene(childList[i]))
                 {
                     this.childTypes[i] = childTypes[i];
                     this.children[i] = childList[i].id;
+                }
+                else if (m_Chromosome == childList[i].m_Chromosome)
+                {
+                    childList[i].parent = this.id;
+                    this.children.Add(childList[i].id);
                 }
 
             return true;

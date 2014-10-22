@@ -148,5 +148,10 @@ namespace GrammarGP.elements.POSH
 
             return 0;
         }
+
+        public override bool SetChildren(AGene[] children)
+        {
+            return false;
+        }
     }
 }

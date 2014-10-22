@@ -55,7 +55,7 @@ namespace GrammarGP.elements.POSH
                 if (children[i] is POSHAction)
                     childTypes.Add(GeneType.Action);
             
-            return base.SetChildren(children);
+            return (childTypes.Count == children.Length) ? base.SetChildren(children) : false;
         }
 
         public override object Clone()

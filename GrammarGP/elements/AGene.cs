@@ -218,5 +218,14 @@ namespace GrammarGP.elements
         }
 
         internal abstract bool InterchangeableWith(GeneType gType, ReturnType retType);
+
+        /// <summary>
+        /// Removes the gene and all its children from the Chromsome. 
+        /// </summary>
+        /// <returns></returns>
+        internal virtual bool ReleaseGene()
+        {
+            return m_Chromosome.RemoveGene(this);
+        }
     }
 }

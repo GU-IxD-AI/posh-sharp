@@ -6,11 +6,12 @@ using GrammarGP.env;
 
 namespace GrammarGP.elements
 {
-    class Chromosome : IChromosome,ICloneable
+    class Chromosome : IChromosome
     {
         private Dictionary<decimal,AGene> m_genes;
         private Configuration m_config; 
         private decimal geneCounter;
+        private AGene m_rootNode;
 
         /// <summary>
         /// Creates a Chromosome using an AGene as a treeNode and extracting all Genes from it into the Chromosome
@@ -18,26 +19,30 @@ namespace GrammarGP.elements
         /// <param name="config">the GP Configuration</param>
         /// <param name="treeRoot">The topmost node of the tree prepresentation to use for the chromosome</param>
         public Chromosome(AGene treeRoot)
-            : this ()
+            : this(treeRoot.gpConfig)
         {
-            m_config = treeRoot.gpConfig;
+            m_rootNode = treeRoot;
         }
 
-        public Chromosome()
+        public Chromosome(Configuration config)
         {
             m_genes = new Dictionary<decimal, AGene>();
-          //  m_gpConfig = config;
+            m_config = config;
             geneCounter = 0;
         }
     
+        /// <summary>
+        /// Used during Crossover to create a deep clone of the chromosome including all genes
+        /// </summary>
+        /// <returns>a new chromsome based on original one</returns>
         public object  Clone()
         {
-            Chromosome clone = new Chromosome();
+            Chromosome clone = new Chromosome(m_config);
             List<AGene> clonedGenes = new List<AGene>();
             foreach (AGene gene in m_genes.Values)
-                clonedGenes.Add((AGene)gene.Clone());
+                clonedGenes.Add((AGene)gene.DeepClone(clone));
 
- 	        throw new NotImplementedException();
+            return clone;
         }
 
 
@@ -79,8 +84,10 @@ namespace GrammarGP.elements
             return m_genes.ContainsKey(genePos) ? m_genes[genePos] : null;
         }
 
-        public bool InsertGene(decimal genePos, AGene gene)
-        {   
+        public bool InsertGene(decimal genePos, AGene gene, bool recursive)
+        {
+            if (!recursive)
+                gene.ReleaseGene();
             if (Contains(gene))
                 return false;
             //TODO: depending on the rest of the implementation I am not sure if only putting a gene at a chrom position is good because this will break the gene and gene-child relation. 
@@ -92,12 +99,30 @@ namespace GrammarGP.elements
             }
             else
             {
-                m_genes[genePos] = gene;
-                gene.id = genePos;
+                if (m_genes[genePos].InterchangeableWith(gene.type,gene.returnType))
+                    ReplaceGene(genePos,gene);
+                else 
+                    return false;
+            
             }
             gene.m_Chromosome = this;
 
             return true;
+        }
+
+        private void ReplaceGene(decimal pos, AGene newGene)
+        {
+            AGene oldGene = m_genes[pos];
+            List<AGene> oldChildren = new List<AGene>();
+            
+            foreach (decimal childID in oldGene.children)
+                oldChildren.Add(m_genes[childID]);
+
+            if (!newGene.SetChildren(oldChildren.ToArray()))
+                RemoveGene(oldGene);
+            m_genes[pos] = newGene;
+            newGene.id = pos;
+        
         }
 
         public decimal GetGenePosition(AGene gene)
@@ -115,14 +140,22 @@ namespace GrammarGP.elements
         public bool RemoveGene(AGene gene)
         {
             decimal pos = GetGenePosition(gene);
-            if (pos != -1)
-                RemoveGene(pos);
+
+            if (m_genes.ContainsKey(pos))
+                return RemoveGene(pos);
+
             return false;
         }
 
         public bool RemoveGene(decimal genePos)
         {
             m_genes[genePos].m_Chromosome = null;
+            if (!m_genes.ContainsKey(genePos))
+                return false;
+            
+            foreach (decimal child in m_genes[genePos].children)
+                RemoveGene(child);
+
             return m_genes.Remove(genePos);
         }
 
@@ -218,7 +251,33 @@ namespace GrammarGP.elements
 
         public int GetDepth(decimal node)
         {
- 
+            // FIXME: this is definetly not a good approach when having a linear representation to parse the tree but it will need to get fixed later
+            int size = 0;
+            AGene gene = m_genes[node];
+            if (IsLeaf(gene.type))
+                return size;
+            foreach (decimal childID in gene.children)
+                size += GetDepth(childID,0);
+
+            return size;
+        }
+
+        private int GetDepth(decimal node,int parentDepth)
+        {
+            // FIXME: this is definetly not a good approach when having a linear representation to parse the tree but it will need to get fixed later
+            int depth = parentDepth+1;
+            int maxChildDepth = 0;
+
+            AGene gene = m_genes[node];
+            if (IsLeaf(gene.type))
+                return depth;
+            foreach (decimal childID in gene.children)
+            {
+                int d = GetDepth(childID,depth);
+                if (d > maxChildDepth)
+                    maxChildDepth = d;
+            }
+            return maxChildDepth;
         }
     }
 }

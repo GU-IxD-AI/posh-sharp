@@ -42,5 +42,10 @@ namespace GrammarGP.elements.POSH
             // actions are represented as basic strings so mutating them is not possible at this level 
             // if actions should be changed xover is needed
         }
+
+        public override bool SetChildren(AGene[] children)
+        {
+            return false;
+        }
     }
 }

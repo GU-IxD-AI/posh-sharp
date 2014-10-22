@@ -30,7 +30,7 @@ namespace GrammarGP.elements
             m_listen = new POSHListener();
             m_agent.RegisterListener(m_listen);
 
-            m_chomosome = new Chromosome();
+            m_chomosome = new Chromosome(config);
             m_drive = builder.Build(m_chomosome, config);
         }
 

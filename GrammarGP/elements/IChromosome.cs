@@ -6,7 +6,7 @@ using GrammarGP.env;
 
 namespace GrammarGP.elements
 {
-    public interface IChromosome
+    public interface IChromosome : ICloneable
     {
 
         //Configuration GetGPConfiguration();
@@ -21,8 +21,11 @@ namespace GrammarGP.elements
         /// </summary>
         /// <param name="genePos">The position in the chromosome the new gene should have.</param>
         /// <param name="gene">The gene to insert</param>
+        /// <param name="recursive">If true, inserts the gene and all its children at a specific position replacing the gene at that specific position. 
+        /// All children of the old gene are removed from the chromosome. If false, the gene is only overriding the gene at the specific position and inheriting all its children. 
+        /// If the gene can not inherit the children they are removed from the chromosome. If the gene originally had children in another chromosome they are not moved if recursive is set to false.</param>
         /// <returns>If the gene could be inserted the method returns true, False otherwise.</returns>
-        bool InsertGene(decimal genePos,AGene gene);
+        bool InsertGene(decimal genePos, AGene gene, bool recursive);
 
         decimal GetGenePosition(AGene gene);
 
