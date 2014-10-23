@@ -55,12 +55,5 @@ namespace GrammarGP.elements.POSH
         {
             return new Goal(gpConfig);
         }
-
-        public override void Mutate(float mutation)
-        {
-            //@TODO:  THe idea might be to use the config to access all available senses and add or remove some from the children
-            // the same will apply to all elements of a class to be able to mutate into a different element of the same group
-            throw new NotImplementedException();
-        }
     }
 }

@@ -61,9 +61,5 @@ namespace GrammarGP.elements.POSH
             return plan;
         }
 
-        public override void Mutate(float mutation)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

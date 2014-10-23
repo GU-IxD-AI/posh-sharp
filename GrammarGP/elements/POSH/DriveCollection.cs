@@ -86,9 +86,9 @@ namespace GrammarGP.elements.POSH
             return dc;
         }
 
-        public override void Mutate(float mutation)
+        public override AGene Mutate(float mutation)
         {
-            throw new NotImplementedException();
+            return this;
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using GrammarGP.env;
 using GrammarGP.elements.exceptions;
+using POSH.sys;
 
 namespace GrammarGP.elements
 {
@@ -176,7 +177,21 @@ namespace GrammarGP.elements
         /// </summary>
         /// <param name="mutation">the parameter is a percentage in the range [0f,1.0f] and is expected 
         /// to be within an evenly distributed space (normal distribution)</param>
-        public abstract AGene Mutate(float mutation);
+        public virtual AGene Mutate(float mutation)
+        {
+            // actions are represented as basic strings so mutating them is not possible at this level 
+            // if actions should be changed xover is needed
+            List<decimal> existing = new List<decimal>();
+            AGene[] pool = new AGene[0];
+
+            //if (mutation < 0.75f)
+            // TODO: we could modify the children and delete/add or rearrange them with a low percentage which you correlate well with mutation
+            existing.AddRange(m_Chromosome.GetAllInterChangeableGenes(type, returnType, false));
+
+            int pick = (int)MutateNumber(mutation, new Tuple<double, double>(0, existing.Count));
+
+            return (AGene)m_Chromosome.GetGene(existing[pick]).Clone();
+        }
         
 
 
@@ -217,7 +232,39 @@ namespace GrammarGP.elements
             return (m_Chromosome != null) ? true : false;
         }
 
-        internal abstract bool InterchangeableWith(GeneType gType, ReturnType retType);
+        /// <summary>
+        /// InterchangeableWith checks if two genes can be exchanged in the chromosome without breaking the underlying logical structure/grammar.
+        /// 
+        /// </summary>
+        /// <param name="gType">The gene type of the gene to compare to.</param>
+        /// <param name="retType">The return type of the gene to compare to.</param>
+        /// <returns>If types and return types are identical it will return true. If types are compatible for interchange the method returns true, false otherwise.</returns>
+        internal virtual bool InterchangeableWith(GeneType gType, ReturnType retType)
+        {
+            // the same kind of gene is always interchangeable
+            if (type == gType && returnType == retType)
+                return true;
+            // TODO: need to adjust the POSH genes
+            // there is still one major issue with the intercahgeable check
+            // priority elements and elements in general should be intercahgeable between drive and competence as they theoretically are, yet it needs a bit more more as they need to convert into each other
+            switch (type)
+            {
+                case GeneType.Action:
+                case GeneType.ActionPattern:
+                case GeneType.Competence:
+                    switch (gType)
+                    {
+                        case GeneType.Action:
+                        case GeneType.ActionPattern:
+                        case GeneType.Competence:
+                            return true;
+                        default:
+                            return false;
+                    }
+                default:
+                    return false;
+            }
+        }
 
         /// <summary>
         /// Removes the gene and all its children from the Chromsome. 
@@ -226,6 +273,31 @@ namespace GrammarGP.elements
         internal virtual bool ReleaseGene()
         {
             return m_Chromosome.RemoveGene(this);
+        }
+
+        protected double MutateNumber(float mutation, Tuple<double, double> range)
+        {
+            bool increaseValue = false;
+
+            if (mutation < 0.5f)
+                //decrease number
+                increaseValue = false;
+            else
+            {
+                //increase number
+                increaseValue = true;
+                mutation = mutation - 0.5f;
+            }
+
+            double number = (double)value;
+            double mutationRange = mutation * 2 * (range.Second - range.First);
+
+            if (increaseValue)
+                number = (number + mutationRange > range.Second) ? (number + mutationRange) - range.Second + range.First : number + mutationRange;
+            else
+                number = (number - mutationRange < range.First) ? range.Second - Math.Abs(range.First - Math.Abs(number - mutationRange)) : number - mutationRange;
+
+            return number;
         }
     }
 }

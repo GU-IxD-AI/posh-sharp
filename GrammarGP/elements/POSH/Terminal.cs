@@ -78,26 +78,30 @@ namespace GrammarGP.elements.POSH
             return value.ToString();
         }
 
-        public override void Mutate(float mutation)
+        public override AGene Mutate(float mutation)
         {
+            Terminal clone = (Terminal) this.Clone();
+
             switch (returnType)
             {
                 case ReturnType.Bool:
                     if (value is bool)
-                        value = MutateBool(mutation);
+                        clone.value = MutateBool(mutation);
                     break;
                 case ReturnType.Number:
                     if (value is double)
                         if (bounds is Tuple<double, double>)
-                            value = MutateNumber(mutation, bounds);
+                            clone.value = MutateNumber(mutation, bounds);
                         else
-                            value = MutateNumber(mutation, new Tuple<double, double>(0, 1.0));
+                            clone.value = MutateNumber(mutation, new Tuple<double, double>(0, 1.0));
                     break;
                 case ReturnType.Text:
                     break;
                 default:
                     break;
             }
+
+            return clone;
         }
 
         private object MutateBool(float mutation)
@@ -105,30 +109,7 @@ namespace GrammarGP.elements.POSH
             return (mutation < 0.5f) ? true : false;
         }
 
-        private double MutateNumber(float mutation, Tuple<double, double> range)
-        {
-            bool increaseValue = false;
-
-            if (mutation < 0.5f)
-                //decrease number
-                increaseValue = false;
-            else
-            {
-                //increase number
-                increaseValue = true;
-                mutation = mutation - 0.5f;
-            }
-
-            double number = (double) value;
-            double mutationRange = mutation*2 * (range.Second - range.First);
-
-            if (increaseValue)
-                number = (number + mutationRange > range.Second) ? (number + mutationRange) - range.Second + range.First : number + mutationRange;
-            else
-                number = (number - mutationRange < range.First) ? range.Second - Math.Abs(range.First - Math.Abs(number - mutationRange)) : number - mutationRange;
-
-            return number;
-        }
+        
 
         public int CompareTo(object obj)
         {

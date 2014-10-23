@@ -22,6 +22,11 @@ namespace POSH.sys
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second);
         }
+
+        public override int GetHashCode()
+        {
+            return First.GetHashCode()*Second.GetHashCode();
+        }
     }
 
     public class Tuple<T1, T2,T3> : Tuple<T1,T2>
@@ -39,6 +44,11 @@ namespace POSH.sys
             if (tup == null)
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third);
+        }
+
+        public override int GetHashCode()
+        {
+            return First.GetHashCode() * Second.GetHashCode() * Third.GetHashCode();
         }
     }
 
@@ -59,6 +69,11 @@ namespace POSH.sys
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth);
         }
+
+        public override int GetHashCode()
+        {
+            return First.GetHashCode() * Second.GetHashCode() * Third.GetHashCode() * Forth.GetHashCode();
+        }
     }
 
     public class Tuple<T1, T2, T3, T4, T5> : Tuple<T1, T2, T3, T4>
@@ -77,6 +92,10 @@ namespace POSH.sys
             if (tup == null)
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth);
+        }
+        public override int GetHashCode()
+        {
+            return First.GetHashCode() * Second.GetHashCode() * Third.GetHashCode() * Forth.GetHashCode() * Fifth.GetHashCode();
         }
     }
 
@@ -97,6 +116,10 @@ namespace POSH.sys
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth) && Sixth.Equals(tup.Sixth);
         }
+        public override int GetHashCode()
+        {
+            return First.GetHashCode() * Second.GetHashCode() * Third.GetHashCode() * Forth.GetHashCode() * Fifth.GetHashCode() * Sixth.GetHashCode();
+        }
     }
 
     public class Tuple<T1, T2, T3, T4, T5, T6, T7> : Tuple<T1, T2, T3, T4, T5, T6>
@@ -115,6 +138,10 @@ namespace POSH.sys
             if (tup == null)
                 return false;
             return First.Equals(tup.First) && Second.Equals(tup.Second) && Third.Equals(tup.Third) && Forth.Equals(tup.Forth) && Fifth.Equals(tup.Fifth) && Sixth.Equals(tup.Sixth) && Seventh.Equals(tup.Seventh);
+        }
+        public override int GetHashCode()
+        {
+            return First.GetHashCode() * Second.GetHashCode() * Third.GetHashCode() * Forth.GetHashCode() * Fifth.GetHashCode() * Sixth.GetHashCode() * Seventh.GetHashCode();
         }
     }
 

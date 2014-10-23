@@ -12,12 +12,7 @@ namespace POSH.sys.strict
     public class PlanElement : CopiableElement
     {
 
-        ///
-        /// Event Handling
-        /// This creates FireEvents which can be used in the Fire method to allow for execution tracking
-        /// an IListener needs to be used to subscribe to each plan element however
-        ///
-        public event FireHandler FireEvent;
+        
         
 
         /// <summary>
@@ -52,13 +47,6 @@ namespace POSH.sys.strict
         public virtual FireResult fire()
         {
             throw new NotImplementedException("PlanElement.fire() needs to be overridden");
-        }
-
-        protected void BroadCastFireEvent(EventArgs args)
-        {
-            // the event gernerates some weird issue when the listenener is not attached
-            if (_agent_.HasListenerForTyp(EventType.Fire))
-                FireEvent(EventType.Fire,this, args);
         }
     }
 }

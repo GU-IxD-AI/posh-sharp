@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using GrammarGP.env;
+using POSH.sys;
 
 namespace GrammarGP.elements.POSH
 {
@@ -106,9 +107,5 @@ namespace GrammarGP.elements.POSH
             return plan;
         }
 
-        public override void Mutate(float mutation)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

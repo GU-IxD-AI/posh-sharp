@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -23,6 +24,13 @@ namespace POSH.sys.strict
         static int currentId = 0;
         protected int id;
         protected string name;
+
+        ///
+        /// Event Handling
+        /// This creates FireEvents which can be used in the Fire method to allow for execution tracking
+        /// an IListener needs to be used to subscribe to each plan element however
+        ///
+        public event FireHandler FireEvent;
 
         /// <summary>
         /// Returns a unique element id.
@@ -91,6 +99,12 @@ namespace POSH.sys.strict
         {
             throw new NotImplementedException(); 
         }
-
+               
+        protected void BroadCastFireEvent(EventArgs args)
+        {
+            // the event gernerates some weird issue when the listenener is not attached
+            if (_agent_.HasListenerForTyp(EventType.Fire))
+                FireEvent(EventType.Fire,this, args);
+        }
     }
 }

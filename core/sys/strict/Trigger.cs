@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -47,14 +48,25 @@ namespace POSH.sys.strict
         /// <returns>If all the senses/sense-acts evaluate to True.</returns>
         public bool fire()
         {
+            bool success = false; 
+            
             log.Debug("Firing");
             foreach (POSHSense sense in this.senses)
                 if (!sense.fire().continueExecution())
                 {
                     log.Debug(string.Format("Sense {0} failed",sense.getName()));
-                    return false;
+                    success = false;
                 }
-            return true;
+            success = true;
+
+            // logging the event
+            FireArgs args = new FireArgs();
+            args.FireResult = success;
+            args.Time = DateTime.Now;
+
+            BroadCastFireEvent(args);
+
+            return success;
         }
 
         public override string ToSerialize(Dictionary<string,string> elements)

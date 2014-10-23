@@ -60,12 +60,14 @@ namespace GrammarGP.elements.POSH
             return this.ToString();
         }
 
-        public override void Mutate(float mutation)
+        public override AGene Mutate(float mutation)
         {
+            Predicate clone = (Predicate)this.Clone();
+
             // possible options for a predicate starting to count at zero
             int range = 5;
             if ( !(value is PredicateType) )
-                return;
+                return clone;
             int position = (int)value;
             
             bool increaseValue = false;
@@ -88,7 +90,9 @@ namespace GrammarGP.elements.POSH
             else
                 position = (int) ( (position - mutationRange < range) ? range - Math.Abs(position - mutationRange) : position - mutationRange );
 
-            value = position;
+            clone.value = position;
+
+            return clone;
         }
 
         public override bool SetChildren(AGene[] children)

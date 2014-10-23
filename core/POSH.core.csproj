@@ -12,15 +12,13 @@
     <AssemblyName>POSH-core</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;LOG_OFF</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -31,23 +29,27 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\POSH-core.xml</DocumentationFile>
+    <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>library\libs\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="log4net">
+      <HintPath>library\libs\log4net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="sys\AgentFactory.cs" />
     <Compile Include="sys\annotations\ExecutableSense.cs" />
     <Compile Include="sys\annotations\ExecutableAction.cs" />
+    <Compile Include="sys\annotations\POSHPrimitive.cs" />
     <Compile Include="sys\BehaviourDict.cs" />
     <Compile Include="sys\AgentInitParser.cs" />
+    <Compile Include="sys\events\FireArgs.cs" />
+    <Compile Include="sys\events\POSHListener.cs" />
+    <Compile Include="sys\events\SenseArgs.cs" />
     <Compile Include="sys\IBehaviourConnector.cs" />
     <Compile Include="sys\EmbeddedControl.cs" />
     <Compile Include="sys\exceptions\AgentInitParseException.cs" />
@@ -55,9 +57,13 @@
     <Compile Include="sys\exceptions\UsageException.cs" />
     <Compile Include="sys\exceptions\NameException.cs" />
     <Compile Include="sys\exceptions\ParseException.cs" />
+    <Compile Include="sys\events\IListener.cs" />
     <Compile Include="sys\Latch.cs" />
     <Compile Include="sys\LatchedBehaviour.cs" />
+    <Compile Include="sys\ILog.cs" />
+    <Compile Include="sys\Log.cs" />
     <Compile Include="sys\parse\LAPLexer.cs" />
+    <Compile Include="sys\parse\LAPWriter.cs" />
     <Compile Include="sys\parse\Token.cs" />
     <Compile Include="sys\Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -87,6 +93,7 @@
     <Compile Include="sys\scheduled\Sense.cs" />
     <Compile Include="sys\scheduled\Timer.cs" />
     <Compile Include="sys\scheduled\Trigger.cs" />
+    <Compile Include="sys\SortedList.cs" />
     <Compile Include="sys\strict\ActionPattern.cs" />
     <Compile Include="sys\strict\Agent.cs" />
     <Compile Include="sys\strict\Action.cs" />

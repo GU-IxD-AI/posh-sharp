@@ -27,7 +27,7 @@ namespace POSH.sys.events
 
         public bool ListensFor(EventType evType)
         {
-            throw new NotImplementedException();
+            return (evType == EventType.Fire) ? true : false;
         }
 
         private void Listen(EventType t, object p, EventArgs f)

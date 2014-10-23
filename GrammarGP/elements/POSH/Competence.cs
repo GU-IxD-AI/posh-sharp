@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using GrammarGP.env;
+using POSH.sys;
 
 namespace GrammarGP.elements.POSH
 {
@@ -109,9 +110,21 @@ namespace GrammarGP.elements.POSH
             return plan;
         }
 
-        public override void Mutate(float mutation)
+        public override AGene Mutate(float mutation)
         {
-            throw new NotImplementedException();
-        }
+            // actions are represented as basic strings so mutating them is not possible at this level 
+            // if actions should be changed xover is needed
+            List<decimal> existing = new List<decimal>();
+            AGene[] pool = new AGene[0];
+
+            //if (mutation < 0.75f)
+            // TODO: we could modify the children and delete/add or rearrange them with a low percentage which you correlate well with mutation
+            existing.AddRange(m_Chromosome.GetAllInterChangeableGenes(type, returnType, false));
+            existing.AddRange(m_Chromosome.GetAllInterChangeableGenes(type, returnType, true));
+
+            int pick = (int)MutateNumber(mutation, new Tuple<double, double>(0, existing.Count));
+
+            return (AGene)m_Chromosome.GetGene(existing[pick]).Clone();
+        }        
     }
 }
