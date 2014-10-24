@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -65,6 +66,8 @@ namespace POSH.sys.strict
         public override FireResult  fire()
         {
  	        log.Debug("Fired");
+            FireArgs args = new FireArgs();
+
             CopiableElement element = elements[elementIdx];
             if (element is POSHAction || element is POSHSense)
             {
@@ -78,6 +81,10 @@ namespace POSH.sys.strict
                 {
                     log.Debug(string.Format("Action/Sense {0} failed", element.getName()));
                     elementIdx = 0;
+                    args.FireResult = result;
+                    args.Time = DateTime.Now;
+
+                    BroadCastFireEvent(args);
                     return new FireResult(false, null);
                 }
 
@@ -86,14 +93,26 @@ namespace POSH.sys.strict
                 if (elementIdx >= elements.Count)
                 {
                     elementIdx = 0;
+                    args.FireResult = result;
+                    args.Time = DateTime.Now;
+
+                    BroadCastFireEvent(args);
                     return new FireResult(false, null);
                 }
+                args.FireResult = result;
+                args.Time = DateTime.Now;
+
+                BroadCastFireEvent(args);
                 return new FireResult(true, null);
             }
             else if (element is Competence)
             {
                 // we have a competence
                 elementIdx = 0;
+                args.FireResult = true;
+                args.Time = DateTime.Now;
+
+                BroadCastFireEvent(args);
                 return new FireResult(true, element);
             }
 

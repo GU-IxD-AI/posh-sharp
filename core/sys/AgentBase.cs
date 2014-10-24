@@ -33,6 +33,13 @@ namespace POSH.sys
 
         private List<IListener> _listeners;
 
+        ///
+        /// Event Handling
+        /// This creates FireEvents which can be used in the Fire method to allow for execution tracking
+        /// an IListener needs to be used to subscribe to each plan element however
+        ///
+        public event FireHandler FireEvent;
+
         /// <summary>
         /// The name of the POSH plan which is used for this agent.
         /// </summary>
@@ -500,6 +507,13 @@ namespace POSH.sys
                     if (listener.ListensFor(eventType))
                         return true;
             return false;
+        }
+
+        protected void BroadCastFireEvent(EventArgs args)
+        {
+            // the event gernerates some weird issue when the listenener is not attached
+            if (_agent_.HasListenerForTyp(EventType.Fire))
+                FireEvent(EventType.Fire, this, args);
         }
     }
 

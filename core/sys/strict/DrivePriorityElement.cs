@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using POSH.sys.parse;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -59,7 +60,7 @@ namespace POSH.sys.strict
             log.Debug("Fired");
             long timeStamp = timer.Time();
             elements = LAPParser.ShuffleList(elements);
-            // new_elements=self.get_sorted_drive()
+            FireArgs args = new FireArgs();
 
             if (elements.Contains(agent.dc.lastTriggeredElement))
                 if (agent.dc.lastTriggeredElement.isReady(timeStamp))
@@ -71,6 +72,9 @@ namespace POSH.sys.strict
                     //            element.fire()
                     //            return FireResult(False, None)
                     agent.dc.lastTriggeredElement.fire();
+                    args.FireResult = false;
+                    args.Time = DateTime.Now;
+                    BroadCastFireEvent(args);
                     return new FireResult(false, null);
                 }
             // for element in new_elements:
@@ -102,10 +106,15 @@ namespace POSH.sys.strict
                                 agent.dc.lastTriggeredElement = null;
                         }
                     element.fire();
+                    args.FireResult = false;
+                    args.Time = DateTime.Now;
+                    BroadCastFireEvent(args);
                     return new FireResult(false, null);
                 }
             }
-
+            args.FireResult = false;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
             return null;
         }
 

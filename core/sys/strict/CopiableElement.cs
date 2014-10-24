@@ -13,6 +13,7 @@ namespace POSH.sys.strict
     /// </summary>
     public class CopiableElement : ElementBase
     {
+        // FIXME: This class needs to be removed completely as it is overly redudant. You can replace it with the Interface ICloneAble which is better suited anyhow
         /// <summary>
         /// Any element that is or can become the element of a drive element
         /// or competence element as to be of this class or a inheriting class.

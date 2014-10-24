@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -113,6 +114,8 @@ namespace POSH.sys.strict
         public override FireResult fire()
         {
             FireResult result;
+            FireArgs args = new FireArgs();
+            
 
             log.Debug("Fired");
             // if our element is an action, we just fire it and do
@@ -125,12 +128,17 @@ namespace POSH.sys.strict
             {
                 ((POSHAction)element).fire();
                 element = root;
+                args.FireResult = false;
+                args.Time = DateTime.Now;
+                BroadCastFireEvent(args);
                 return null;
             }
 
             // the element is a competence or an action pattern
             result = ((ElementCollection)element).fire();
-
+            args.FireResult = false;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
             if (result.continueExecution())
             {
                 // if we have a new next element, store it as the next

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -58,14 +59,17 @@ namespace POSH.sys.strict
         /// <returns>If the element is ready to be fired.</returns>
         public override bool  isReady(long timeStamp)
         {
- 	         if (trigger.fire())
+            
+            bool success = false;
+            if (trigger.fire())
                  if (maxRetries == 0 || retries < maxRetries )
                  {
                      retries +=1;
-                     return true;
+                     success = true;
                  } else
                     log.Debug("Retry limit exceeded");
-            return false;
+            
+            return success;
         }
 
         /// <summary>
@@ -80,11 +84,24 @@ namespace POSH.sys.strict
         /// <returns>Result of firing the competence element.</returns>
         public override FireResult  fire()
         {
+            FireArgs args = new FireArgs();
+            
+
  	        log.Debug("Fired");
-            if (element is POSHAction){
+            if (element is POSHAction)
+            {
                 ((POSHAction)element).fire();
+
+                args.FireResult = false;
+                args.Time = DateTime.Now;
+                BroadCastFireEvent(args);
+                
                 return new FireResult(false, null);
             }
+
+            args.FireResult = true;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
             return new FireResult(true, element);
         }
 

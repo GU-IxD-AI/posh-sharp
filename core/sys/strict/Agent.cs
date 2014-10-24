@@ -6,6 +6,7 @@ using POSH.sys;
 using System.Threading;
 using System.IO;
 using POSH.sys.parse;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -116,6 +117,7 @@ namespace POSH.sys.strict
         public override int FollowDrive()
         {
             FireResult result;
+            FireArgs args = new FireArgs();
             // FIXME: This test is *very* costly, this function is the most frequently run in a POSH. 
             //        In lisp, I used to have a debug version of POSH that had lots of conditionals in it, 
             //        and a fast version with none.  Speaking of None, identity is faster to check than equality, 
@@ -127,8 +129,13 @@ namespace POSH.sys.strict
                 profiler.increaseTotalCalls();
 
             log.Debug("Processing Drive Collection");
-
+            
             result = dc.fire();
+
+            args.FireResult = (result is FireResult) ? result.continueExecution() : false;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
+
             timer.LoopEnd();
 
             if (result.continueExecution())

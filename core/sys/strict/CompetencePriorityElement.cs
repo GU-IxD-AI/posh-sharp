@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -56,15 +57,27 @@ namespace POSH.sys.strict
         public override FireResult  fire()
         {
  	        log.Debug("Fired");
+            FireArgs args = new FireArgs();
 
             foreach (CompetenceElement elem in elements)
             {
                 // as the method ignores the timestamp, we can give it
                 // whatever we want
                 if (elem.isReady(0))
-                    return elem.fire();
+                {
+                    FireResult result =  elem.fire();
+                    args.FireResult = result.continueExecution();
+                    args.Time = DateTime.Now;
+                    BroadCastFireEvent(args);
+
+                    return result;
+                }
             }
             log.Debug("Priority Element failed");
+            
+            args.FireResult = true;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
 
             return new FireResult(true, null);
         }

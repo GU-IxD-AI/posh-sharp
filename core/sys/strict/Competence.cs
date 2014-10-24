@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using POSH.sys.events;
 
 namespace POSH.sys.strict
 {
@@ -72,10 +73,16 @@ namespace POSH.sys.strict
         public override FireResult  fire()
         {
  	        log.Debug("Fired");
+            FireArgs args = new FireArgs();
+            
             // check if the goal is satisfied
             if (goal is Trigger && goal.fire())
             {
                 log.Debug("Goal satisfied");
+                args.FireResult = false;
+                args.Time = DateTime.Now;
+                BroadCastFireEvent(args);
+                
                 return new FireResult(false, null);
             }
             // process the elements
@@ -86,11 +93,18 @@ namespace POSH.sys.strict
                 // check if the competence priority element failed
                 if (result.continueExecution() && !(result.nextElement() is CopiableElement) )
                     continue;
+                args.FireResult = result.continueExecution();
+                args.Time = DateTime.Now;
+                BroadCastFireEvent(args);
+                
                 return result;
             }
             // we failed
             log.Debug("Failed");
-
+            args.FireResult = false;
+            args.Time = DateTime.Now;
+            BroadCastFireEvent(args);
+            
             return new FireResult(false, null);
         }
 
