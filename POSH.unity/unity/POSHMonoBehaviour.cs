@@ -12,6 +12,7 @@ namespace POSH.unity
         protected POSHInnerBehaviour poshBehaviour;
         protected POSHController controller;
         protected AgentBase agent = null;
+        public string suitedPlan {protected set; get; }
 
         /// <summary>
         /// Links the actual gameObject and its Component the POSHBehaviour to the POSHController.
@@ -45,6 +46,11 @@ namespace POSH.unity
         protected internal abstract void ConfigureParameters(Dictionary<string,object> parameters);
 
         protected internal abstract void ConfigureParameter(string parameter, object value);
+
+        public bool IsSuitedForAgent(AgentBase agent)
+        {
+            return (agent.linkedPlanName == suitedPlan) ? true : false;
+        }
 
         public void ConnectPOSHUnity(POSHController control)
         {
