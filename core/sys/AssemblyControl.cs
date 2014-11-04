@@ -303,7 +303,11 @@ namespace POSH.sys
                     object[] para = new object[1] { agent };
                     log.Debug("Registering behaviour in behaviour dictionary");
                     if (behaviourConstruct != null)
-                        dict.RegisterBehaviour((Behaviour)behaviourConstruct.Invoke(para));
+                    {
+                        Behaviour behave = (Behaviour)behaviourConstruct.Invoke(para);
+                        if (behave.IsSuitedForAgent(agent))
+                                dict.RegisterBehaviour(behave);
+                    }
                 }
             
             return ( dict.getBehaviours().Count() > 0 ) ? dict : new BehaviourDict();

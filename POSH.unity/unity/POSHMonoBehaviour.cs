@@ -12,7 +12,7 @@ namespace POSH.unity
         protected POSHInnerBehaviour poshBehaviour;
         protected POSHController controller;
         protected AgentBase agent = null;
-        public string suitedPlan {protected set; get; }
+        
 
         /// <summary>
         /// Links the actual gameObject and its Component the POSHBehaviour to the POSHController.
@@ -23,9 +23,11 @@ namespace POSH.unity
         {
             if (this.agent == null || this.agent == agent)
             {
-                this.agent = agent;
                 Dictionary<string, object> parameters = agent.GetAttributes();
                 poshBehaviour = InstantiateInnerBehaviour(agent);
+                if (!poshBehaviour.IsSuitedForAgent(agent))
+                    return null;
+                this.agent = agent;
             }
             else
             {
@@ -47,10 +49,7 @@ namespace POSH.unity
 
         protected internal abstract void ConfigureParameter(string parameter, object value);
 
-        public bool IsSuitedForAgent(AgentBase agent)
-        {
-            return (agent.linkedPlanName == suitedPlan) ? true : false;
-        }
+        
 
         public void ConnectPOSHUnity(POSHController control)
         {

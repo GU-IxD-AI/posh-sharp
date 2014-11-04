@@ -25,6 +25,12 @@ namespace POSH.sys
         protected internal AgentBase agent;
         internal Random random;
 
+        /// <summary>
+        /// This string contains all lap plan names which the behaviour is suited for. The plan names are separated by '|'. 
+        /// If no plan names are entered and the suitedPlans is left empty the behaviour is suitable for all agents.
+        /// </summary>
+        public string suitedPlans { protected internal set; get; }
+
         //public List<string> actions{get; private set;}
         /// <summary>
         /// Returns a list of available senses.
@@ -223,6 +229,29 @@ namespace POSH.sys
         public string GetName()
         {
             return this.GetType().FullName.ToString();
+        }
+
+        /// <summary>
+        /// Allows To limit the freedom of the action selection by inhibiting agents the usage of certain behaviours.
+        /// This follows the idea of Object orientation and Accessability of unneeded information.
+        /// </summary>
+        /// <param name="agent">The agentbase containing information regarding the used lap plan</param>
+        /// <returns>True if the behaviour should be usable by the agent. False otherwise.</returns>
+        public bool IsSuitedForAgent(AgentBase agent)
+        {
+            if (suitedPlans.Trim() == string.Empty)
+                return true;
+            if (!suitedPlans.Contains('|'))
+                return ( agent.linkedPlanName == suitedPlans);
+            string [] plans = suitedPlans.Split(new char[]{'|'});
+
+            return (plans.Contains(agent.linkedPlanName));
+        }
+
+        public void SetSuitablePlans(string[] plans)
+        {
+            foreach (string plan in plans)
+                suitedPlans += plan + "|";
         }
 
         /// <summary>

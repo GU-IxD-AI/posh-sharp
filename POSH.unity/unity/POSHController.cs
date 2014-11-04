@@ -160,9 +160,11 @@ namespace POSH.unity
             List<sys.Behaviour> result = new List<sys.Behaviour>();
 
             foreach (POSHBehaviour behave in this.behaviourPool)
-                if (behave.IsSuitedForAgent(agent))
-                    result.Add(behave.LinkPOSHBehaviour(agent));
-
+            {
+                sys.Behaviour poshBehaviour = behave.LinkPOSHBehaviour(agent);
+                if (poshBehaviour != null)
+                    result.Add(poshBehaviour);
+            }
             return result.ToArray();
         }
 
