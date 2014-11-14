@@ -32,7 +32,7 @@ namespace POSH.sys
         public ILog log {get; private set;}
 #endif
         protected internal bool _debug_ { get; internal set;}
-        protected AgentBase _agent_;
+        protected AgentBase m_agent;
 
         /// <summary>
         /// Returns a list of available attributes.
@@ -70,10 +70,10 @@ namespace POSH.sys
             attributes = new Dictionary<string, object>();
 
             if (agent == null)
-                agent = ((AgentBase)this);
+                m_agent = ((AgentBase)this);
             else 
             {
-                _agent_ = agent;
+                m_agent = agent;
                 string agentId = agent.id != string.Empty ? agent.id : "NOID";
 
                 if (logName == string.Empty){

@@ -48,7 +48,7 @@ namespace POSH.sys.strict
         /// <returns>If all the senses/sense-acts evaluate to True.</returns>
         public bool fire()
         {
-            bool success = false; 
+            bool success = true; 
             
             log.Debug("Firing");
             foreach (POSHSense sense in this.senses)
@@ -56,9 +56,9 @@ namespace POSH.sys.strict
                 {
                     log.Debug(string.Format("Sense {0} failed",sense.getName()));
                     success = false;
+                    break;
                 }
-            success = true;
-
+            
             // logging the event
             FireArgs args = new FireArgs();
             args.FireResult = success;

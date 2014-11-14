@@ -103,7 +103,7 @@ namespace POSH.sys.strict
         protected void BroadCastFireEvent(EventArgs args)
         {
             // the event gernerates some weird issue when the listenener is not attached
-            if (_agent_.HasListenerForTyp(EventType.Fire))
+            if (m_agent.HasListenerForTyp(EventType.Fire))
                 FireEvent(EventType.Fire,this, args);
         }
     }

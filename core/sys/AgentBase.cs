@@ -48,9 +48,7 @@ namespace POSH.sys
 
 		public AgentBase(string library, string plan, Dictionary<Tuple<string,string>,object> attributes) 
 			: this(library, plan,attributes, null)
-		{
-            _listeners = new List<IListener>();
-		}
+		{ }
 
         /// <summary>
         /// Initialises the agent to use the given library and plan.
@@ -85,6 +83,9 @@ namespace POSH.sys
             this.library = library;
             this.world = world;
 
+            linkedPlanName = plan;
+            _listeners = new List<IListener>();
+		
             // we need to set the random number generator before we
             // load the behaviours, as they might access it upon
             // construction
@@ -512,7 +513,7 @@ namespace POSH.sys
         protected void BroadCastFireEvent(EventArgs args)
         {
             // the event gernerates some weird issue when the listenener is not attached
-            if (_agent_.HasListenerForTyp(EventType.Fire))
+            if (m_agent.HasListenerForTyp(EventType.Fire))
                 FireEvent(EventType.Fire, this, args);
         }
     }
