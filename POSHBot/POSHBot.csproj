@@ -86,7 +86,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\core\POSH.core.csproj">
+      <Project>{A29EA261-C940-427B-AB72-B27EEFDC15A0}</Project>
+      <Name>POSH.core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "$(SolutionDir)execute\library\$(TargetFileName)"</PostBuildEvent>

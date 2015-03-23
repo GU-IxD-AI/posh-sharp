@@ -2,12 +2,22 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH-sharp.tests", "testing\POSH-sharp.tests.csproj", "{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A29EA261-C940-427B-AB72-B27EEFDC15A0} = {A29EA261-C940-427B-AB72-B27EEFDC15A0}
+		{0AEEF9C9-D65D-4072-A6C2-352FF8CBDE39} = {0AEEF9C9-D65D-4072-A6C2-352FF8CBDE39}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSHBot", "POSHBot\POSHBot.csproj", "{0AEEF9C9-D65D-4072-A6C2-352FF8CBDE39}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A29EA261-C940-427B-AB72-B27EEFDC15A0} = {A29EA261-C940-427B-AB72-B27EEFDC15A0}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH.core", "core\POSH.core.csproj", "{A29EA261-C940-427B-AB72-B27EEFDC15A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH", "execute\POSH.csproj", "{F0AC2ECA-6510-4558-AFA2-B2FB4F3A98BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0AEEF9C9-D65D-4072-A6C2-352FF8CBDE39} = {0AEEF9C9-D65D-4072-A6C2-352FF8CBDE39}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POSH.unity", "POSH.unity\POSH.unity.csproj", "{2D35B663-0C5A-4969-B44E-91769F6E5067}"
 EndProject
@@ -25,7 +35,6 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Debug|x86.ActiveCfg = Debug|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|Any CPU.ActiveCfg = Release|x86
 		{18414BB1-BFB2-44DB-BA3E-D729FDD37C0A}.Release|Mixed Platforms.ActiveCfg = Release|x86
