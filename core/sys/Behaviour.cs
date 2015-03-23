@@ -42,6 +42,7 @@ namespace POSH.sys
             : base("Behaviour", agent)
         {
             this.agent = agent;
+            this.suitedPlans = string.Empty;
             // aquire the random number generator from the agent
             this.random = agent.random;
             this.attributes = new Dictionary<string, object>();

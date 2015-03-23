@@ -15,14 +15,8 @@ namespace Posh_sharp.POSHBot
         internal CombatInfo info;
 
         public Combat(AgentBase agent)
-            :base(agent,new string[] {"ShootEnemyCarryingOurFlag",
-                            "RunToEnemyCarryingOurFlag",
-                            "FaceAttacker", "SetAttacker", "ShootAttacker"},
-                        new string[] {"SeeEnemyWithOurFlag",
-                            "OurFlagOnGround", "EnemyFlagOnGround",
-                            "IncomingProjectile",
-                            "TakenDamageFromSpecificPlayer",
-                            "TakenDamage", "IsRespondingToAttack"})
+            :base(agent,new string[] {},
+                        new string[] {})
         {
             info = new CombatInfo();
         }

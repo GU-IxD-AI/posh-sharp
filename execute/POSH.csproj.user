@@ -16,4 +16,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <StartArguments>-a=PoshBot.dll POSHBot</StartArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartArguments>-v -a=POSHBot.dll POSHBot</StartArguments>
+  </PropertyGroup>
 </Project>

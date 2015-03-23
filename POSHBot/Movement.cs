@@ -19,11 +19,8 @@ namespace Posh_sharp.POSHBot
 
         public Movement(AgentBase agent)
             : base(agent,
-            new string[] { "moveto_navpoint","StopBot", "idle", "WalkToNavPoint", "Rotate","BigRotate" },
-            new string[] { "at_enemy_base", "at_own_base", "KnowEnemyBasePos",
-                            "KnowOwnBasePos", "ReachableNavPoint",
-                            "enemy_flag_reachable", "OurFlagReachable",
-                            "SeeEnemy","IsRotating", "is_walking", "IsStuck" })
+            new string[] {},
+            new string[] {})
         {
             this.info = new PositionsInfo();
             pathHomeId = "PathHome";

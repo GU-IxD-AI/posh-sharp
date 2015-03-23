@@ -21,8 +21,8 @@ namespace Posh_sharp.POSHBot
 
 
 		public Navigator (AgentBase agent) 
-			: base(agent, new string[] {"select_navpoint","select_own_flag","select_enemy_flag","retrace_navpoint"}, 
-			new string[] {"selected_target","reached_target","close_navpoint","selected_navpoint_reachable"})
+			: base(agent, new string[] {}, 
+			new string[] {})
 		{
 			closestNavPointReachable = new Dictionary<string, bool> ();
 			navPointHistory = new Dictionary<string, int> ();

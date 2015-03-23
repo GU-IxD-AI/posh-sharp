@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <CustomCommands>
       <CustomCommands>
         <Command type="AfterBuild" command="${SolutionDir}\copy_win.bat &quot;${TargetFile}&quot; &quot;${SolutionDir}\execute\library\${TargetName}&quot;" workingdir="${SolutionDir}" pauseExternalConsole="True" />
