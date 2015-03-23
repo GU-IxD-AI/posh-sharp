@@ -19,10 +19,10 @@ namespace Posh_sharp.POSHBot
         internal CombatInfo info;
 
         public Template(AgentBase agent)
-            :base(agent,new string[] {"TemplateAction1",
-                            "TemplateAction2"},
-                        new string[] {"TemplateSense1",
-                            "TemplateSense2"})
+            :base(agent,new string[] {"TemplateAction1ToBlock",
+                            "TemplateAction2ToBlock"},
+                        new string[] {"TemplateSense1ToBlock",
+                            "TemplateSense2ToBlock"})
         {
             info = new CombatInfo();
         }
