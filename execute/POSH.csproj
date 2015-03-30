@@ -97,9 +97,7 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="plans\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="..\POSHBot\init\POSHBot_init.txt">
       <Link>library\init\POSHBot_init.txt</Link>

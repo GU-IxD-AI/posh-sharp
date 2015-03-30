@@ -90,8 +90,8 @@ namespace POSH.sys
 #if LOG_ON           
             if (defaultLevel != null)
                 ((log4net.Repository.Hierarchy.Logger)log.Logger).Level= defaultLevel as Level;
-
-            log4net.Config.XmlConfigurator.Configure();
+            
+          //  log4net.Config.XmlConfigurator.Configure();
 #endif
         }
 		protected void Init(string id)

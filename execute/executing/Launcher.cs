@@ -328,7 +328,20 @@ namespace POSH.executing
             
             // activate logging. we do this before initialising the world, as it might
             // use this logging facility
+#if LOG_ON
+            string configFile = String.Format("log4net.xml", Path.DirectorySeparatorChar);
             
+            /**/
+            System.IO.FileInfo fileInfo = new System.IO.FileInfo(configFile);
+            /**/
+            log4net.Config.XmlConfigurator.ConfigureAndWatch(fileInfo);
+            /**/
+            log4net.LogManager.GetLogger(typeof(LogBase)).InfoFormat("tesat", configFile);
+  
+
+            
+#else
+#endif
             //TODO: need to activate logging here
 
             // read agent initialisation. this needs to be done before initialising
