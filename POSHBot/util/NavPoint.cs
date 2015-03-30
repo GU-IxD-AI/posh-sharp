@@ -30,8 +30,8 @@ namespace Posh_sharp.POSHBot.util
             // debug
             if (rawNP.ContainsKey("Reachable"))
             {
-                Console.Out.WriteLine(rawNP);
-                Console.Out.WriteLine("----------");
+                //Console.Out.WriteLine(rawNP);
+                //Console.Out.WriteLine("----------");
             }   
 
             // sorted string list regarding length and lexicographically problems might occur if a key pair would be 01 vs 2
@@ -60,8 +60,8 @@ namespace Posh_sharp.POSHBot.util
             // debug
             if (dictRawNP.ContainsKey("Reachable"))
             {
-                Console.Out.WriteLine(dictRawNP.ToString());
-                Console.Out.WriteLine("-------");
+                //Console.Out.WriteLine(dictRawNP.ToString());
+                //Console.Out.WriteLine("-------");
             }
 
             IOrderedEnumerable<string> sortedList =
