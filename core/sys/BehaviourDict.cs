@@ -75,8 +75,8 @@ namespace POSH.sys
             {
                 if (target.ContainsKey(prim.Key))
                 {
-                    foreach (float version in target[prim.Key].Keys)
-                        if (source[prim.Key].ContainsKey(version))
+                    foreach (float version in source[prim.Key].Keys)
+                        if (target[prim.Key].ContainsKey(version))
                             throw new AttributeException(String.Format(exceptionText, prim.Key, version));
                         else
                             target[prim.Key][version] = source[prim.Key][version];
