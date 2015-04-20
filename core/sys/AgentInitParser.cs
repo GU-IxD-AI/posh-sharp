@@ -116,13 +116,13 @@ namespace POSH.sys
             
             foreach(string row in initFile)
             {
-                string line = row;
+                string line = row.Trim();
                 lineNr++;
                 // clean comments, newlines, leading and trailing spaces
                 int commentPos = line.IndexOf('#');
                 if (commentPos != -1)
                     line = line.Split('#')[0];
-                line.Trim();
+               
                 if (line != string.Empty)
                 {
                     // new agent starts with plan

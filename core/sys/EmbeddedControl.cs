@@ -66,9 +66,9 @@ namespace POSH.sys
         /// <param name="log">A log object</param>
         /// <returns>The dictionary containing the Assembly dll name and the included Behaviour classes</returns>
 #if LOG_ON
-        public virtual BehaviourDict GetBehaviours(string lib, log4net.ILog log, AgentBase agent)
+        public override BehaviourDict GetBehaviours(string lib, log4net.ILog log, AgentBase agent)
 #else
-        public virtual BehaviourDict GetBehaviours(string lib, ILog log,AgentBase agent)
+        public override BehaviourDict GetBehaviours(string lib, ILog log,AgentBase agent)
 #endif
         {
             BehaviourDict dict = new BehaviourDict();
