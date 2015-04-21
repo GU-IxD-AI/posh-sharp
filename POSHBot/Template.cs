@@ -91,6 +91,20 @@ namespace Posh_sharp.POSHBot
                 Console.Out.WriteLine(" in TemplateAction1");
             return false;
         }
+        [ExecutableAction("TemplateAction3",0.1f)]
+        public bool TemplateAction3()
+        {
+            if (_debug_)
+                Console.Out.WriteLine(" in TemplateAction1");
+            return false;
+        }
+        [ExecutableAction("TemplateAction3",0.2f)]
+        public bool TemplateAction3b()
+        {
+            if (_debug_)
+                Console.Out.WriteLine(" in TemplateAction1");
+            return false;
+        }
 
         /*
          * 

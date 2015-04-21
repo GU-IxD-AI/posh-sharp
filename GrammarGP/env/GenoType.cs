@@ -23,10 +23,15 @@ namespace GrammarGP.env
 
         private GenoType() 
         {
+            throw new NotImplementedException();
         }
 
-        public static GenoType RandomGenotype(Configuration config, AGene[] genes)
+        public static GenoType RandomGenotype(Configuration config, AgentBase[] agents, AGene[] genes)
         {
+            IGenePool pool = new GenePool();
+            foreach (AGene gene in genes)
+                pool.AddGene(gene);
+
             return new GenoType();
         }
 
