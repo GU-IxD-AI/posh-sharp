@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using GrammarGP.elements;
 
 namespace GrammarGP.operators
 {
@@ -35,5 +36,15 @@ namespace GrammarGP.operators
         {
             return one < two;
         }
+
+		public int Compare(IProgram program1, IProgram program2)
+		{
+			if (IsFitter (program1, program2))
+				return -1;
+			else if (IsFitter (program2, program1))
+				return 1;
+
+			return 0;
+		}
     }
 }
