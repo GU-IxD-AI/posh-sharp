@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
-using POSH_sharp.sys.parse;
+using POSH.sys.parse;
 using System.Text.RegularExpressions;
 
-namespace POSH_sharp.testing.validate.sys.parse
+namespace POSH.testing.validate.sys.parse
 {
     [TestFixture]
     class LAPLexerTest

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
-using POSH_sharp.sys.parse;
-using POSH_sharp.sys;
+using POSH.sys.parse;
+using POSH.sys;
 
-namespace POSH_sharp.testing.validate.sys.parse
+namespace POSH.testing.validate.sys.parse
 {
     [TestFixture]
     class LapParserTest
@@ -55,7 +55,7 @@ namespace POSH_sharp.testing.validate.sys.parse
         [Test]
         public void RetrievePlanbuilder()
         {
-            PlanBuilder build = parser.parse(input);
+            PlanBuilder build = parser.Parse(input);
             Console.Out.WriteLine("PlanBuilder object created: "+build.GetType());
         }
 

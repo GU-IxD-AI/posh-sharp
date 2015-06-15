@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit;
 
-namespace POSH_sharp.testing.validate
+namespace POSH.testing.validate
 {
     class NUnitRunner
     {
