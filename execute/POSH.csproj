@@ -59,6 +59,12 @@
     <Commandlineparameters>-v -a=PoshBot.dll POSHBot</Commandlineparameters>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE;DEBUG;LOG_ON</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DefineConstants>TRACE;LOG_ON</DefineConstants>
+    <DocumentationFile>bin\Release\POSH-sharp.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="executing\Launcher.cs" />

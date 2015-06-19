@@ -10,8 +10,6 @@ using System.Reflection;
 
 #if LOG_ON
     using log4net;
-#else
-    using POSH.sys;
 #endif
 
 namespace POSH.executing

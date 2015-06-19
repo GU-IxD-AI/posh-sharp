@@ -6,11 +6,17 @@ using POSH.sys.strict;
 
 namespace POSH.sys.events
 {
+    /// <summary>
+    /// A POSHListner listens for specific events to ocure and tracks them in the background. The Listener is used for analysing the traversal of the plan and for debugging. 
+    /// </summary>
     public class POSHListener : IListener
     {
 
         public Stack<Tuple<EventType, object, EventArgs>> eventStack;
 
+        /// <summary>
+        /// A POSHListner listens for specific events to ocure and tracks them in the background. The Listener is used for analysing the traversal of the plan and for debugging. 
+        /// </summary>
         public POSHListener()
         {
             eventStack = new Stack<Tuple<EventType, object, EventArgs>>();

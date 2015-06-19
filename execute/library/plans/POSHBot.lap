@@ -3,14 +3,13 @@
 ; lost the next time the tool is used.
 ; -------------------------------------------------------------
 (
-(documentation "Your Title" "Your Name" "Your file comments") 
 (AP AP-inch (seconds 1.0) (
 	idle
 ))
 (AP AP-moveing (minutes 1.0) (
 	moveto_navpoint
 ))
-(C wander-map (seconds 1.0) (goal (fail))
+(C wander-map (seconds 2.0) (goal ((focusing_task 1.0 =)))
 	(elements
 		(	(CE-moveto-navpoint (trigger ((selected_target 1.0 =) (reached_target 0.0 =))) moveto-selected-nav)	)
 		(	(CE-find-nxt-waypoint (trigger ((close_navpoint 1.0 =))) select_navpoint )	)
@@ -43,10 +42,10 @@
 		(get-enemy-flag-from-base (trigger ((enemy_flag_reachable 1.0 =))) get-enemy-flag(seconds 0.3)))
 		(
 
-		(wander_around (trigger (succeed)) wander-map(seconds 0.3)))
+		(wander_around (trigger ((focusing_task 1.0 !=))) wander-map(seconds 0.3)))
 		(
 
-		(inch (trigger ((succeed))) AP-inch))
+		(inch (trigger ((succeed))) AP-inch(seconds 0.1)))
 
 	)
 )

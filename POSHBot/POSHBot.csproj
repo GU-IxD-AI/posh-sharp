@@ -52,7 +52,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AlexR1993.cs" />
     <Compile Include="Template.cs" />
     <Compile Include="POSHBot.cs" />
     <Compile Include="Combat.cs" />

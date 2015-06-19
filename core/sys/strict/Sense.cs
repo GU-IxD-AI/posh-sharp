@@ -93,6 +93,7 @@ namespace POSH.sys.strict
             object result;
             bool checkBool;
             int checkInt;
+            double checkDouble;
             float checkFloat;
             long checkLong;
             bool output = false;
@@ -106,7 +107,7 @@ namespace POSH.sys.strict
             args.Sensed = result;
             args.Time = DateTime.Now;
             BroadCastFireEvent(args);
-            
+            String name = result.GetType().Name;
             switch (result.GetType().Name)
             {
                 case "Boolean":
@@ -125,11 +126,19 @@ namespace POSH.sys.strict
                         output = compare<int>(predicate.Trim(), (((bool)result) ? 1 : 0), checkInt);
                     }
                     break;
-                case "Float":
-                    if (float.TryParse(value.ToString(), out checkFloat))
-                        output = compare<float>(predicate.Trim(),(float)result,checkFloat);
+                case "Double":
+                     if (double.TryParse(value.ToString(), out checkDouble))
+                        output = compare<double>(predicate.Trim(),(double)result,checkDouble);
                     break;
-                case "Long":
+                case "Single":
+                    if (float.TryParse(value.ToString(), out checkFloat))
+                        output = compare<float>(predicate.Trim(), (float)result, checkFloat);
+                    break;
+                case "Int32":
+                    if (int.TryParse(value.ToString(), out checkInt))
+                        output = compare<int>(predicate.Trim(), (int)result, checkInt);
+                    break;
+                case "Int64":
                     if (long.TryParse(value.ToString(), out checkLong))
                         output = compare<long>(predicate.Trim(),(long)result,checkLong);
                     break;
