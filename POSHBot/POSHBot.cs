@@ -549,6 +549,10 @@ namespace Posh_sharp.POSHBot
                     // incoming projectile
                     // GetCombat().ReceiveDeathDetails(result.Second);
                 }
+		// allows each behaviour to execute some internal logic
+		foreach (Behaviour behave in agent.getBehaviours())
+                        if (behave is UTBehaviour)
+                            ((UTBehaviour)behave).Update();
             }
 
             log.Info("Closing Connection and Cleaning Up...");
