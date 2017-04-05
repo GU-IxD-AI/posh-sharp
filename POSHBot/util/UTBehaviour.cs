@@ -75,6 +75,12 @@ namespace Posh_sharp.POSHBot.util
             if (_debug_)
                 Console.Out.WriteLine("in ReceiveDeathDetails");
         } 
+	
+	internal virtual void Update()
+        {
+            if (_debug_)
+                Console.Out.WriteLine("in Update");
+        } 
 
     }
 }
