@@ -318,7 +318,7 @@ namespace Posh_sharp.POSHBot
             this.sentMsgLog.Add(new Tuple<string,Dictionary<string,string>>(command,dictionary));
             
             // does the list need truncating?
-            while (sentMsgLog.Count > sentMsgLogMax)
+            while (sentMsgLog.Count > 0 && sentMsgLog.Count > sentMsgLogMax)
                 sentMsgLog.RemoveAt(0);
             
             foreach (KeyValuePair<string,string> item in dictionary)
