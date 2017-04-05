@@ -315,31 +315,33 @@ namespace Posh_sharp.POSHBot
         public bool SendMessage(string command, Dictionary<string,string> dictionary)
         {
             string output = command;
-            this.sentMsgLog.Add(new Tuple<string,Dictionary<string,string>>(command,dictionary));
+	    lock(this.sentMsgLog) {
+         	   this.sentMsgLog.Add(new Tuple<string,Dictionary<string,string>>(command,dictionary));
             
-            // does the list need truncating?
-            while (sentMsgLog.Count > 0 && sentMsgLog.Count > sentMsgLogMax)
-                sentMsgLog.RemoveAt(0);
+         	   // does the list need truncating?
+          	  while (sentMsgLog.Count > 0 && sentMsgLog.Count > sentMsgLogMax)
+          	      sentMsgLog.RemoveAt(0);
             
-            foreach (KeyValuePair<string,string> item in dictionary)
-                // OLD-COMMENT: Only works when using str() otherwise error because target is a tuple
-                // not all targets are tuples, find out why. FA
-                output += " {"+item.Key +" "+ item.Value+ "}";
-            // print "About to send " + string
-            output += "\r\n";
+          	  foreach (KeyValuePair<string,string> item in dictionary)
+           	     // OLD-COMMENT: Only works when using str() otherwise error because target is a tuple
+           	     // not all targets are tuples, find out why. FA
+           	     output += " {"+item.Key +" "+ item.Value+ "}";
+           	 // print "About to send " + string
+           	 output += "\r\n";
 
-            try
-            {
-                writer.Write(output);
-                writer.Flush();
-            }
-            catch (Exception)
-            {
-                log.Error(string.Format("Message : {0} unable to send",output));
-                return false;
-            }
+           	 try
+          	  {
+           	     writer.Write(output);
+            	    writer.Flush();
+            	}
+           	 catch (Exception)
+          	  {
+                	log.Error(string.Format("Message : {0} unable to send",output));
+                	return false;
+            	}
 
-            return true;
+            	return true;
+	    }
         }
 
         private string ReadDataInput(StreamReader reader)
