@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -107,43 +107,46 @@ namespace POSH.sys.strict
             args.Sensed = result;
             args.Time = DateTime.Now;
             BroadCastFireEvent(args);
-            String name = result.GetType().Name;
-            switch (result.GetType().Name)
+	    if (result != null)
             {
-                case "Boolean":
-                    if (value == null)
-                    {
-                        output = (bool)result;
+                String name = result.GetType().Name;
+                switch (name)
+                {
+                    case "Boolean":
+                        if (value == null)
+                        {
+                            output = (bool)result;
+                            break;
+                        }
+                        if (bool.TryParse(value.ToString(), out checkBool))
+                        {
+                            output = compare<bool>(predicate.Trim(), (bool)result, checkBool);
+                            break;
+                        }
+                        if (int.TryParse(value.ToString(), out checkInt))
+                        {
+                            output = compare<int>(predicate.Trim(), (((bool)result) ? 1 : 0), checkInt);
+                        }
                         break;
-                    }
-                    if (bool.TryParse(value.ToString(), out checkBool))
-                    {
-                        output =  compare<bool>(predicate.Trim(), (bool)result, checkBool);
+                    case "Double":
+                        if (double.TryParse(value.ToString(), out checkDouble))
+                            output = compare<double>(predicate.Trim(), (double)result, checkDouble);
                         break;
-                    }
-                    if (int.TryParse(value.ToString(), out checkInt))
-                    {
-                        output = compare<int>(predicate.Trim(), (((bool)result) ? 1 : 0), checkInt);
-                    }
-                    break;
-                case "Double":
-                     if (double.TryParse(value.ToString(), out checkDouble))
-                        output = compare<double>(predicate.Trim(),(double)result,checkDouble);
-                    break;
-                case "Single":
-                    if (float.TryParse(value.ToString(), out checkFloat))
-                        output = compare<float>(predicate.Trim(), (float)result, checkFloat);
-                    break;
-                case "Int32":
-                    if (int.TryParse(value.ToString(), out checkInt))
-                        output = compare<int>(predicate.Trim(), (int)result, checkInt);
-                    break;
-                case "Int64":
-                    if (long.TryParse(value.ToString(), out checkLong))
-                        output = compare<long>(predicate.Trim(),(long)result,checkLong);
-                    break;
-                default:
-                    break;
+                    case "Single":
+                        if (float.TryParse(value.ToString(), out checkFloat))
+                            output = compare<float>(predicate.Trim(), (float)result, checkFloat);
+                        break;
+                    case "Int32":
+                        if (int.TryParse(value.ToString(), out checkInt))
+                            output = compare<int>(predicate.Trim(), (int)result, checkInt);
+                        break;
+                    case "Int64":
+                        if (long.TryParse(value.ToString(), out checkLong))
+                            output = compare<long>(predicate.Trim(), (long)result, checkLong);
+                        break;
+                    default:
+                        break;
+                }
             }
             return new FireResult(output,null);
         }
