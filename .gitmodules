@@ -1,9 +1,0 @@
-[submodule "ReActGrammar"]
-	path = ReActGrammar
-	url = https://github.com/suegy/ReActGrammar.git
-[submodule "ReActIDE"]
-	path = ReActIDE
-	url = https://github.com/suegy/ReActIDE.git
-[submodule "ReActUnity"]
-	path = ReActUnity
-	url = https://github.com/suegy/ReActUnity.git
