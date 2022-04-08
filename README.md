@@ -18,4 +18,7 @@ To make it short POSH# is aimed at asynchronous, iterative development of artifi
 ## People Involved: ##
 [Swen Gaudl](http://www.swen.fairrats.eu)
 
+
+
+## Previous Involved People: ##
 [Zack Lyons](https://twitter.com/zackl90)
